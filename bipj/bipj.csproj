@@ -74,6 +74,7 @@
     <Content Include="Discussion.aspx" />
     <Content Include="EditMyPost.aspx" />
     <Content Include="Forum_Nav.css" />
+    <Content Include="Home.aspx" />
     <Content Include="Images\hello kitty.png" />
     <Content Include="Images\usagi.jpg" />
     <Content Include="MyNotification.aspx" />
@@ -102,6 +103,13 @@
     </Compile>
     <Compile Include="EditMyPost.aspx.designer.cs">
       <DependentUpon>EditMyPost.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Home.aspx.cs">
+      <DependentUpon>Home.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Home.aspx.designer.cs">
+      <DependentUpon>Home.aspx</DependentUpon>
     </Compile>
     <Compile Include="MyNotification.aspx.cs">
       <DependentUpon>MyNotification.aspx</DependentUpon>

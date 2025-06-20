@@ -1,0 +1,49 @@
+﻿.sidebar {
+    background-color: #333;
+    color: white;
+    padding: 20px;
+    width: 200px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    flex: 0 0 200px; /* Fixed width */
+}
+
+.sidebar ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar ul li {
+    margin: 10px 0;
+}
+
+.sidebar ul li a {
+    color: white;
+    text-decoration: none;
+    display: flex;
+    align-items: center; /* Vertically center icon and text */
+    padding: 10px;
+    border-radius: 4px; /* Slight rounding for hover/active effect */
+    transition: background-color 0.2s ease;
+}
+
+.sidebar ul li a img {
+    margin-right: 15px; /* Space between icon and text */
+    width: 40px;  /* Slightly smaller, balanced size */
+    height: 40px;
+    object-fit: contain; /* Keep aspect ratio */
+}
+
+.sidebar ul li.active a {
+    background-color: #575757;
+    color: #fff;
+    font-weight: bold;
+    border-radius: 4px;
+}
+
+.sidebar ul li a:hover {
+    background-color: #575757;
+}

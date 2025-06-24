@@ -113,6 +113,7 @@
     <Content Include="MyNotification.aspx" />
     <Content Include="MyPost.aspx" />
     <Content Include="Post.aspx" />
+    <Content Include="VoucherSponsor.aspx" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
@@ -178,6 +179,13 @@
     <Compile Include="User_Like.cs" />
     <Compile Include="User_Notification.cs" />
     <Compile Include="User_Post.cs" />
+    <Compile Include="VoucherSponsor.aspx.cs">
+      <DependentUpon>VoucherSponsor.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="VoucherSponsor.aspx.designer.cs">
+      <DependentUpon>VoucherSponsor.aspx</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Customer_Nav.Master" />

@@ -25,19 +25,32 @@ namespace bipj
         private string _Subject;
         private string _Message;
         private string _Receive_DateTime;
-        private string _Response;
-        private string _Response_DateTime;
+        private string _Create_DateTime;
         private string _Status;
 
         public Sponsor_Voucher()
         {
         }
+
+        // insert sponsor
         public Sponsor_Voucher(string email, string subject, string message, string receive_datetime)
         {
             _Email = email;
             _Subject = subject;
             _Message = message;
             _Receive_DateTime = receive_datetime;
+        }
+
+        // retrieve sponsor
+        public Sponsor_Voucher(string email_id, string email, string subject, string message, string receive_datetime, string create_datetime, string status)
+        {
+            _Email_ID = email_id;
+            _Email = email;
+            _Subject = subject;
+            _Message = message;
+            _Receive_DateTime = receive_datetime;
+            _Create_DateTime = create_datetime;
+            _Status = status;
         }
 
         public string Email_ID
@@ -70,22 +83,16 @@ namespace bipj
             set { _Receive_DateTime = value; }
         }
 
-        public string Response
+        public string Create_DateTime
         {
-            get { return _Response; }
-            set { _Response = value; }
-        }
-
-        public string Response_DateTime
-        {
-            get { return _Response_DateTime; }
-            set { _Response_DateTime = value; }
+            get { return _Create_DateTime; }
+            set { _Create_DateTime = value; }
         }
 
         public string Status
         {
-            get { return Status; }
-            set { Status = value; }
+            get { return _Status; }
+            set { _Status = value; }
         }
 
         public void RetrieveSponsorVoucherEmails()
@@ -154,6 +161,40 @@ namespace bipj
             conn.Close();
 
             return result;
+        }
+
+        public List<Sponsor_Voucher> GetAllSponsors()
+        {
+            string email_id, email, subject, message, receive_datetime, create_datetime, status;
+            List<Sponsor_Voucher> sponsor_list = new List<Sponsor_Voucher>();
+
+            string queryStr = "SELECT * FROM Voucher_Sponsor";
+
+            SqlConnection conn = new SqlConnection(_connStr);
+            SqlCommand cmd = new SqlCommand(queryStr, conn);
+           
+            conn.Open();
+            SqlDataReader dr = cmd.ExecuteReader();
+
+            while (dr.Read())
+            {
+                email_id = dr["Email_ID"].ToString();
+                email = dr["Email"].ToString();
+                subject = dr["Subject"].ToString();
+                message = dr["Message"].ToString();
+                receive_datetime = dr["Receive_DateTime"].ToString();
+                create_datetime = dr["Create_DateTime"].ToString();
+                status = dr["Status"].ToString();
+
+                Sponsor_Voucher sponsor_voucher = new Sponsor_Voucher(email_id, email, subject, message, receive_datetime, create_datetime, status);
+                sponsor_list.Add(sponsor_voucher);
+            }
+
+            conn.Close();
+            dr.Close();
+            dr.Dispose();
+
+            return sponsor_list;
         }
 
     }

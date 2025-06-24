@@ -104,6 +104,7 @@
     <Content Include="App_Data\FinLitDB_log.ldf">
       <DependentUpon>FinLitDB.mdf</DependentUpon>
     </Content>
+    <Content Include="CreateVoucher.aspx" />
     <Content Include="Discussion.aspx" />
     <Content Include="EditMyPost.aspx" />
     <Content Include="Forum_Nav.css" />
@@ -113,10 +114,18 @@
     <Content Include="MyNotification.aspx" />
     <Content Include="MyPost.aspx" />
     <Content Include="Post.aspx" />
+    <Content Include="VoucherExchange.aspx" />
     <Content Include="VoucherSponsor.aspx" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CreateVoucher.aspx.cs">
+      <DependentUpon>CreateVoucher.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="CreateVoucher.aspx.designer.cs">
+      <DependentUpon>CreateVoucher.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Customer_Nav.Master.cs">
       <DependentUpon>Customer_Nav.Master</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -175,10 +184,18 @@
     <Compile Include="Staff_Nav.Master.designer.cs">
       <DependentUpon>Staff_Nav.Master</DependentUpon>
     </Compile>
+    <Compile Include="Staff_Voucher.cs" />
     <Compile Include="User_Comment.cs" />
     <Compile Include="User_Like.cs" />
     <Compile Include="User_Notification.cs" />
     <Compile Include="User_Post.cs" />
+    <Compile Include="VoucherExchange.aspx.cs">
+      <DependentUpon>VoucherExchange.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="VoucherExchange.aspx.designer.cs">
+      <DependentUpon>VoucherExchange.aspx</DependentUpon>
+    </Compile>
     <Compile Include="VoucherSponsor.aspx.cs">
       <DependentUpon>VoucherSponsor.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -202,6 +219,7 @@
     <Folder Include="Forum\Icon\" />
     <Folder Include="Forum\Images\" />
     <Folder Include="Forum\Videos\" />
+    <Folder Include="Voucher\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

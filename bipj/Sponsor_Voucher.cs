@@ -153,7 +153,7 @@ namespace bipj
             cmd.Parameters.AddWithValue("@Email", this.Email);
             cmd.Parameters.AddWithValue("@Subject", this.Subject);
             cmd.Parameters.AddWithValue("@Message", this.Message);
-            cmd.Parameters.AddWithValue("@Receive_DateTime", this._Receive_DateTime);
+            cmd.Parameters.AddWithValue("@Receive_DateTime", this.Receive_DateTime);
             cmd.Parameters.AddWithValue("@Status", "Pending");
 
             conn.Open();

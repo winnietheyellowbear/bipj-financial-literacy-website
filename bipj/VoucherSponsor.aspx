@@ -172,7 +172,7 @@
                              <%# Eval("Status") %>
                          </td>
                          <td>
-                             <asp:Button runat="server" Text="Create" CommandArgument='<%# Eval("Email_ID") %>' CssClass="btn btn-create" OnClientClick="return confirm('Are you sure you want to delete this record?');"/>
+                             <asp:Button runat="server" Text="Create" CommandArgument='<%# Eval("Email_ID") %>' CssClass="btn btn-create" OnClick="btn_create_Click"/>
                          </td>
                      </tr>
                  </ItemTemplate>

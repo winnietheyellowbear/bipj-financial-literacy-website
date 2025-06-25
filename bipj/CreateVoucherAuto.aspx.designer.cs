@@ -11,7 +11,7 @@ namespace bipj
 {
 
 
-    public partial class CreateVoucher
+    public partial class CreateVoucherAuto
     {
 
         /// <summary>

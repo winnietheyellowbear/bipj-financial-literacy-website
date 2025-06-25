@@ -15,7 +15,6 @@ namespace bipj
         string _connStr = ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString;
 
         private string _Voucher_ID;
-        private string _Company_Logo;
         private string _Company_Name;
         private string _Description;
         private string _Discount;
@@ -27,9 +26,8 @@ namespace bipj
         }
 
         // create voucher
-        public Staff_Voucher(string company_logo, string company_name, string description, string validity, int points_required)
+        public Staff_Voucher(string company_name, string description, string validity, int points_required)
         {
-            Company_Logo = company_logo;
             Company_Name = company_name;
             Description = description;
             Validity = validity;
@@ -37,10 +35,9 @@ namespace bipj
         }
 
         // retrieve voucher
-        public Staff_Voucher(string voucher_id, string company_logo, string company_name, string description, string validity, int points_required)
+        public Staff_Voucher(string voucher_id, string company_name, string description, string validity, int points_required)
         {
             Voucher_ID = voucher_id;
-            Company_Logo = company_logo;
             Company_Name = company_name;
             Description = description;
             Validity = validity;
@@ -51,12 +48,6 @@ namespace bipj
         {
             get { return _Voucher_ID; }
             set { _Voucher_ID = value; }
-        }
-
-        public string Company_Logo
-        {
-            get { return _Company_Logo; }
-            set { _Company_Logo = value; }
         }
 
         public string Company_Name
@@ -87,13 +78,12 @@ namespace bipj
         {
             int result = 0;
 
-            string queryStr = "INSERT INTO Staff_Voucher(Company_Logo, Company_Name, Description, Validity, Points_Required)"
-                            + "VALUES (@Company_Logo, @Company_Name, @Description, @Validity, @Points_Required)";
+            string queryStr = "INSERT INTO Staff_Voucher(Company_Name, Description, Validity, Points_Required)"
+                            + "VALUES (@Company_Name, @Description, @Validity, @Points_Required)";
 
             SqlConnection conn = new SqlConnection(_connStr);
             SqlCommand cmd = new SqlCommand(queryStr, conn);
 
-            cmd.Parameters.AddWithValue("@Company_Logo", this.Company_Logo);
             cmd.Parameters.AddWithValue("@Company_Name", this.Company_Name);
             cmd.Parameters.AddWithValue("@Description", this.Description);
             cmd.Parameters.AddWithValue("@Validity", this.Validity);
@@ -108,7 +98,7 @@ namespace bipj
 
         public List<Staff_Voucher> GetAllVouchers()
         {
-            string voucher_id, company_logo, company_name, description, validity;
+            string voucher_id, company_name, description, validity;
             int points_required;
             List<Staff_Voucher> voucher_list = new List<Staff_Voucher>();
 
@@ -123,13 +113,12 @@ namespace bipj
             while (dr.Read())
             {
                 voucher_id = dr["Voucher_ID"].ToString();
-                company_logo = dr["Company_Logo"].ToString();
                 company_name = dr["Company_Name"].ToString();
                 description = dr["Description"].ToString();
                 validity = dr["Validity"].ToString();
                 points_required = int.Parse(dr["Points_Required"].ToString());
 
-                Staff_Voucher staff_voucher = new Staff_Voucher(voucher_id, company_logo, company_name, description, validity, points_required);
+                Staff_Voucher staff_voucher = new Staff_Voucher(voucher_id, company_name, description, validity, points_required);
                 voucher_list.Add(staff_voucher);
             }
 
@@ -164,7 +153,7 @@ namespace bipj
 
         public Staff_Voucher GetVoucherByVoucherID(string voucher_id)
         {
-            string company_logo, company_name, description, validity;
+            string company_name, description, validity;
             int points_required;
 
             Staff_Voucher staff_voucher = new Staff_Voucher();   
@@ -180,13 +169,12 @@ namespace bipj
 
             while (dr.Read())
             {
-                company_logo = dr["Company_Logo"].ToString();
                 company_name = dr["Company_Name"].ToString();
                 description = dr["Description"].ToString();
                 validity = dr["Validity"].ToString();
                 points_required = int.Parse(dr["Points_Required"].ToString());
 
-                staff_voucher = new Staff_Voucher(voucher_id, company_logo, company_name, description, validity, points_required);
+                staff_voucher = new Staff_Voucher(voucher_id, company_name, description, validity, points_required);
             }
 
             conn.Close();

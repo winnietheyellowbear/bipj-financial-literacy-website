@@ -53,6 +53,9 @@
     <Reference Include="MimeKit, Version=4.12.0.0, Culture=neutral, PublicKeyToken=bede1c8a46c66814, processorArchitecture=MSIL">
       <HintPath>..\packages\MimeKit.4.12.0\lib\net47\MimeKit.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System.Buffers, Version=4.0.4.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Buffers.4.6.0\lib\net462\System.Buffers.dll</HintPath>
     </Reference>
@@ -109,6 +112,7 @@
     </Content>
     <Content Include="BookingForum.aspx" />
     <Content Include="CreateVoucher.aspx" />
+    <Content Include="CreateVoucherAuto.aspx" />
     <Content Include="Discussion.aspx" />
     <Content Include="EditMyPost.aspx" />
     <Content Include="Education.aspx" />
@@ -160,6 +164,13 @@
     </Compile>
     <Compile Include="CreateVoucher.aspx.designer.cs">
       <DependentUpon>CreateVoucher.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="CreateVoucherAuto.aspx.cs">
+      <DependentUpon>CreateVoucherAuto.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="CreateVoucherAuto.aspx.designer.cs">
+      <DependentUpon>CreateVoucherAuto.aspx</DependentUpon>
     </Compile>
     <Compile Include="Customer_Nav.Master.cs">
       <DependentUpon>Customer_Nav.Master</DependentUpon>

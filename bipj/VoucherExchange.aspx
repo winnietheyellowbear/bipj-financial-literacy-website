@@ -136,10 +136,10 @@
        <asp:Repeater ID="Voucher" runat="server">
        <ItemTemplate>
           <div class="voucher-card">
-           <asp:Image 
+          <%-- <asp:Image 
             runat="server" 
             ImageUrl='<%# ResolveUrl(Eval("Company_Logo").ToString()) %>' 
-            CssClass="voucher-logo" />
+            CssClass="voucher-logo" />--%>
            <div class="voucher-details">
              <div class="voucher-description"><%# Eval("Description") %></div>
              <div class="voucher-info">

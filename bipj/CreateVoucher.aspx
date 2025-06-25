@@ -81,12 +81,6 @@
  
     <div class="form-container">
         <h5>Create Voucher</h5>
-
-        <div class="form-group">
-            <label for="sponsor_logo">Sponsor Logo:</label>
-            <asp:FileUpload ID="sponsor_logo" runat="server" />
-        </div>
-
          <div class="form-group">
              <label for="tb_Sponsor_Company">Sponsor Name:</label>
              <asp:TextBox ID="tb_Sponsor_Name" runat="server" CssClass="form-control" />

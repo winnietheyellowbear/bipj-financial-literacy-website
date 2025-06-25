@@ -13,6 +13,7 @@ using MailKit;
 using MimeKit;
 using System.Net.Mail;
 using System.ComponentModel.DataAnnotations;
+using bipj;
 
 namespace bipj
 {
@@ -197,5 +198,38 @@ namespace bipj
             return sponsor_list;
         }
 
+        public Sponsor_Voucher GetEmailByEmailID(string email_id)
+        {
+            string email, subject, message, receive_datetime, create_datetime, status;
+            Sponsor_Voucher sponsor_voucher = new Sponsor_Voucher();    
+            
+            string queryStr = "SELECT * FROM Voucher_Sponsor WHERE Email_ID = @Email_ID";
+
+            SqlConnection conn = new SqlConnection(_connStr);
+            SqlCommand cmd = new SqlCommand(queryStr, conn);
+            cmd.Parameters.AddWithValue("@Email_ID", email_id);
+
+            conn.Open();
+            SqlDataReader dr = cmd.ExecuteReader();
+
+            while (dr.Read())
+            {
+                email = dr["Email"].ToString();
+                subject = dr["Subject"].ToString();
+                message = dr["Message"].ToString();
+                receive_datetime = dr["Receive_DateTime"].ToString();
+                create_datetime = dr["Create_DateTime"].ToString();
+                status = dr["Status"].ToString();
+
+                sponsor_voucher = new Sponsor_Voucher(email_id, email, subject, message, receive_datetime, create_datetime, status);
+                
+            }
+
+            conn.Close();
+            dr.Close();
+            dr.Dispose();
+
+            return sponsor_voucher;
+        }
     }
 }

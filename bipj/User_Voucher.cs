@@ -15,7 +15,6 @@ namespace bipj
 
         private string _User_Voucher_ID;
         private string _Staff_Voucher_ID;
-        private string _Company_Logo;
         private string _Company_Name;
         private string _Description;
         private string _Expiry_Date;
@@ -43,12 +42,6 @@ namespace bipj
         {
             get { return _Staff_Voucher_ID; }
             set { _Staff_Voucher_ID = value; }
-        }
-
-        public string Company_Logo
-        {
-            get { return _Company_Logo; }
-            set { _Company_Logo = value; }
         }
 
         public string Company_Name

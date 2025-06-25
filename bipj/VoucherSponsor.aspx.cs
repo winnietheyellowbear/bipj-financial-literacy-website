@@ -22,5 +22,15 @@ namespace bipj
                 Sponsor.DataBind();
             }
         }
+
+        protected void btn_create_Click(object sender, EventArgs e)
+        {
+            Button btn = (Button)sender;
+            string email_id = btn.CommandArgument;
+            Session["Email_ID"] = email_id;
+
+            Response.Redirect("CreateVoucherAuto.aspx");
+
+        }
     }
 }

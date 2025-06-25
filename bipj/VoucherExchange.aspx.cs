@@ -23,5 +23,30 @@ namespace bipj
             }
 
         }
+
+        protected void btn_redeem_Click(object sender, EventArgs e)
+        {
+            Button btn = (Button)sender;
+            string voucher_id = btn.CommandArgument;
+
+            string user_id = "2";
+
+            var variables = staff_voucher.IsPointEnough(voucher_id, user_id);
+            bool isPointEnough = variables.isPointEnough;
+            int userPoints = variables.userPoints;
+            int pointsRequired = variables.pointsRequired;
+
+            if (isPointEnough)
+            {
+                userPoints = userPoints - pointsRequired;
+                User_Voucher user_voucher = new User_Voucher();
+
+                user_voucher.PointUpdate(user_id, userPoints);
+                int result = user_voucher.VoucherInsert();
+            }
+
+        }
+
+
     }
 }

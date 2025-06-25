@@ -114,7 +114,7 @@
         </div>
 
           <!-- Voucher Cards -->
-       <asp:Repeater ID="Voucher" runat="server">
+       <asp:Repeater ID="Voucher" runat="server" OnItemCommand="Voucher_ItemCommand">
        <ItemTemplate>
           <div class="voucher-card" data-voucher-id="1">
            <asp:Image 
@@ -129,7 +129,7 @@
                <span>🌟 <%# Eval("Points_Required") %> Points</span>
              </div>
            </div>
-           <button class="voucher-redeem">Redeem</button>
+           <button class="voucher-redeem" CommandArgument="<%# Eval("Voucher_ID") %>">Redeem</button>
          </div>
        </ItemTemplate>
        </asp:Repeater>

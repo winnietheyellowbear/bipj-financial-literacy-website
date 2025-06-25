@@ -59,5 +59,47 @@ namespace bipj
             set { _User_ID = value; }
         }
 
+
+        public int VoucherInsert()
+        {
+            int result = 0;
+
+            string queryStr = "INSERT INTO User_Voucher(User_Voucher_ID, Company_Logo, Company_Name, Description, Expiry_Date, User_ID)"
+                            + "VALUES (@User_Voucher_ID, @Company_Logo, @Company_Name, @Description, @Expiry_Date, @User_ID)";
+
+            SqlConnection conn = new SqlConnection(_connStr);
+            SqlCommand cmd = new SqlCommand(queryStr, conn);
+
+            cmd.Parameters.AddWithValue("@User_Voucher_ID", this.User_Voucher_ID);
+            cmd.Parameters.AddWithValue("@Company_Logo", this.Company_Logo);
+            cmd.Parameters.AddWithValue("@Company_Name", this.Company_Name);
+            cmd.Parameters.AddWithValue("@Description", this.Description);
+            cmd.Parameters.AddWithValue("@Expiry_Date", this.Expiry_Date);
+            cmd.Parameters.AddWithValue("@User_ID", this.User_ID);
+
+            conn.Open();
+            result += cmd.ExecuteNonQuery();
+            conn.Close();
+
+            return result;
+        }
+
+        public void PointUpdate(string user_id, int point)
+        {
+            string queryStr = "UPDATE User SET" +
+                            " Point = @Point " +
+                            " WHERE User_ID = @User_ID";
+
+            SqlConnection conn = new SqlConnection(_connStr);
+            SqlCommand cmd = new SqlCommand(queryStr, conn);
+            cmd.Parameters.AddWithValue("@User_ID", user_id);
+            cmd.Parameters.AddWithValue("@Point", point);
+           
+            conn.Open();
+            int nofRow = 0;
+            nofRow = cmd.ExecuteNonQuery();
+            conn.Close();
+
+        }
     }
 }

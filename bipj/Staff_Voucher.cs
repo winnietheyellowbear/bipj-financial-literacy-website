@@ -139,5 +139,77 @@ namespace bipj
 
             return voucher_list;
         }
+
+        public (bool isPointEnough, int userPoints, int pointsRequired) IsPointEnough(string voucher_id, string user_id)
+        {
+            int points_required = 0;
+            int user_points = 0;
+
+            Staff_Voucher staff_voucher = new Staff_Voucher();
+            staff_voucher = staff_voucher.GetVoucherByVoucherID(voucher_id);
+
+            // retrieve user details
+            string queryStr1 = "SELECT * FROM User WHERE User_ID = @User_ID";
+
+            SqlConnection conn1 = new SqlConnection(_connStr);
+            SqlCommand cmd1 = new SqlCommand(queryStr1, conn1);
+            cmd1.Parameters.AddWithValue("@User_ID", user_id);
+
+            conn1.Open();
+            SqlDataReader dr1 = cmd1.ExecuteReader();
+
+            while (dr1.Read())
+            {
+                user_points = int.Parse(dr1["Point"].ToString());
+            }
+
+            conn1.Close();
+            dr1.Close();
+            dr1.Dispose();
+
+            if (user_points > staff_voucher.Points_Required)
+            {
+                return (true, staff_voucher.Points_Required, user_points);
+            }
+            else
+            {
+                return (false, staff_voucher.Points_Required, user_points);
+            }
+        }
+
+
+        public Staff_Voucher GetVoucherByVoucherID(string voucher_id)
+        {
+            string company_logo, company_name, description, validity;
+            int points_required;
+
+            Staff_Voucher staff_voucher = new Staff_Voucher();   
+
+            string queryStr = "SELECT * FROM Staff_Voucher WHERE Voucher_ID = @Voucher_ID";
+
+            SqlConnection conn = new SqlConnection(_connStr);
+            SqlCommand cmd = new SqlCommand(queryStr, conn);
+            cmd.Parameters.AddWithValue("@Voucher_ID", voucher_id);
+
+            conn.Open();
+            SqlDataReader dr = cmd.ExecuteReader();
+
+            while (dr.Read())
+            {
+                company_logo = dr["Company_Logo"].ToString();
+                company_name = dr["Company_Name"].ToString();
+                description = dr["Description"].ToString();
+                validity = dr["Validity"].ToString();
+                points_required = int.Parse(dr["Points_Required"].ToString());
+
+                staff_voucher = new Staff_Voucher(voucher_id, company_logo, company_name, description, validity, points_required);
+            }
+
+            conn.Close();
+            dr.Close();
+            dr.Dispose();
+
+            return staff_voucher;
+        }
     }
 }

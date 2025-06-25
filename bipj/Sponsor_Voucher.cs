@@ -231,5 +231,30 @@ namespace bipj
 
             return sponsor_voucher;
         }
+
+        public void StatusUpdate(string email_id)
+        {
+            string queryStr = "UPDATE Voucher_Sponsor SET" +
+                            " Create_DateTime = @Create_DateTime, " +
+                            " Status = @Status " +
+                            " WHERE Email_ID = @Email_ID";
+
+            SqlConnection conn = new SqlConnection(_connStr);
+            SqlCommand cmd = new SqlCommand(queryStr, conn);
+
+            DateTime datetime = DateTime.Now;
+            string date_time = datetime.ToString("yyyy-MM-dd HH:mm:ss");
+            cmd.Parameters.AddWithValue("@Create_DateTime", date_time);
+
+            cmd.Parameters.AddWithValue("@Status", "Created");
+            cmd.Parameters.AddWithValue("@Email_ID", email_id);
+
+            conn.Open();
+            int nofRow = 0;
+            nofRow = cmd.ExecuteNonQuery();
+            conn.Close();
+
+        }
+
     }
 }

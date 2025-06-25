@@ -1,24 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.UI;
-using System.Web.UI.WebControls;
 
 using Newtonsoft.Json;
 // Go to Tools > NuGet Package Manager > Manage NuGet Packages for Solution
 // Install Newtonsoft.Json
 
-
+using GemBox.Email;
+using GemBox.Email.Smtp;
+// Manage NuGet Packages > Install GemBox.Email
 
 namespace bipj
 {
     public partial class CreateVoucherAuto : System.Web.UI.Page
     {
+        Sponsor_Voucher sponsor_voucher = new Sponsor_Voucher();
         protected void Page_Load(object sender, EventArgs e)
         {
             if (!IsPostBack)
@@ -27,14 +26,12 @@ namespace bipj
                 {
                     string email_id = Session["Email_ID"].ToString();
 
-                    Sponsor_Voucher sponsor_voucher = new Sponsor_Voucher();
                     sponsor_voucher = sponsor_voucher.GetEmailByEmailID(email_id);
 
-                    await fill_in_fields(sponsor_voucher.Subject + " " + sponsor_voucher.Message); // Combine subject & message here
+                    await fill_in_fields(sponsor_voucher.Subject + " " + sponsor_voucher.Message);
                 }));
             }
         }
-
 
         public async Task fill_in_fields(string text)
         {
@@ -76,7 +73,6 @@ namespace bipj
             dynamic result = JsonConvert.DeserializeObject(responseString);
             string replyJson = result.choices[0].message.content;
 
-            // Deserialize the reply to a Dictionary for easy access
             var extracted = JsonConvert.DeserializeObject<Dictionary<string, string>>(replyJson);
 
             tb_Sponsor_Name.Text = extracted["SponsorName"];
@@ -100,6 +96,11 @@ namespace bipj
 
             if (result > 0)
             {
+                Email();
+
+                string email_id = Session["Email_ID"].ToString();
+                sponsor_voucher.StatusUpdate(email_id);
+
                 ScriptManager.RegisterStartupScript(this, this.GetType(), "alert", "alert('Voucher created. 😊'); window.location='VoucherSponsor.aspx';", true);
             }
             else
@@ -107,6 +108,30 @@ namespace bipj
                 ScriptManager.RegisterStartupScript(this, this.GetType(), "alert", "alert('Failed to create voucher. 😞');", true);
             }
         }
-    }
 
+        protected void Email()
+        {
+            string email_id = Session["Email_ID"].ToString();
+
+            Sponsor_Voucher sponsor_voucher = new Sponsor_Voucher();
+            sponsor_voucher = sponsor_voucher.GetEmailByEmailID(email_id);
+
+            ComponentInfo.SetLicense("FREE-LIMITED-KEY");
+
+            var message = new MailMessage(
+               new MailAddress("usagitheyellowrabbit@gmail.com", "Sender"),
+               new MailAddress(sponsor_voucher.Email, "First receiver"));
+
+            message.Subject = "Voucher created!";
+            message.BodyText = "Hi, your sponsor voucher has been successfully created. Please click the link to review the details before enabling it, or if you wish to disable the voucher.";
+
+            using (var smtp = new SmtpClient("smtp.gmail.com", 587))
+            {
+                smtp.Connect();
+                smtp.Authenticate("usagitheyellowrabbit@gmail.com", "kmnm twtb qxnw kveu");
+                smtp.SendMessage(message);
+                smtp.Disconnect();
+            }
+        }
+    }
 }

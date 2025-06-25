@@ -100,6 +100,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="AllCompleted.aspx" />
+    <Content Include="AllRecent.aspx" />
+    <Content Include="AllTopics.aspx" />
     <Content Include="App_Data\FinLitDB.mdf" />
     <Content Include="App_Data\FinLitDB_log.ldf">
       <DependentUpon>FinLitDB.mdf</DependentUpon>
@@ -107,6 +110,7 @@
     <Content Include="CreateVoucher.aspx" />
     <Content Include="Discussion.aspx" />
     <Content Include="EditMyPost.aspx" />
+    <Content Include="Education.aspx" />
     <Content Include="Forum_Nav.css" />
     <Content Include="Home.aspx" />
     <Content Include="Images\hello kitty.png" />
@@ -119,6 +123,27 @@
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AllCompleted.aspx.cs">
+      <DependentUpon>AllCompleted.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="AllCompleted.aspx.designer.cs">
+      <DependentUpon>AllCompleted.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="AllRecent.aspx.cs">
+      <DependentUpon>AllRecent.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="AllRecent.aspx.designer.cs">
+      <DependentUpon>AllRecent.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="AllTopics.aspx.cs">
+      <DependentUpon>AllTopics.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="AllTopics.aspx.designer.cs">
+      <DependentUpon>AllTopics.aspx</DependentUpon>
+    </Compile>
     <Compile Include="CreateVoucher.aspx.cs">
       <DependentUpon>CreateVoucher.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -133,6 +158,13 @@
     <Compile Include="Customer_Nav.Master.designer.cs">
       <DependentUpon>Customer_Nav.Master</DependentUpon>
     </Compile>
+    <Compile Include="Customer_Nav_LoggedIn.Master.cs">
+      <DependentUpon>Customer_Nav_LoggedIn.Master</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Customer_Nav_LoggedIn.Master.designer.cs">
+      <DependentUpon>Customer_Nav_LoggedIn.Master</DependentUpon>
+    </Compile>
     <Compile Include="Discussion.aspx.cs">
       <DependentUpon>Discussion.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -146,6 +178,13 @@
     </Compile>
     <Compile Include="EditMyPost.aspx.designer.cs">
       <DependentUpon>EditMyPost.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Education.aspx.cs">
+      <DependentUpon>Education.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Education.aspx.designer.cs">
+      <DependentUpon>Education.aspx</DependentUpon>
     </Compile>
     <Compile Include="Home.aspx.cs">
       <DependentUpon>Home.aspx</DependentUpon>
@@ -206,6 +245,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Customer_Nav.Master" />
+    <Content Include="Customer_Nav_LoggedIn.Master" />
     <None Include="packages.config" />
     <Content Include="Staff_Nav.Master" />
     <None Include="Web.Debug.config">

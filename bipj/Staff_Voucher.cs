@@ -142,38 +142,22 @@ namespace bipj
 
         public (bool isPointEnough, int userPoints, int pointsRequired) IsPointEnough(string voucher_id, string user_id)
         {
-            int points_required = 0;
             int user_points = 0;
 
             Staff_Voucher staff_voucher = new Staff_Voucher();
             staff_voucher = staff_voucher.GetVoucherByVoucherID(voucher_id);
 
             // retrieve user details
-            string queryStr1 = "SELECT * FROM User WHERE User_ID = @User_ID";
-
-            SqlConnection conn1 = new SqlConnection(_connStr);
-            SqlCommand cmd1 = new SqlCommand(queryStr1, conn1);
-            cmd1.Parameters.AddWithValue("@User_ID", user_id);
-
-            conn1.Open();
-            SqlDataReader dr1 = cmd1.ExecuteReader();
-
-            while (dr1.Read())
-            {
-                user_points = int.Parse(dr1["Point"].ToString());
-            }
-
-            conn1.Close();
-            dr1.Close();
-            dr1.Dispose();
+            User_Voucher user_voucher = new User_Voucher();
+            user_points = user_voucher.GetUserPoint(user_id);
 
             if (user_points > staff_voucher.Points_Required)
             {
-                return (true, staff_voucher.Points_Required, user_points);
+                return (true, user_points, staff_voucher.Points_Required);
             }
             else
             {
-                return (false, staff_voucher.Points_Required, user_points);
+                return (false, user_points, staff_voucher.Points_Required);
             }
         }
 

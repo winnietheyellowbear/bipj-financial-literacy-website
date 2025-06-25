@@ -20,6 +20,12 @@ namespace bipj
             {
                 Voucher.DataSource = voucher_list;
                 Voucher.DataBind();
+
+                User_Voucher user_voucher = new User_Voucher();
+                string user_id = "2";
+                int user_point = user_voucher.GetUserPoint(user_id);
+
+                lbl_Point.Text = user_point.ToString();
             }
 
         }
@@ -38,11 +44,46 @@ namespace bipj
 
             if (isPointEnough)
             {
-                userPoints = userPoints - pointsRequired;
-                User_Voucher user_voucher = new User_Voucher();
+                staff_voucher = staff_voucher.GetVoucherByVoucherID(voucher_id);
 
-                user_voucher.PointUpdate(user_id, userPoints);
+                // expiry date
+                var parts = staff_voucher.Validity.Split(' ');
+                int amount = int.Parse(parts[0]);
+                string unit = parts[1].ToLower();
+
+                DateTime expiryDate;
+
+                if (unit.StartsWith("day"))
+                {
+                    expiryDate = DateTime.Now.AddDays(amount);
+                }
+                else
+                {
+                    expiryDate = DateTime.Now.AddMonths(amount);
+                }
+
+                string expiry_date = expiryDate.ToString("yyyy-MM-dd");
+
+
+                User_Voucher user_voucher = new User_Voucher(staff_voucher.Voucher_ID, staff_voucher.Description, expiry_date, user_id);
+
+                int user_point = userPoints - pointsRequired;
+                user_voucher.PointUpdate(user_id, user_point);
+
                 int result = user_voucher.VoucherInsert();
+
+                if (result > 0)
+                {
+                    ScriptManager.RegisterStartupScript(this, this.GetType(), "alert", "alert('Voucher redeemed. 😊'); window.location='VoucherExchange.aspx';", true);
+                }
+                else
+                {
+                    ScriptManager.RegisterStartupScript(this, this.GetType(), "alert", "alert('Failed to redeem voucher. 😞');", true);
+                }
+            }
+            else
+            {
+                ScriptManager.RegisterStartupScript(this, this.GetType(), "alert", "alert('Not enough point. 😞');", true);
             }
 
         }

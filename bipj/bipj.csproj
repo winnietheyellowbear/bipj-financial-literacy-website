@@ -238,6 +238,7 @@
     <Compile Include="User_Like.cs" />
     <Compile Include="User_Notification.cs" />
     <Compile Include="User_Post.cs" />
+    <Compile Include="User_Voucher.cs" />
     <Compile Include="VoucherExchange.aspx.cs">
       <DependentUpon>VoucherExchange.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>

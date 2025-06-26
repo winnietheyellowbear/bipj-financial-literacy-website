@@ -338,7 +338,7 @@ namespace bipj
             return user_post;
         }
 
-        public string GetPostUserID(string post_id)
+        public string GetPostByUserID(string post_id)
         {
             string user_id = null;
 

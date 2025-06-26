@@ -65,7 +65,7 @@ namespace bipj
                 string expiry_date = expiryDate.ToString("yyyy-MM-dd");
 
 
-                User_Voucher user_voucher = new User_Voucher(staff_voucher.Voucher_ID, staff_voucher.Description, expiry_date, user_id);
+                User_Voucher user_voucher = new User_Voucher(staff_voucher.Company_Name, staff_voucher.Description, expiry_date, user_id);
 
                 int user_point = userPoints - pointsRequired;
                 user_voucher.PointUpdate(user_id, user_point);

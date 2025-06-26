@@ -99,7 +99,7 @@ namespace bipj
 
                 // insert notification
                 User_Post user_post = new User_Post();
-                string user_id = user_post.GetPostUserID(this.Post_ID);
+                string user_id = user_post.GetPostByUserID(this.Post_ID);
 
                 if (user_id != this.User_ID)
                 {

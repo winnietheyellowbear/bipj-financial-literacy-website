@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.UI;
+using System.Security.Cryptography;
 
 using Newtonsoft.Json;
 // Go to Tools > NuGet Package Manager > Manage NuGet Packages for Solution
@@ -90,13 +91,14 @@ namespace bipj
             string description = tb_Desc.Text;
             string validity = tb_Validity.Text + " " + ddl_Validity.SelectedValue;
             int points_required = int.Parse(tb_Points_Required.Text);
+            string token = GenerateToken();
 
-            Staff_Voucher staff_voucher = new Staff_Voucher(name, description, validity, points_required);
+            Staff_Voucher staff_voucher = new Staff_Voucher(name, description, validity, points_required, token);
             result = staff_voucher.VoucherInsert();
 
             if (result > 0)
             {
-                Email();
+                Email(token);
 
                 string email_id = Session["Email_ID"].ToString();
                 sponsor_voucher.StatusUpdate(email_id);
@@ -109,7 +111,7 @@ namespace bipj
             }
         }
 
-        protected void Email()
+        protected void Email(string token)
         {
             string email_id = Session["Email_ID"].ToString();
 
@@ -122,8 +124,10 @@ namespace bipj
                new MailAddress("usagitheyellowrabbit@gmail.com", "Sender"),
                new MailAddress(sponsor_voucher.Email, "First receiver"));
 
+            string url = $"https://localhost:44369/VoucherManagement.aspx?token={token}";
+
             message.Subject = "Voucher created!";
-            message.BodyText = "Hi, your sponsor voucher has been successfully created. Please click the link to review the details before enabling it, or if you wish to disable the voucher.";
+            message.BodyText = "Hi, your sponsor voucher has been successfully created. Please click the link to review the details before enabling it, or if you wish to disable the voucher." + url;
 
             using (var smtp = new SmtpClient("smtp.gmail.com", 587))
             {
@@ -133,5 +137,33 @@ namespace bipj
                 smtp.Disconnect();
             }
         }
+
+
+        protected void btn_back_Click(object sender, EventArgs e)
+        {
+            Response.Redirect("VoucherSponsor.aspx");
+        }
+
+        static string GenerateToken()
+        {
+            byte[] randomBytes = new byte[32];
+
+            // Works in all .NET versions
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(randomBytes);
+            }
+
+            // Manually convert to hex string
+            StringBuilder sb = new StringBuilder(64);
+            foreach (byte b in randomBytes)
+            {
+                sb.Append(b.ToString("X2")); // Uppercase hex (e.g. "A3")
+            }
+
+            return sb.ToString();
+
+        }
+
     }
 }

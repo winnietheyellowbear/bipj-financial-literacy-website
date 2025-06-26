@@ -98,13 +98,13 @@
                         </ul>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Forum</a>
+                        <a class="nav-link" href="Discussion.aspx">Forum</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="BookingForum.aspx">Workshop</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Voucher</a>
+                        <a class="nav-link" href="VoucherExchange.aspx">Voucher</a>
                     </li>
                 </ul>
                 <a href="Login.aspx" class="btn btn-login ms-lg-3">Login</a>

@@ -71,13 +71,39 @@
          gap: 10px;
      }
 
+
+    
+     /* Back Button Styles */
+     .back-button {
+         margin-left: 20px;
+         background-color: #3B387E;
+         color: white;
+         padding: 10px 20px;
+         border: none;
+         border-radius: 20px;
+         cursor: pointer;
+         font-size: 16px;
+         transition: background-color 0.3s ease;
+         font-family: 'Titan One';
+         text-decoration: none
+     }
+
+     .back-button:hover {
+         background-color: #59569E;
+     }
+   
    
 
  </style>
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
 
-
+    <div style="margin-top: 20px">
+        <asp:LinkButton class="back-button" OnClick="btn_back_Click" runat="server">
+            <img src="<%= ResolveUrl("~/Images/back_icon.png") %>" alt="Back" style="width: 20px; height: 20px"/> sponsor
+        </asp:LinkButton>
+    </div>
+   
       <div class="form-container">
       <h5>Create Voucher</h5>
 

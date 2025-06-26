@@ -14,7 +14,6 @@ namespace bipj
         string _connStr = ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString;
 
         private string _User_Voucher_ID;
-        private string _Staff_Voucher_ID;
         private string _Company_Name;
         private string _Description;
         private string _Expiry_Date;
@@ -24,9 +23,18 @@ namespace bipj
         {
         }
 
-        public User_Voucher(string staff_voucher_id, string description, string expiry_date, string user_id)
+        public User_Voucher(string company_name, string description, string expiry_date, string user_id)
         {
-            Staff_Voucher_ID = staff_voucher_id;
+            Company_Name = company_name;
+            Description = description;
+            Expiry_Date = expiry_date;
+            User_ID = user_id;
+        }
+
+        public User_Voucher(string user_voucher_id, string company_name, string description, string expiry_date, string user_id)
+        {
+            User_Voucher_ID = user_voucher_id;  
+            Company_Name = company_name;
             Description = description;
             Expiry_Date = expiry_date;
             User_ID = user_id;
@@ -38,11 +46,6 @@ namespace bipj
             set { _User_Voucher_ID = value; }
         }
 
-        public string Staff_Voucher_ID
-        {
-            get { return _Staff_Voucher_ID; }
-            set { _Staff_Voucher_ID = value; }
-        }
 
         public string Company_Name
         {
@@ -72,13 +75,13 @@ namespace bipj
         {
             int result = 0;
 
-            string queryStr = "INSERT INTO User_Voucher(Staff_Voucher_ID, Description, Expiry_Date, User_ID)"
-                            + "VALUES (@Staff_Voucher_ID, @Description, @Expiry_Date, @User_ID)";
+            string queryStr = "INSERT INTO User_Voucher(Company_Name, Description, Expiry_Date, User_ID)"
+                            + "VALUES (@Company_Name, @Description, @Expiry_Date, @User_ID)";
 
             SqlConnection conn = new SqlConnection(_connStr);
             SqlCommand cmd = new SqlCommand(queryStr, conn);
 
-            cmd.Parameters.AddWithValue("@Staff_Voucher_ID", this.Staff_Voucher_ID);
+            cmd.Parameters.AddWithValue("@Company_Name", this.Company_Name);
             cmd.Parameters.AddWithValue("@Description", this.Description);
             cmd.Parameters.AddWithValue("@Expiry_Date", this.Expiry_Date);
             cmd.Parameters.AddWithValue("@User_ID", this.User_ID);
@@ -131,6 +134,38 @@ namespace bipj
             dr1.Dispose();
 
             return user_points;
+        }
+
+        public List<User_Voucher> GetVoucherByUserID(string user_id)
+        {
+            string user_voucher_id, company_name, description, expiry_Date;
+            List<User_Voucher> voucher_list = new List<User_Voucher>();
+
+            string queryStr = "SELECT * FROM User_Voucher WHERE User_ID = @User_ID";
+
+            SqlConnection conn = new SqlConnection(_connStr);
+            SqlCommand cmd = new SqlCommand(queryStr, conn);
+            cmd.Parameters.AddWithValue("@User_ID", user_id);
+
+            conn.Open();
+            SqlDataReader dr = cmd.ExecuteReader();
+
+            while (dr.Read())
+            {
+                user_voucher_id = dr["User_Voucher_ID"].ToString();
+                company_name = dr["Company_Name"].ToString();
+                description = dr["Description"].ToString();
+                expiry_Date = dr["Expiry_Date"].ToString();
+
+                User_Voucher user_voucher = new User_Voucher(user_voucher_id, company_name, description, expiry_Date, user_id);
+                voucher_list.Add(user_voucher);
+            }
+
+            conn.Close();
+            dr.Close();
+            dr.Dispose();
+
+            return voucher_list;
         }
 
     }

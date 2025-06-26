@@ -11,61 +11,61 @@ namespace bipj
 {
 
 
-    public partial class CreateVoucher
+    public partial class VoucherStaff
     {
 
         /// <summary>
-        /// tb_Sponsor_Name control.
+        /// ScriptManager control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox tb_Sponsor_Name;
+        protected global::System.Web.UI.ScriptManager ScriptManager;
 
         /// <summary>
-        /// tb_Desc control.
+        /// UpdatePanel control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox tb_Desc;
+        protected global::System.Web.UI.UpdatePanel UpdatePanel;
 
         /// <summary>
-        /// tb_Validity control.
+        /// txtSearch control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox tb_Validity;
+        protected global::System.Web.UI.WebControls.TextBox txtSearch;
 
         /// <summary>
-        /// ddl_Validity control.
+        /// filterType control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.DropDownList ddl_Validity;
+        protected global::System.Web.UI.WebControls.DropDownList filterType;
 
         /// <summary>
-        /// tb_Points_Required control.
+        /// filterOrder control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox tb_Points_Required;
+        protected global::System.Web.UI.WebControls.DropDownList filterOrder;
 
         /// <summary>
-        /// btn_Submit control.
+        /// Voucher control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btn_Submit;
+        protected global::System.Web.UI.WebControls.Repeater Voucher;
     }
 }

@@ -108,10 +108,12 @@
           box-sizing: border-box; 
       }
 
+
  </style>
 
     <br />
     <br />
+
 
  <asp:UpdatePanel ID="UpdatePanel" runat="server" UpdateMode="Conditional">
      <ContentTemplate>
@@ -172,8 +174,15 @@
                              <%# Eval("Status") %>
                          </td>
                          <td>
-                             <asp:Button runat="server" Text="Create" CommandArgument='<%# Eval("Email_ID") %>' CssClass="btn btn-create" OnClick="btn_create_Click"/>
+                            <asp:Button 
+                                runat="server" 
+                                Text="Create" 
+                                CommandArgument='<%# Eval("Email_ID") %>' 
+                                CssClass="btn btn-create"
+                                OnClick="btn_create_Click"
+                                Visible='<%# Eval("Status").ToString() == "Pending" %>' />
                          </td>
+
                      </tr>
                  </ItemTemplate>
              </asp:Repeater>

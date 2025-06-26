@@ -129,7 +129,6 @@
       <DependentUpon>FinLitDB.mdf</DependentUpon>
     </Content>
     <Content Include="BookingForum.aspx" />
-    <Content Include="CreateVoucher.aspx" />
     <Content Include="CreateVoucherAuto.aspx" />
     <Content Include="Discussion.aspx" />
     <Content Include="EditMyPost.aspx" />
@@ -142,8 +141,11 @@
     <Content Include="MyPost.aspx" />
     <Content Include="Post.aspx" />
     <Content Include="RegisterAdvisor.aspx" />
+    <Content Include="VoucherActive.aspx" />
     <Content Include="VoucherExchange.aspx" />
+    <Content Include="VoucherManagement.aspx" />
     <Content Include="VoucherSponsor.aspx" />
+    <Content Include="VoucherStaff.aspx" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
@@ -175,13 +177,6 @@
     </Compile>
     <Compile Include="BookingForum.aspx.designer.cs">
       <DependentUpon>BookingForum.aspx</DependentUpon>
-    </Compile>
-    <Compile Include="CreateVoucher.aspx.cs">
-      <DependentUpon>CreateVoucher.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="CreateVoucher.aspx.designer.cs">
-      <DependentUpon>CreateVoucher.aspx</DependentUpon>
     </Compile>
     <Compile Include="CreateVoucherAuto.aspx.cs">
       <DependentUpon>CreateVoucherAuto.aspx</DependentUpon>
@@ -255,6 +250,13 @@
     <Compile Include="RegisterAdvisor.aspx.designer.cs">
       <DependentUpon>RegisterAdvisor.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Sponsor.Master.cs">
+      <DependentUpon>Sponsor.Master</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Sponsor.Master.designer.cs">
+      <DependentUpon>Sponsor.Master</DependentUpon>
+    </Compile>
     <Compile Include="Sponsor_Voucher.cs" />
     <Compile Include="Staff_Nav.Master.cs">
       <DependentUpon>Staff_Nav.Master</DependentUpon>
@@ -269,12 +271,26 @@
     <Compile Include="User_Notification.cs" />
     <Compile Include="User_Post.cs" />
     <Compile Include="User_Voucher.cs" />
+    <Compile Include="VoucherActive.aspx.cs">
+      <DependentUpon>VoucherActive.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="VoucherActive.aspx.designer.cs">
+      <DependentUpon>VoucherActive.aspx</DependentUpon>
+    </Compile>
     <Compile Include="VoucherExchange.aspx.cs">
       <DependentUpon>VoucherExchange.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="VoucherExchange.aspx.designer.cs">
       <DependentUpon>VoucherExchange.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="VoucherManagement.aspx.cs">
+      <DependentUpon>VoucherManagement.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="VoucherManagement.aspx.designer.cs">
+      <DependentUpon>VoucherManagement.aspx</DependentUpon>
     </Compile>
     <Compile Include="VoucherSponsor.aspx.cs">
       <DependentUpon>VoucherSponsor.aspx</DependentUpon>
@@ -283,11 +299,19 @@
     <Compile Include="VoucherSponsor.aspx.designer.cs">
       <DependentUpon>VoucherSponsor.aspx</DependentUpon>
     </Compile>
+    <Compile Include="VoucherStaff.aspx.cs">
+      <DependentUpon>VoucherStaff.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="VoucherStaff.aspx.designer.cs">
+      <DependentUpon>VoucherStaff.aspx</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Customer_Nav.Master" />
     <None Include="packages.config" />
     <Content Include="Staff_Nav.Master" />
+    <Content Include="Sponsor.Master" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

@@ -1,5 +1,19 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Customer_Nav.Master" AutoEventWireup="true" CodeBehind="VoucherActive.aspx.cs" Inherits="bipj.VoucherActive" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
+ <div id="voucherModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal()">&times;</span>
+    <h2>Voucher Details</h2>
+    <p><strong>Description:</strong> <span id="modalDescription"></span></p>
+    <p><strong>Company:</strong> <span id="modalCompany"></span></p>
+    <p><strong>Expiry Date:</strong> <span id="modalExpiry"></span></p>
+    <div>
+      <h3>Scan QR Code</h3>
+      <canvas id="qrcode"></canvas>
+    </div>
+  </div>
+</div>
+
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
 
@@ -92,6 +106,29 @@
         .voucher-redeem:hover {
           background: #f0f0f0;
         }
+
+        .modal {
+          position: fixed;
+          top: 0; left: 0; right: 0; bottom: 0;
+          background: rgba(0,0,0,0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 9999;
+        }
+        .modal-content {
+          background: white;
+          padding: 20px;
+          border-radius: 5px;
+          width: 300px;
+          text-align: center;
+        }
+        .close {
+          float: right;
+          font-size: 1.5rem;
+          cursor: pointer;
+        }
+
     </style>
 
       <div class="container">
@@ -118,14 +155,52 @@
            </div>
          </div>
            <asp:Button 
-              runat="server" 
-              Text="Use"
-              CssClass="voucher-redeem" 
-              CommandArgument='<%# Eval("User_Voucher_ID") %>' 
-              />
+            runat="server" 
+            Text="Use" 
+            CssClass="voucher-redeem show-voucher"
+            OnClientClick="return false;" 
+            data-description='<%# Eval("Description") %>' 
+            data-company-name='<%# Eval("Company_Name") %>' 
+            data-expiry-date='<%# Eval("Expiry_Date") %>' 
+            data-token='<%# Eval("Token") %>'/>
        </div>
      </ItemTemplate>
      </asp:Repeater>
   </div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".show-voucher").forEach(button => {
+            button.addEventListener("click", function () {
+                const desc = this.getAttribute("data-description");
+                const company_name = this.getAttribute("data-company-name");
+                const expiry_date = this.getAttribute("data-expiry-date");
+                const token = this.getAttribute("data-token");
+
+                // Populate modal
+                document.getElementById("modalDescription").innerText = desc;
+                document.getElementById("modalCompany").innerText = company_name;
+                document.getElementById("modalExpiry").innerText = expiry_date;
+
+                // Generate QR
+                const url = `https://localhost:44369/VoucherRedemption.aspx?token=${encodeURIComponent(token)}`;
+
+                QRCode.toCanvas(document.getElementById("qrcode"), url, function (error) {
+                    if (error) console.error(error);
+                });
+
+                // Show modal
+                document.getElementById("voucherModal").style.display = "flex";
+            });
+        });
+    });
+
+    function closeModal() {
+        document.getElementById("voucherModal").style.display = "none";
+    }
+</script>
+
 
 </asp:Content>

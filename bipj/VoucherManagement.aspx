@@ -1,4 +1,4 @@
-﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Sponsor.Master" AutoEventWireup="true" CodeBehind="VoucherManagement.aspx.cs" Inherits="bipj.VoucherManagement1" %>
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Voucher.Master" AutoEventWireup="true" CodeBehind="VoucherManagement.aspx.cs" Inherits="bipj.VoucherManagement1" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
@@ -65,25 +65,22 @@
          margin: 8px 0;
      }
 
-     .enable {
-         background-color: #e8fcee;
-         padding: 10px;
-         border-radius: 4px;
-         color: #27733e;
-         font-size: 1rem;
-         margin: 0;
-         display: block; /* so that the label behaves like a block element */
-     }
+      .enable-btn {
+            background-color: #28a745;
+        }
 
-     .disable {
-         background-color: #fce8e8;
-         padding: 10px;
-         border-radius: 4px;
-         color: #822a2a;
-         font-size: 1rem;
-         margin: 0;
-         display: block; /* so that the label behaves like a block element */
-     }
+        .enable-btn:hover {
+            background-color: #218838;
+        }
+
+        .disable-btn {
+            background-color: #dc3545;
+        }
+
+        .disable-btn:hover {
+            background-color: #c82333;
+        }
+
 
  </style>
 
@@ -108,33 +105,13 @@
         <asp:Label ID="pointsRequired" runat="server" CssClass="voucher-text" Text=""></asp:Label>
     </div>
 
-    <div class="voucher-field">
-       <label for="status">Status:</label>
-       <asp:DropDownList 
-            ID="ddlStatus" 
-            runat="server" 
-            CssClass="voucher-text" 
-            AutoPostBack="true"
-            OnSelectedIndexChanged="ddlStatus_SelectedIndexChanged">
-            <asp:ListItem Text="Active" Value="Active" />
-            <asp:ListItem Text="Inactive" Value="Inactive" />
-        </asp:DropDownList>
 
-
-    </div>
+    <div class="buttons">
+        <asp:Button ID="btnEnable" runat="server" Text="Enable" CssClass="enable-btn btn" CommandArgument="Active" OnClick="btn_status_Click"/>
+        <asp:Button ID="btnDisable" runat="server" Text="Disable" CssClass="disable-btn btn" CommandArgument="Inactive" OnClick="btn_status_Click"/>
     </div>
 
-    <script type="text/javascript">
-        window.addEventListener('load', function () {
-            const ddl = document.getElementById('<%= ddlStatus.ClientID %>');
-        ddl.addEventListener('change', function (e) {
-            if (!confirm("Are you sure you want to change the status?")) {
-                // Revert the dropdown to the old value
-                e.preventDefault();
-                location.reload(); // reloads to reset value if user cancels
-            }
-        });
-    });
-    </script>
+    </div>
+   
 
 </asp:Content>

@@ -11,7 +11,7 @@ namespace bipj
 {
 
 
-    public partial class VoucherManagement1
+    public partial class VoucherRedemption
     {
 
         /// <summary>
@@ -33,39 +33,30 @@ namespace bipj
         protected global::System.Web.UI.WebControls.Label companyName;
 
         /// <summary>
-        /// validity control.
+        /// expiryDate control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label validity;
+        protected global::System.Web.UI.WebControls.Label expiryDate;
 
         /// <summary>
-        /// pointsRequired control.
+        /// btnUse control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label pointsRequired;
+        protected global::System.Web.UI.WebControls.Button btnUse;
 
         /// <summary>
-        /// btnEnable control.
+        /// btnUsed control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnEnable;
-
-        /// <summary>
-        /// btnDisable control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnDisable;
+        protected global::System.Web.UI.WebControls.Button btnUsed;
     }
 }

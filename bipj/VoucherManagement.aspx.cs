@@ -22,27 +22,28 @@ namespace bipj
                 companyName.Text = staff_voucher.Company_Name;
                 validity.Text = staff_voucher.Validity;
                 pointsRequired.Text = staff_voucher.Points_Required.ToString();
-                ddlStatus.SelectedValue = staff_voucher.Status;
-
+               
                 if (staff_voucher.Status == "Active")
                 {
-                    ddlStatus.CssClass = "enable";
+                    btnEnable.Visible = false;
                 }
                 else if (staff_voucher.Status == "Inactive")
                 {
-                    ddlStatus.CssClass = "disable";
+                    btnDisable.Visible = false;
                 }
 
             }
         }
 
-        protected void ddlStatus_SelectedIndexChanged(object sender, EventArgs e)
+        protected void btn_status_Click(object sender, EventArgs e)
         {
-            string selectedStatus = ddlStatus.SelectedValue;
+            Button btn = (Button)sender;
+            string status = btn.CommandArgument;
+
             string token = Request.QueryString["token"];
 
             Staff_Voucher staff_voucher = new Staff_Voucher();
-            int result = staff_voucher.StatusUpdate(token, selectedStatus);
+            int result = staff_voucher.StatusUpdate(token, status);
 
             if (result > 0)
             {
@@ -50,14 +51,15 @@ namespace bipj
                     this,
                     this.GetType(),
                     "alert",
-                    "alert('Status updated successfully. 😊'); window.location='VoucherManagement.aspx?token=" + token + "';",
+                    "alert('Voucher is used successfully. 😊'); window.location='VoucherManagement.aspx?token=" + token + "';",
                     true
                 );
             }
             else
             {
-                ScriptManager.RegisterStartupScript(this, this.GetType(), "alert", "alert('Failed to update status. 😞');", true);
+                ScriptManager.RegisterStartupScript(this, this.GetType(), "alert", "alert('Failed to use voucher. 😞');", true);
             }
+
         }
 
     }

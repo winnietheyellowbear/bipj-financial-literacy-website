@@ -1,4 +1,4 @@
-﻿<%@ Master Language="C#" AutoEventWireup="true" CodeBehind="Sponsor.master.cs" Inherits="bipj.Sponsor" %>
+﻿<%@ Master Language="C#" AutoEventWireup="true" CodeBehind="Voucher.Master.cs" Inherits="bipj.Sponsor" %>
 
 <!DOCTYPE html>
 

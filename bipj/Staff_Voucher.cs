@@ -157,7 +157,7 @@ namespace bipj
             User_Voucher user_voucher = new User_Voucher();
             user_points = user_voucher.GetUserPoint(user_id);
 
-            if (user_points > staff_voucher.Points_Required)
+            if (user_points >= staff_voucher.Points_Required)
             {
                 return (true, user_points, staff_voucher.Points_Required);
             }

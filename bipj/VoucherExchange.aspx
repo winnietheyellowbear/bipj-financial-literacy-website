@@ -135,6 +135,7 @@
           <!-- Voucher Cards -->
        <asp:Repeater ID="Voucher" runat="server">
        <ItemTemplate>
+       <asp:Panel runat="server" Visible='<%# Eval("Status").ToString() == "Active" %>'>
           <div class="voucher-card">
           <%-- <asp:Image 
             runat="server" 
@@ -156,6 +157,7 @@
                 OnClick="btn_redeem_Click" />
 
          </div>
+       </asp:Panel>
        </ItemTemplate>
        </asp:Repeater>
     </div>

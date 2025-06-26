@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
@@ -64,8 +66,9 @@ namespace bipj
 
                 string expiry_date = expiryDate.ToString("yyyy-MM-dd");
 
+                string token = GenerateToken();
 
-                User_Voucher user_voucher = new User_Voucher(staff_voucher.Company_Name, staff_voucher.Description, expiry_date, user_id);
+                User_Voucher user_voucher = new User_Voucher(staff_voucher.Company_Name, staff_voucher.Description, expiry_date, user_id, token);
 
                 int user_point = userPoints - pointsRequired;
                 user_voucher.PointUpdate(user_id, user_point);
@@ -85,6 +88,27 @@ namespace bipj
             {
                 ScriptManager.RegisterStartupScript(this, this.GetType(), "alert", "alert('Not enough point. 😞');", true);
             }
+
+        }
+
+        static string GenerateToken()
+        {
+            byte[] randomBytes = new byte[32];
+
+            // Works in all .NET versions
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(randomBytes);
+            }
+
+            // Manually convert to hex string
+            StringBuilder sb = new StringBuilder(64);
+            foreach (byte b in randomBytes)
+            {
+                sb.Append(b.ToString("X2")); // Uppercase hex (e.g. "A3")
+            }
+
+            return sb.ToString();
 
         }
 

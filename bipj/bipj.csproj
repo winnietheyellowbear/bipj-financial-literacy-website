@@ -140,6 +140,7 @@
     <Content Include="MyNotification.aspx" />
     <Content Include="MyPost.aspx" />
     <Content Include="Post.aspx" />
+    <Content Include="QRCodeScanner.aspx" />
     <Content Include="RegisterAdvisor.aspx" />
     <Content Include="VoucherActive.aspx" />
     <Content Include="VoucherExchange.aspx" />
@@ -244,6 +245,13 @@
       <DependentUpon>Post.aspx</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="QRCodeScanner.aspx.cs">
+      <DependentUpon>QRCodeScanner.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="QRCodeScanner.aspx.designer.cs">
+      <DependentUpon>QRCodeScanner.aspx</DependentUpon>
+    </Compile>
     <Compile Include="RegisterAdvisor.aspx.cs">
       <DependentUpon>RegisterAdvisor.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>

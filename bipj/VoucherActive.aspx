@@ -185,9 +185,7 @@
                 document.getElementById("modalExpiry").innerText = expiry_date;
 
                 // Generate QR
-                const url = `https://localhost:44369/VoucherRedemption.aspx?token=${encodeURIComponent(token)}`;
-
-                QRCode.toCanvas(document.getElementById("qrcode"), url, function (error) {
+                QRCode.toCanvas(document.getElementById("qrcode"), token, function (error) {
                     if (error) console.error(error);
                 });
 

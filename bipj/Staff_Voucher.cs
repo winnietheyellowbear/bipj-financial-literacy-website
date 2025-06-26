@@ -238,5 +238,24 @@ namespace bipj
 
             return staff_voucher;
         }
+
+        public int StatusUpdate(string token, string status)
+        {
+            string queryStr = "UPDATE Staff_Voucher SET" +
+                            " Status = @Status " +
+                            " WHERE Token = @Token";
+
+            SqlConnection conn = new SqlConnection(_connStr);
+            SqlCommand cmd = new SqlCommand(queryStr, conn);
+            cmd.Parameters.AddWithValue("@Status", status);
+            cmd.Parameters.AddWithValue("@Token", token);
+
+            conn.Open();
+            int nofRow = 0;
+            nofRow = cmd.ExecuteNonQuery();
+            conn.Close();
+
+            return nofRow;
+        }
     }
 }

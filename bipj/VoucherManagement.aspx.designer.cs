@@ -51,30 +51,12 @@ namespace bipj
         protected global::System.Web.UI.WebControls.Label pointsRequired;
 
         /// <summary>
-        /// status control.
+        /// ddlStatus control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label status;
-
-        /// <summary>
-        /// btnEnable control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnEnable;
-
-        /// <summary>
-        /// btnDisable control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnDisable;
+        protected global::System.Web.UI.WebControls.DropDownList ddlStatus;
     }
 }

@@ -22,20 +22,43 @@ namespace bipj
                 companyName.Text = staff_voucher.Company_Name;
                 validity.Text = staff_voucher.Validity;
                 pointsRequired.Text = staff_voucher.Points_Required.ToString();
-                status.Text = staff_voucher.Status;
+                ddlStatus.SelectedValue = staff_voucher.Status;
 
                 if (staff_voucher.Status == "Active")
                 {
-                    status.CssClass = "enable"; 
-                    btnEnable.Visible = false;     
+                    ddlStatus.CssClass = "enable";
                 }
                 else if (staff_voucher.Status == "Inactive")
                 {
-                    status.CssClass = "disable";    
-                    btnDisable.Visible = false;
+                    ddlStatus.CssClass = "disable";
                 }
 
             }
         }
+
+        protected void ddlStatus_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            string selectedStatus = ddlStatus.SelectedValue;
+            string token = Request.QueryString["token"];
+
+            Staff_Voucher staff_voucher = new Staff_Voucher();
+            int result = staff_voucher.StatusUpdate(token, selectedStatus);
+
+            if (result > 0)
+            {
+                ScriptManager.RegisterStartupScript(
+                    this,
+                    this.GetType(),
+                    "alert",
+                    "alert('Status updated successfully. 😊'); window.location='VoucherManagement.aspx?token=" + token + "';",
+                    true
+                );
+            }
+            else
+            {
+                ScriptManager.RegisterStartupScript(this, this.GetType(), "alert", "alert('Failed to update status. 😞');", true);
+            }
+        }
+
     }
 }

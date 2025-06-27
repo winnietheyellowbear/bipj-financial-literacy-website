@@ -26,6 +26,7 @@ namespace bipj
         private string _Name;
         private string _Profile;
         private bool _Like_Status;
+        private List<User_Comment> _Comments_List;
 
         private List<string> _Images_List;
         private List<string> _Videos_List;
@@ -45,7 +46,7 @@ namespace bipj
         }
 
         // retrieve post
-        public User_Post(string post_id, List<string> images, List<string> videos, string text, string category, string user_id, string post_datetime, string last_update_datetime, string name, string profile, bool like_status)
+        public User_Post(string post_id, List<string> images, List<string> videos, string text, string category, string user_id, string post_datetime, string last_update_datetime, string name, string profile, bool like_status, List<User_Comment> comments_list)
         {
             _Post_ID = post_id;
             _Images_List = images;
@@ -58,6 +59,7 @@ namespace bipj
             _Name = name;
             _Profile = profile;
             _Like_Status = like_status;
+            _Comments_List = comments_list;
         }
 
         // retrieve post for update
@@ -146,6 +148,12 @@ namespace bipj
             set { _Like_Status = value; }
         }
 
+        public List<User_Comment> Comments_List
+        {
+            get { return _Comments_List; }
+            set { _Comments_List = value; }
+        }
+
 
         public List<string> Images_List
         {
@@ -232,7 +240,11 @@ namespace bipj
                 images_list = images.Split(',').ToList();
                 videos_list = videos.Split(',').ToList();
 
-                User_Post user_post = new User_Post(post_id, images_list, videos_list, text, category, user_id, post_datetime, last_update_datetime, name, profile, like_status);
+                User_Comment user_Comment = new User_Comment();
+                List<User_Comment> comments_list = new List<User_Comment>();
+                comments_list = user_Comment.GetCommentsByPostID(post_id);
+
+                User_Post user_post = new User_Post(post_id, images_list, videos_list, text, category, user_id, post_datetime, last_update_datetime, name, profile, like_status, comments_list);
                 post_list.Add(user_post);
             }
 
@@ -289,7 +301,11 @@ namespace bipj
                 images_list = images.Split(',').ToList();
                 videos_list = videos.Split(',').ToList();
 
-                User_Post user_post = new User_Post(post_id, images_list, videos_list, text, category, user_id, post_datetime, last_update_datetime, name, profile, like_status);
+                User_Comment user_Comment = new User_Comment();
+                List<User_Comment> comments_list = new List<User_Comment>();
+                comments_list = user_Comment.GetCommentsByPostID(post_id);
+
+                User_Post user_post = new User_Post(post_id, images_list, videos_list, text, category, user_id, post_datetime, last_update_datetime, name, profile, like_status, comments_list);
                 post_list.Add(user_post);
             }
 

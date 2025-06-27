@@ -34,7 +34,7 @@ namespace bipj
 
         protected void btn_redeem_Click(object sender, EventArgs e)
         {
-            Button btn = (Button)sender;
+            LinkButton btn = (LinkButton)sender;
             string voucher_id = btn.CommandArgument;
 
             string user_id = "2";

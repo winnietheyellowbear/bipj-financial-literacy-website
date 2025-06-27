@@ -11,25 +11,16 @@ namespace bipj
 {
 
 
-    public partial class VoucherActive
+    public partial class SmartSearch
     {
 
         /// <summary>
-        /// lbl_Voucher_Count control.
+        /// ScriptManager control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lbl_Voucher_Count;
-
-        /// <summary>
-        /// Voucher control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Repeater Voucher;
+        protected global::System.Web.UI.ScriptManager ScriptManager;
     }
 }

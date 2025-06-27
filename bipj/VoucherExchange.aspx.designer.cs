@@ -15,40 +15,13 @@ namespace bipj
     {
 
         /// <summary>
-        /// lbl_Voucher_Available control.
+        /// lbl_Voucher_Count control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lbl_Voucher_Available;
-
-        /// <summary>
-        /// lbl_Active_Voucher control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lbl_Active_Voucher;
-
-        /// <summary>
-        /// lbl_Used_Voucher control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lbl_Used_Voucher;
-
-        /// <summary>
-        /// lbl_Expired_Voucher control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lbl_Expired_Voucher;
+        protected global::System.Web.UI.WebControls.Label lbl_Voucher_Count;
 
         /// <summary>
         /// lbl_Point control.
@@ -67,5 +40,14 @@ namespace bipj
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Repeater Voucher;
+
+        /// <summary>
+        /// pnlEmptyState control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel pnlEmptyState;
     }
 }

@@ -142,6 +142,7 @@
     <Content Include="Post.aspx" />
     <Content Include="QRCodeScanner.aspx" />
     <Content Include="RegisterAdvisor.aspx" />
+    <Content Include="SmartSearch.aspx" />
     <Content Include="VoucherActive.aspx" />
     <Content Include="VoucherExchange.aspx" />
     <Content Include="VoucherManagement.aspx" />
@@ -258,6 +259,13 @@
     </Compile>
     <Compile Include="RegisterAdvisor.aspx.designer.cs">
       <DependentUpon>RegisterAdvisor.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="SmartSearch.aspx.cs">
+      <DependentUpon>SmartSearch.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="SmartSearch.aspx.designer.cs">
+      <DependentUpon>SmartSearch.aspx</DependentUpon>
     </Compile>
     <Compile Include="Voucher.Master.cs">
       <DependentUpon>Voucher.Master</DependentUpon>

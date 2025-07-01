@@ -233,7 +233,7 @@ _pkginfo.txt
 ClientBin/
 ~$*
 *~
-*.dbmdl
+#*.dbmdl "remove this if needed--------------------------------"
 *.dbproj.schemaview
 *.jfm
 *.pfx
@@ -262,9 +262,9 @@ ServiceFabricBackup/
 *.rptproj.bak
 
 # SQL Server files
-*.mdf
-*.ldf
-*.ndf
+#*.mdf
+#*.ldf
+#*.ndf
 
 # Business Intelligence projects
 *.rdl.data

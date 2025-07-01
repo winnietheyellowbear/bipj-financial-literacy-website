@@ -121,6 +121,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="AdminPage.aspx" />
     <Content Include="AllCompleted.aspx" />
     <Content Include="AllRecent.aspx" />
     <Content Include="AllTopics.aspx" />
@@ -137,9 +138,12 @@
     <Content Include="Home.aspx" />
     <Content Include="Images\hello kitty.png" />
     <Content Include="Images\usagi.jpg" />
+    <Content Include="Loginpage.aspx" />
+    <Content Include="ManageEducation.aspx" />
     <Content Include="MyNotification.aspx" />
     <Content Include="MyPost.aspx" />
     <Content Include="Post.aspx" />
+    <Content Include="Profile.aspx" />
     <Content Include="QRCodeScanner.aspx" />
     <Content Include="RegisterAdvisor.aspx" />
     <Content Include="SmartSearch.aspx" />
@@ -152,6 +156,13 @@
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AdminPage.aspx.cs">
+      <DependentUpon>AdminPage.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="AdminPage.aspx.designer.cs">
+      <DependentUpon>AdminPage.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Advisor.cs" />
     <Compile Include="AllCompleted.aspx.cs">
       <DependentUpon>AllCompleted.aspx</DependentUpon>
@@ -195,7 +206,13 @@
     <Compile Include="Customer_Nav.Master.designer.cs">
       <DependentUpon>Customer_Nav.Master</DependentUpon>
     </Compile>
-    <Compile Include="Customer_Nav_LoggedIn.Master.designer.cs" />
+    <Compile Include="Customer_Nav_loggedin.Master.cs">
+      <DependentUpon>Customer_Nav_loggedin.Master</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Customer_Nav_loggedin.Master.designer.cs">
+      <DependentUpon>Customer_Nav_loggedin.Master</DependentUpon>
+    </Compile>
     <Compile Include="Discussion.aspx.cs">
       <DependentUpon>Discussion.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -224,6 +241,20 @@
     <Compile Include="Home.aspx.designer.cs">
       <DependentUpon>Home.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Loginpage.aspx.cs">
+      <DependentUpon>Loginpage.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Loginpage.aspx.designer.cs">
+      <DependentUpon>Loginpage.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="ManageEducation.aspx.cs">
+      <DependentUpon>ManageEducation.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ManageEducation.aspx.designer.cs">
+      <DependentUpon>ManageEducation.aspx</DependentUpon>
+    </Compile>
     <Compile Include="MyNotification.aspx.cs">
       <DependentUpon>MyNotification.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -244,6 +275,13 @@
     </Compile>
     <Compile Include="Post.aspx.designer.cs">
       <DependentUpon>Post.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Profile.aspx.cs">
+      <DependentUpon>Profile.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Profile.aspx.designer.cs">
+      <DependentUpon>Profile.aspx</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QRCodeScanner.aspx.cs">
@@ -333,6 +371,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Customer_Nav.Master" />
+    <Content Include="Customer_Nav_loggedin.Master" />
     <None Include="packages.config" />
     <Content Include="Staff_Nav.Master" />
     <Content Include="Voucher.Master" />

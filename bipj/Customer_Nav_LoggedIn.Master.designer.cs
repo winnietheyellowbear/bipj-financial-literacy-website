@@ -11,7 +11,7 @@ namespace bipj
 {
 
 
-    public partial class Customer_Nav_LoggedIn
+    public partial class Customer_Nav_loggedin
     {
 
         /// <summary>

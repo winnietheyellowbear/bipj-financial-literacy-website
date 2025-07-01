@@ -1,4 +1,4 @@
-﻿<%@ Page Title="All Completed" Language="C#" MasterPageFile="~/Customer_Nav_LoggedIn.Master" AutoEventWireup="true" CodeBehind="AllCompleted.aspx.cs" Inherits="bipj.AllCompleted" %>
+﻿<%@ Page Title="All Completed" Language="C#" MasterPageFile="~/Customer_Nav_loggedin.Master" AutoEventWireup="true" CodeBehind="AllCompleted.aspx.cs" Inherits="bipj.AllCompleted" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <style>

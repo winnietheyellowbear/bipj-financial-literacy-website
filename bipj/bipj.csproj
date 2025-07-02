@@ -137,6 +137,7 @@
     <Content Include="Forum_Nav.css" />
     <Content Include="Home.aspx" />
     <Content Include="Images\hello kitty.png" />
+    <Content Include="Images\logo.png" />
     <Content Include="Images\usagi.jpg" />
     <Content Include="Loginpage.aspx" />
     <Content Include="ManageEducation.aspx" />

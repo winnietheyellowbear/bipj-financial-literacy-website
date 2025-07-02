@@ -10,57 +10,130 @@
     <asp:ContentPlaceHolder ID="head" runat="server">
     </asp:ContentPlaceHolder>
 
-      <style>
-      .navbar-custom {
-          background-color: #f4f2fd;
-          font-family: 'Segoe UI', sans-serif;
-          padding: 0.5rem 2rem;
-          justify-content: center;
-      }
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #FAFAFA;
+        }
 
-      .nav-link, .dropdown-item {
-          color: #333 !important;
-          text-decoration: none;
-      }
+        .navbar-custom {
+            background-color: #f4f2fd;
+            font-family: inherit;
+            padding: 0.5rem 2rem;
+            justify-content: center;
+            width: 100%;
+            top: 0;
+            left: 0;
+            position: fixed;
+            z-index: 3;
+        }
 
-          .nav-link:hover, .dropdown-item:hover {
-              color: #6c5ce7 !important;
-              text-decoration: underline;
-          }
+        .nav-link, .dropdown-item {
+            color: #333 !important;
+            text-decoration: none;
+        }
 
-      .btn-login {
-          background-color: #5e4bd3;
-          color: white;
-          border: none;
-          padding: 6px 12px;
-          border-radius: 5px;
-      }
+            .nav-link:hover, .dropdown-item:hover {
+                color: #6c5ce7 !important;
+                text-decoration: underline;
+            }
 
-          .btn-login:hover {
-              background-color: #4e3cc7;
-          }
+        .btn-primary {
+            background-color: #5e4bd3;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+        }
 
-      .qwitcher {
-          font-family: 'Qwitcher Grypen', cursive;
-          font-size: 40px;
-          line-height: 0.8;
-          display: inline-block;
-          vertical-align: middle;
-          margin-bottom: 0;
-          padding: 0;
-      }
+            .btn-primary:hover {
+                background-color: #4e3cc7;
+            }
 
-      @media (min-width: 992px) {
-          .navbar .dropdown:hover .dropdown-menu {
-              display: block;
-              margin-top: 0;
-          }
+        .btn {
+            background-color: #6f42c1 !important;
+            color: white !important;
+            border-color: #6f42c1 !important;
+        }
 
-          .navbar .dropdown .dropdown-menu {
-              margin-top: 0;
-          }
-      }
-  </style>
+            .btn:hover,
+            .btn:focus {
+                background-color: #5a32a3 !important;
+                border-color: #5a32a3 !important;
+                color: white !important;
+            }
+
+        .btn-outline-primary {
+            color: #6f42c1 !important;
+            border-color: #6f42c1 !important;
+            background-color: transparent !important;
+        }
+
+            .btn-outline-primary:hover,
+            .btn-outline-primary:focus {
+                background-color: #6f42c1 !important;
+                color: white !important;
+            }
+
+        .btn-outline-secondary {
+            color: #6f42c1 !important;
+            border-color: #6f42c1 !important;
+            background-color: transparent !important;
+        }
+
+            .btn-outline-secondary:hover,
+            .btn-outline-secondary:focus {
+                background-color: #6f42c1 !important;
+                color: white !important;
+            }
+
+        .btn-primary {
+            background-color: #6f42c1 !important;
+            border-color: #6f42c1 !important;
+            color: white !important;
+        }
+
+            .btn-primary:hover,
+            .btn-primary:focus {
+                background-color: #5a32a3 !important;
+                border-color: #5a32a3 !important;
+            }
+
+        .btn-link {
+            color: #6f42c1 !important;
+        }
+
+            .btn-link:hover,
+            .btn-link:focus {
+                color: #5a32a3 !important;
+                text-decoration: underline;
+            }
+
+        .qwitcher {
+            font-family: 'Qwitcher Grypen', cursive;
+            font-size: 40px;
+            line-height: 0.8;
+            display: inline-block;
+            vertical-align: middle;
+            margin-bottom: 0;
+            padding: 0;
+        }
+
+        @media (min-width: 992px) {
+            .navbar .dropdown:hover .dropdown-menu {
+                display: block;
+                margin-top: 0;
+            }
+
+            .navbar .dropdown .dropdown-menu {
+                margin-top: 0;
+            }
+        }
+
+        .main-content {
+            margin-top: 66px; /* same as navbar height */
+        }
+    </style>
 </head>
 <body>
     <form id="form2" runat="server" enctype="multipart/form-data">
@@ -111,7 +184,7 @@
                             <li><a class="dropdown-item" href="VoucherActive.aspx">Active Voucher</a></li>
                         </ul>
                     </li>
-                    
+
                 </ul>
                 <a href="Loginpage.aspx" class="btn btn-login ms-lg-3">Login</a>
 
@@ -123,7 +196,8 @@
             <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server">
             </asp:ContentPlaceHolder>
         </div>
-    </form> <!-- ✅ Closing form -->
+    </form>
+    <!-- ✅ Closing form -->
 </body>
 
 </html>

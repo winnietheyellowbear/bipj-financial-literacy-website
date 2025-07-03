@@ -129,6 +129,7 @@
     <Content Include="App_Data\FinLitDB_log.ldf">
       <DependentUpon>FinLitDB.mdf</DependentUpon>
     </Content>
+    <Content Include="Booking.aspx" />
     <Content Include="BookingForum.aspx" />
     <Content Include="CreateVoucherAuto.aspx" />
     <Content Include="Discussion.aspx" />
@@ -186,6 +187,14 @@
     <Compile Include="AllTopics.aspx.designer.cs">
       <DependentUpon>AllTopics.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Booking.aspx.cs">
+      <DependentUpon>Booking.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Booking.aspx.designer.cs">
+      <DependentUpon>Booking.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Booking.cs" />
     <Compile Include="BookingForum.aspx.cs">
       <DependentUpon>BookingForum.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>

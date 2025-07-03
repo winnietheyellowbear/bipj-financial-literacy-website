@@ -195,6 +195,7 @@
         <div>
             <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server">
             </asp:ContentPlaceHolder>
+            <asp:ContentPlaceHolder ID="scripts" runat="server" />
         </div>
     </form>
     <!-- ✅ Closing form -->

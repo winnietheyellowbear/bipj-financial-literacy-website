@@ -339,7 +339,7 @@
                         <span>Discussion</span>
                     </a>
                 </li>
-                <li class="active">
+                <li>
                     <a href="SmartSearch.aspx">
                         <img src='<%= ResolveUrl("~/Forum/Icon/Magnifying_Glass_Icon.png") %>' alt="Notification Icon"/>
                         <span>Smart Search</span>

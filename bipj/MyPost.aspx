@@ -352,10 +352,18 @@
         <!-- Sidebar -->
         <div class="sidebar">
             <ul>
+                <br />
+                <br />
                 <li>
                     <a href="Discussion.aspx">
                         <img src='<%= ResolveUrl("~/Forum/Icon/Discussion_Icon.png") %>' alt="Discussion Icon"/>
                         <span>Discussion</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="SmartSearch.aspx">
+                        <img src='<%= ResolveUrl("~/Forum/Icon/Magnifying_Glass_Icon.png") %>' alt="Notification Icon"/>
+                        <span>Smart Search</span>
                     </a>
                 </li>
                 <li>

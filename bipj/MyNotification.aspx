@@ -73,6 +73,7 @@
         cursor: default;
         display: flex;
         gap: 10px;
+        margin: 10px;
     }
 
     .notification:hover {

@@ -35,6 +35,7 @@
                 border-bottom: 1px solid #E5E7EB;
                 flex-wrap: wrap;
                 gap: 10px;
+                position: sticky;
             }
 
             .stat-pill {
@@ -174,6 +175,8 @@
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+    <br />
+    <br />
     <div class="top-bar">
         <h2>Voucher Exchange</h2>
         <div style="display: flex; gap: 10px;">

@@ -1,4 +1,8 @@
-﻿.sidebar {
+﻿body {
+    font-family: 'Quicksand', sans-serif;
+}
+
+.sidebar {
     background-color: #333;
     color: white;
     padding: 20px;
@@ -46,4 +50,30 @@
 
 .sidebar ul li a:hover {
     background-color: #575757;
+}
+
+
+/* Ensure the forum header is properly aligned */
+.forum-header {
+    text-align: left;
+    font-size: 26px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #ddd;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .content-wrapper {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .main-content {
+        width: 95%;
+        padding: 20px;
+        margin-left: 0;
+    }
 }

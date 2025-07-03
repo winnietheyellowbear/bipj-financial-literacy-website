@@ -114,7 +114,7 @@ namespace bipj
 
         protected void btn_delete_Click(object sender, EventArgs e)
         {
-            Button btn = (Button)sender;
+            LinkButton btn = (LinkButton)sender;
             string post_id = btn.CommandArgument;
 
             User_Post user_post = new User_Post();
@@ -133,7 +133,7 @@ namespace bipj
 
         protected void btn_delete_comment_Click(object sender, EventArgs e)
         {
-            Button btn = (Button)sender;
+            LinkButton btn = (LinkButton)sender;
             string comment_id = btn.CommandArgument;
 
             User_Comment user_comment = new User_Comment();
@@ -151,7 +151,7 @@ namespace bipj
 
         protected void btn_edit_Click(object sender, EventArgs e)
         {
-            Button btn = (Button)sender;
+            LinkButton btn = (LinkButton)sender;
             string post_id = btn.CommandArgument;
 
             Session["Post_ID"] = post_id;

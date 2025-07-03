@@ -430,7 +430,8 @@
               <!-- Comments Section -->
             <div class="comments-section" style="overflow:scroll; overflow-x: hidden; min-height: 0px; max-height: 100px">
                 <asp:UpdatePanel ID="UpdatePanel_Comment" runat="server" UpdateMode="Conditional">
-                <ContentTemplate>     
+                <ContentTemplate>   
+                
             <asp:Repeater ID="Comment" runat="server">
                 <ItemTemplate>
                     <div class="comment">

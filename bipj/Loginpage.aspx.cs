@@ -43,8 +43,15 @@ namespace bipj
                             Session["username"] = username;
                             Session["userid"] = userId;
                             Session["usertype"] = userType;
-
-                            Response.Redirect("AdminPage.aspx");
+                            if (Session["usertype"] == "Staff")
+                            {
+                                Response.Redirect("AdminPage.aspx");
+                            }
+                            else if(Session["usertype"] == "User")
+                            {
+                                Response.Redirect("Profile.aspx");
+                            }
+                            
                         }
                         else
                         {

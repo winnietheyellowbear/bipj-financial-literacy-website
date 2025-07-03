@@ -54,6 +54,7 @@
     display: flex;
     justify-content: space-between; /* Distribute the buttons to the left and right */
     gap: 10px; /* Space between buttons */
+    margin-top: 10px;
 }
 
 .like-btn-container {

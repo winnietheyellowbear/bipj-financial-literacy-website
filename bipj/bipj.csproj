@@ -159,7 +159,6 @@
   <ItemGroup>
     <Compile Include="AddEducationTopic.aspx.cs">
       <DependentUpon>AddEducationTopic.aspx</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="AddEducationTopic.aspx.designer.cs">
       <DependentUpon>AddEducationTopic.aspx</DependentUpon>

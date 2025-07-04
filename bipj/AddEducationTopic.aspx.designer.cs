@@ -33,15 +33,6 @@ namespace bipj
         protected global::System.Web.UI.WebControls.TextBox txtBriefDesc;
 
         /// <summary>
-        /// txtImage control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox txtImage;
-
-        /// <summary>
         /// fileUploadImage control.
         /// </summary>
         /// <remarks>
@@ -57,7 +48,7 @@ namespace bipj
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnInsertImage;
+        protected global::System.Web.UI.WebControls.LinkButton btnInsertImage;
 
         /// <summary>
         /// txtIndeptDesc control.
@@ -75,7 +66,7 @@ namespace bipj
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnAddTopic;
+        protected global::System.Web.UI.WebControls.LinkButton btnAddTopic;
 
         /// <summary>
         /// phTopics control.
@@ -94,5 +85,14 @@ namespace bipj
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Button btnCreate;
+
+        /// <summary>
+        /// lblMessage control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label lblMessage;
     }
 }

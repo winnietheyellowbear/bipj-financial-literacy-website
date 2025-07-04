@@ -3,7 +3,7 @@
 <asp:Content ID="headContent" ContentPlaceHolderID="head" runat="server">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
     <style>
-        .add-module-wrapper {
+   .add-module-wrapper {
             max-width: 510px;
             margin: 35px auto 0 auto;
             background: #fff;
@@ -86,22 +86,36 @@
             <div class="add-module-label">Brief description</div>
             <asp:TextBox ID="txtBriefDesc" runat="server" CssClass="form-control" placeholder="" />
 
-            <div class="add-module-label">Image</div>
-            <div class="add-image-input-group">
-                <asp:TextBox ID="txtImage" runat="server" CssClass="form-control" placeholder="" />
-                <asp:FileUpload ID="fileUploadImage" runat="server" CssClass="form-control" style="max-width:165px;" />
-                <asp:Button ID="btnInsertImage" runat="server" CssClass="add-module-insert-btn" Text='<i class="bi bi-plus-circle"></i> Insert' UseSubmitBehavior="false" OnClick="btnInsertImage_Click" />
+            <!-- Image upload and Insert button -->
+            <div class="mb-3">
+                <label class="form-label">Image</label>
+                <div class="input-group">
+                    <asp:FileUpload ID="fileUploadImage" runat="server" CssClass="form-control" />
+                    <asp:LinkButton ID="btnInsertImage" runat="server" CssClass="btn btn-outline-primary ms-2 add-module-insert-btn"
+    CausesValidation="false" OnClick="btnInsertImage_Click" ToolTip="Insert Image">
+    <i class="bi bi-plus-circle"></i>
+</asp:LinkButton>
+
+                </div>
+               
             </div>
 
             <div class="add-module-label">Indept Description</div>
             <asp:TextBox ID="txtIndeptDesc" runat="server" CssClass="form-control" TextMode="MultiLine" Rows="5" placeholder="" />
 
-            <asp:Button ID="btnAddTopic" runat="server" CssClass="add-module-topic-btn" Text='<i class="bi bi-plus-circle"></i> Topic' UseSubmitBehavior="false" OnClick="btnAddTopic_Click" />
+<asp:LinkButton ID="btnAddTopic" runat="server" CssClass="btn btn-outline-primary mt-2 add-module-topic-btn"
+    OnClick="btnAddTopic_Click">
+    <i class="bi bi-plus-circle"></i> Topic
+</asp:LinkButton>
+
 
             <!-- Here you can render dynamically added topic controls or a placeholder for topics/subtopics -->
             <asp:PlaceHolder ID="phTopics" runat="server"></asp:PlaceHolder>
 
             <asp:Button ID="btnCreate" runat="server" CssClass="add-module-create-btn" Text="Create" OnClick="btnCreate_Click" />
+
+            <!-- Message area for upload/result feedback -->
+            <asp:Label ID="lblMessage" runat="server" CssClass="text-success mt-2" />
         </div>
     </div>
 </asp:Content>

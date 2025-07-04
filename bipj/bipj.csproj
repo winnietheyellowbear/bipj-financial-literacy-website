@@ -134,6 +134,7 @@
     <Content Include="Education.aspx" />
     <Content Include="Forum_Nav.css" />
     <Content Include="Home.aspx" />
+    <Content Include="HomePortfolio.aspx" />
     <Content Include="Images\hello kitty.png" />
     <Content Include="Images\logo.png" />
     <Content Include="Images\usagi.jpg" />
@@ -247,6 +248,13 @@
     </Compile>
     <Compile Include="Home.aspx.designer.cs">
       <DependentUpon>Home.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="HomePortfolio.aspx.cs">
+      <DependentUpon>HomePortfolio.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="HomePortfolio.aspx.designer.cs">
+      <DependentUpon>HomePortfolio.aspx</DependentUpon>
     </Compile>
     <Compile Include="Loginpage.aspx.cs">
       <DependentUpon>Loginpage.aspx</DependentUpon>

@@ -12,15 +12,25 @@ namespace bipj
         protected void Page_Load(object sender, EventArgs e)
         {
             if (!IsPostBack)
-                LoadTopics();
+                LoadModules();
         }
 
-        private void LoadTopics()
+        private void LoadModules()
         {
             DataTable dt = new DataTable();
             using (SqlConnection conn = new SqlConnection(connStr))
             {
-                string sql = "SELECT Id, Title, ImageUrl FROM EducationTopics";
+                // You can join or subquery to get the subtopic count if you want.
+                // Otherwise just select module fields only.
+                string sql = @"
+                    SELECT 
+                        m.Id, 
+                        m.Name, 
+                        m.BriefDescription, 
+                        m.ImageUrl,
+                        m.IndeptDescription,
+                        (SELECT COUNT(*) FROM EducationSubTopics s WHERE s.ModuleId = m.Id) AS SubTopicCount
+                    FROM EducationModules m";
                 using (SqlDataAdapter da = new SqlDataAdapter(sql, conn))
                 {
                     da.Fill(dt);
@@ -44,13 +54,13 @@ namespace bipj
 
         protected void btnAddTopic_Click(object sender, EventArgs e)
         {
-            // Redirect to add topic page
+            // Redirect to add module (main topic) page
             Response.Redirect("AddEducationTopic.aspx");
         }
 
         protected void btnDeleteTopics_Click(object sender, EventArgs e)
         {
-            // Redirect to delete topic page (or show modal)
+            // Redirect to delete module page (or show modal)
             Response.Redirect("DeleteEducationTopics.aspx");
         }
     }

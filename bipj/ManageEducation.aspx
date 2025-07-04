@@ -1,4 +1,4 @@
-﻿<%@ Page Title="Manage Education" Language="C#" MasterPageFile="~/Customer_Nav_loggedin.Master" AutoEventWireup="true" CodeBehind="ManageEducation.aspx.cs" Inherits="bipj.ManageEducation" %>
+﻿<%@ Page Title="Manage Education" Language="C#" MasterPageFile="~/Staff_Nav.Master" AutoEventWireup="true" CodeBehind="ManageEducation.aspx.cs" Inherits="bipj.ManageEducation" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
     <style>
@@ -122,23 +122,32 @@
             Current topics
         </div>
         <div class="edu-actions">
-            <asp:Button runat="server" ID="btnAddTopic" CssClass="edu-action-btn add" OnClick="btnAddTopic_Click" Text='<i class="bi bi-plus-circle"></i> add new topics' UseSubmitBehavior="false" />
-            <asp:Button runat="server" ID="btnDeleteTopics" CssClass="edu-action-btn del" OnClick="btnDeleteTopics_Click" Text='<i class="bi bi-x-circle"></i> Delete topics' UseSubmitBehavior="false" />
-        </div>
+           <asp:LinkButton ID="btnAddTopic" runat="server" CssClass="edu-action-btn add" OnClick="btnAddTopic_Click">
+    <i class="bi bi-plus-circle"></i> add new topics
+</asp:LinkButton>
+<asp:LinkButton ID="btnDeleteTopics" runat="server" CssClass="edu-action-btn del" OnClick="btnDeleteTopics_Click" Enabled="false">
+    <i class="bi bi-x-circle"></i> Delete topics
+</asp:LinkButton>
+   </div>
 
         <asp:Panel ID="pnlNoTopics" runat="server" Visible="false" CssClass="edu-no-topics">
             No topics created.
         </asp:Panel>
 
-        <asp:Repeater ID="rptTopics" runat="server">
-            <ItemTemplate>
-                <div class="edu-card">
-                    <img src='<%# Eval("ImageUrl") %>' alt="Topic Image" />
-                    <div class="edu-title"><%# Eval("Title") %></div>
-                    <a href='<%# "ManageSingleTopic.aspx?id=" + Eval("Id") %>' class="edu-manage-btn">Manage</a>
-                </div>
-            </ItemTemplate>
-        </asp:Repeater>
+       <asp:Repeater ID="rptTopics" runat="server">
+    <ItemTemplate>
+        <div class="edu-card">
+            <img src='<%# Eval("ImageUrl") %>' alt="Topic Image" />
+            <div class="edu-title"><%# Eval("Name") %></div>
+            <div style="color:#777; font-size:0.97rem; margin-bottom:7px;"><%# Eval("BriefDescription") %></div>
+            <%-- Show number of subtopics, if you want: --%>
+            <div style="font-size:0.85rem; color:#4e57c7;"><%# Eval("SubTopicCount") %> topics</div>
+            <a href='<%# "ManageSingleTopic.aspx?id=" + Eval("Id") %>' class="edu-manage-btn">Manage</a>
+        </div>
+    </ItemTemplate>
+</asp:Repeater>
+
+
 
         <!-- Card list container -->
         <asp:Panel ID="pnlTopicsList" runat="server">

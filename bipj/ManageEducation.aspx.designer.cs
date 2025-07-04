@@ -21,7 +21,7 @@ namespace bipj
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnAddTopic;
+        protected global::System.Web.UI.WebControls.LinkButton btnAddTopic;
 
         /// <summary>
         /// btnDeleteTopics control.
@@ -30,7 +30,7 @@ namespace bipj
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnDeleteTopics;
+        protected global::System.Web.UI.WebControls.LinkButton btnDeleteTopics;
 
         /// <summary>
         /// pnlNoTopics control.

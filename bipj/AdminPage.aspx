@@ -72,7 +72,7 @@
             <div class="admin-card">
                 <i class="bi bi-people-fill admin-icon"></i>
                 <div class="admin-title">manage advisors</div>
-                <a href="ManageAdvisors.aspx" class="go-btn">Go</a>
+                <a href="ApproveAdvisor.aspx" class="go-btn">Go</a>
             </div>
             <!-- Card 2 -->
             <div class="admin-card">

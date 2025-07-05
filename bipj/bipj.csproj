@@ -122,11 +122,13 @@
     <Content Include="AllCompleted.aspx" />
     <Content Include="AllRecent.aspx" />
     <Content Include="AllTopics.aspx" />
+    <Content Include="ApproveAdvisor.aspx" />
     <Content Include="App_Data\FinLitDB.mdf" />
     <Content Include="App_Data\FinLitDB_log.ldf">
       <DependentUpon>FinLitDB.mdf</DependentUpon>
     </Content>
-    <Content Include="Booking.aspx" />
+    <Content Include="Booking1.aspx" />
+    <Content Include="Booking2.aspx" />
     <Content Include="BookingForum.aspx" />
     <Content Include="CreateVoucherAuto.aspx" />
     <Content Include="Discussion.aspx" />
@@ -146,6 +148,7 @@
     <Content Include="QRCodeScanner.aspx" />
     <Content Include="RegisterAdvisor.aspx" />
     <Content Include="SmartSearch.aspx" />
+    <Content Include="ViewAdvisor.aspx" />
     <Content Include="VoucherActive.aspx" />
     <Content Include="VoucherExchange.aspx" />
     <Content Include="VoucherManagement.aspx" />
@@ -184,14 +187,28 @@
     <Compile Include="AllTopics.aspx.designer.cs">
       <DependentUpon>AllTopics.aspx</DependentUpon>
     </Compile>
-    <Compile Include="Booking.aspx.cs">
-      <DependentUpon>Booking.aspx</DependentUpon>
+    <Compile Include="ApproveAdvisor.aspx.cs">
+      <DependentUpon>ApproveAdvisor.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="Booking.aspx.designer.cs">
-      <DependentUpon>Booking.aspx</DependentUpon>
+    <Compile Include="ApproveAdvisor.aspx.designer.cs">
+      <DependentUpon>ApproveAdvisor.aspx</DependentUpon>
     </Compile>
     <Compile Include="Booking.cs" />
+    <Compile Include="Booking1.aspx.cs">
+      <DependentUpon>Booking1.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Booking1.aspx.designer.cs">
+      <DependentUpon>Booking1.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Booking2.aspx.cs">
+      <DependentUpon>Booking2.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Booking2.aspx.designer.cs">
+      <DependentUpon>Booking2.aspx</DependentUpon>
+    </Compile>
     <Compile Include="BookingForum.aspx.cs">
       <DependentUpon>BookingForum.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -311,6 +328,13 @@
     </Compile>
     <Compile Include="SmartSearch.aspx.designer.cs">
       <DependentUpon>SmartSearch.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="ViewAdvisor.aspx.cs">
+      <DependentUpon>ViewAdvisor.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ViewAdvisor.aspx.designer.cs">
+      <DependentUpon>ViewAdvisor.aspx</DependentUpon>
     </Compile>
     <Compile Include="Voucher.Master.cs">
       <DependentUpon>Voucher.Master</DependentUpon>

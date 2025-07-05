@@ -47,6 +47,10 @@ namespace bipj
         [NotMapped]
         public HttpPostedFileBase PhotoFile { get; set; }
 
+        public decimal Rating { get; set; } = 0;
+        public decimal RatingSum { get; set; } = 0;
+        public int RatingCount { get; set; } = 0;
+        
         public byte Status { get; set; } = 0; // 0=Pending, 1=Approved, 2=Rejected
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
@@ -56,7 +60,8 @@ namespace bipj
         public Advisor(int advisorId, string name, string email, string category,
                       string spec1, string spec2, string spec3,
                       string bio, string photoPath, byte status,
-                      DateTime createdAt, DateTime updatedAt)
+                      DateTime createdAt, DateTime updatedAt,
+                      decimal rating, decimal ratingSum, int ratingCount)
         {
             AdvisorId = advisorId;
             Name = name;
@@ -70,6 +75,9 @@ namespace bipj
             Status = status;
             CreatedAt = createdAt;
             UpdatedAt = updatedAt;
+            Rating = rating;
+            RatingSum = ratingSum;
+            RatingCount = ratingCount;
         }
 
         /// <summary>
@@ -88,11 +96,13 @@ namespace bipj
                 INSERT INTO Advisor
                  (Name, Email, Category,
                   Specialty1, Specialty2, Specialty3,
-                  Bio, PhotoPath, Status, CreatedAt, UpdatedAt)
+                  Bio, PhotoPath, Status, CreatedAt, UpdatedAt,
+                  Rating, RatingSum, RatingCount)
                  VALUES
                  (@Name, @Email, @Category,
                   @S1, @S2, @S3,
-                  @Bio, @Photo, @Status, @Created, @Updated);
+                  @Bio, @Photo, @Status, @Created, @Updated,
+                  @Rating, @RatingSum, @RatingCount);
                 SELECT SCOPE_IDENTITY();";
 
                 using (var conn = new SqlConnection(ConnStr))
@@ -109,6 +119,9 @@ namespace bipj
                     cmd.Parameters.AddWithValue("@Status", Status);
                     cmd.Parameters.AddWithValue("@Created", CreatedAt);
                     cmd.Parameters.AddWithValue("@Updated", UpdatedAt);
+                    cmd.Parameters.AddWithValue("@Rating", Rating);
+                    cmd.Parameters.AddWithValue("@RatingSum", RatingSum);
+                    cmd.Parameters.AddWithValue("@RatingCount", RatingCount);
 
                     conn.Open();
                     var result = cmd.ExecuteScalar();
@@ -131,7 +144,6 @@ namespace bipj
             {
                 if (PhotoFile != null && PhotoFile.ContentLength > 0)
                 {
-                    // Delete old photo if exists
                     if (!string.IsNullOrEmpty(PhotoPath))
                     {
                         DeletePhoto(PhotoPath);
@@ -150,7 +162,10 @@ namespace bipj
                        Bio = @Bio,
                        PhotoPath = @Photo,
                        Status = @Status,
-                       UpdatedAt = @Updated
+                       UpdatedAt = @Updated,
+                       Rating = @Rating,
+                       RatingSum = @RatingSum,
+                       RatingCount = @RatingCount
                  WHERE AdvisorId = @Id";
 
                 using (var conn = new SqlConnection(ConnStr))
@@ -167,6 +182,9 @@ namespace bipj
                     cmd.Parameters.AddWithValue("@Photo", (object)PhotoPath ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@Status", Status);
                     cmd.Parameters.AddWithValue("@Updated", DateTime.Now);
+                    cmd.Parameters.AddWithValue("@Rating", Rating);
+                    cmd.Parameters.AddWithValue("@RatingSum", RatingSum);
+                    cmd.Parameters.AddWithValue("@RatingCount", RatingCount);
 
                     conn.Open();
                     return cmd.ExecuteNonQuery();
@@ -180,13 +198,37 @@ namespace bipj
         }
 
         /// <summary>
+        /// Updates advisor's rating with a new user rating
+        /// </summary>
+        public static bool AddRating(int advisorId, int stars)
+        {
+            const string sql = @"
+                UPDATE Advisor
+                SET RatingSum = RatingSum + @Stars,
+                    RatingCount = RatingCount + 1,
+                    Rating = CAST(RatingSum + @Stars AS DECIMAL(5,2)) / (RatingCount + 1),
+                    UpdatedAt = @Updated
+                WHERE AdvisorId = @Id";
+
+            using (var conn = new SqlConnection(ConnStr))
+            using (var cmd = new SqlCommand(sql, conn))
+            {
+                cmd.Parameters.AddWithValue("@Stars", stars);
+                cmd.Parameters.AddWithValue("@Id", advisorId);
+                cmd.Parameters.AddWithValue("@Updated", DateTime.UtcNow);
+
+                conn.Open();
+                return cmd.ExecuteNonQuery() > 0;
+            }
+        }
+
+        /// <summary>
         /// Deletes an advisor record.
         /// </summary>
         public int Delete()
         {
             try
             {
-                // Delete photo if exists
                 if (!string.IsNullOrEmpty(PhotoPath))
                 {
                     DeletePhoto(PhotoPath);
@@ -219,7 +261,8 @@ namespace bipj
             const string sql = @"
             SELECT AdvisorId, Name, Email, Category,
                    Specialty1, Specialty2, Specialty3,
-                   Bio, PhotoPath, Status, CreatedAt, UpdatedAt
+                   Bio, PhotoPath, Status, CreatedAt, UpdatedAt,
+                   Rating, RatingSum, RatingCount
               FROM Advisor
              WHERE Status = @Status
             ORDER BY CreatedAt DESC;";
@@ -246,7 +289,10 @@ namespace bipj
                             dr.IsDBNull(8) ? null : dr.GetString(8),
                             dr.GetByte(9),
                             dr.GetDateTime(10),
-                            dr.GetDateTime(11)
+                            dr.GetDateTime(11),
+                            dr.GetDecimal(12),
+                            dr.GetDecimal(13),
+                            dr.GetInt32(14)
                         ));
                     }
                 }
@@ -264,7 +310,8 @@ namespace bipj
             const string sql = @"
             SELECT AdvisorId, Name, Email, Category,
                    Specialty1, Specialty2, Specialty3,
-                   Bio, PhotoPath, Status, CreatedAt, UpdatedAt
+                   Bio, PhotoPath, Status, CreatedAt, UpdatedAt,
+                   Rating, RatingSum, RatingCount
               FROM Advisor
             ORDER BY CreatedAt DESC;";
 
@@ -289,7 +336,10 @@ namespace bipj
                             dr.IsDBNull(8) ? null : dr.GetString(8),
                             dr.GetByte(9),
                             dr.GetDateTime(10),
-                            dr.GetDateTime(11)
+                            dr.GetDateTime(11),
+                            dr.GetDecimal(12),
+                            dr.GetDecimal(13),
+                            dr.GetInt32(14)
                         ));
                     }
                 }
@@ -329,7 +379,8 @@ namespace bipj
             const string sql = @"
             SELECT AdvisorId, Name, Email, Category,
                    Specialty1, Specialty2, Specialty3,
-                   Bio, PhotoPath, Status, CreatedAt, UpdatedAt
+                   Bio, PhotoPath, Status, CreatedAt, UpdatedAt,
+                   Rating, RatingSum, RatingCount
               FROM Advisor
              WHERE AdvisorId = @Id;";
 
@@ -354,7 +405,10 @@ namespace bipj
                         dr.IsDBNull(8) ? null : dr.GetString(8),
                         dr.GetByte(9),
                         dr.GetDateTime(10),
-                        dr.GetDateTime(11)
+                        dr.GetDateTime(11),
+                        dr.GetDecimal(12),
+                        dr.GetDecimal(13),
+                        dr.GetInt32(14)
                     );
                 }
             }

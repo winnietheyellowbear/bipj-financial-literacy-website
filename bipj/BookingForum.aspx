@@ -90,7 +90,13 @@
           Share your expertise and join our team of trusted advisors.  
           Fill out a short form to get started.
         </div>
-        <a href="RegisterAdvisor.aspx" class="booking-btn">Apply Now</a>
+        <asp:HyperLink 
+            ID="hlApplyAdvisor" 
+            runat="server" 
+            NavigateUrl="RegisterAdvisor.aspx" 
+            CssClass="booking-btn">
+          Apply Now
+        </asp:HyperLink>
       </div>
     </div>
 
@@ -102,7 +108,13 @@
         <div class="booking-card-text">
           Choose an advisor, select a date &amp; time, and reserve your one-on-one or group session.
         </div>
-        <a href="Booking.aspx" class="booking-btn">Book Now</a>
+        <asp:HyperLink 
+            ID="hlBookSession" 
+            runat="server" 
+            NavigateUrl="Booking1.aspx" 
+            CssClass="booking-btn">
+          Book Now
+        </asp:HyperLink>
       </div>
     </div>
   </div>

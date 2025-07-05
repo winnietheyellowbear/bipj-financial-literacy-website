@@ -13,5 +13,23 @@ namespace bipj
 
     public partial class BookingForum
     {
+
+        /// <summary>
+        /// hlApplyAdvisor control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.HyperLink hlApplyAdvisor;
+
+        /// <summary>
+        /// hlBookSession control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.HyperLink hlBookSession;
     }
 }

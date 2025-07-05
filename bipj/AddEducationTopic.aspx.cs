@@ -27,6 +27,12 @@ namespace bipj
                 ViewState["Topics"] = value;
             }
         }
+        private string UploadedImageFile
+        {
+            get { return ViewState["UploadedImageFile"] as string ?? ""; }
+            set { ViewState["UploadedImageFile"] = value; }
+        }
+
 
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -55,7 +61,9 @@ namespace bipj
                 string savePath = Server.MapPath("~/images/education/") + fileName;
                 fileUploadImage.SaveAs(savePath);
 
-                
+                // Store the file name for saving module later
+                UploadedImageFile = "images/education/" + fileName;
+
                 lblMessage.Text = "Image uploaded successfully!";
             }
             else
@@ -63,6 +71,7 @@ namespace bipj
                 lblMessage.Text = "Please select an image to upload.";
             }
         }
+
 
         protected void btnAddTopic_Click(object sender, EventArgs e)
         {
@@ -82,10 +91,67 @@ namespace bipj
 
         protected void btnCreate_Click(object sender, EventArgs e)
         {
-            SaveDynamicValues();
+            SaveDynamicValues(); // Ensure all inputs are current
 
-            // Here you can use Topics, txtModuleName.Text, etc to insert into your database!
+            string connStr = System.Configuration.ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString;
+
+            using (var conn = new System.Data.SqlClient.SqlConnection(connStr))
+            {
+                conn.Open();
+
+                // 1. Insert EducationModule
+                string insertModule = @"
+            INSERT INTO EducationModules (Name, BriefDescription, ImageUrl, IndeptDescription)
+            VALUES (@Name, @BriefDescription, @ImageUrl, @IndeptDescription);
+            SELECT SCOPE_IDENTITY();";
+                int moduleId = 0;
+                using (var cmd = new System.Data.SqlClient.SqlCommand(insertModule, conn))
+                {
+                    cmd.Parameters.AddWithValue("@Name", txtModuleName.Text.Trim());
+                    cmd.Parameters.AddWithValue("@BriefDescription", txtBriefDesc.Text.Trim());
+                    cmd.Parameters.AddWithValue("@ImageUrl", UploadedImageFile); // If blank, just empty string
+                    cmd.Parameters.AddWithValue("@IndeptDescription", txtIndeptDesc.Text.Trim());
+
+                    moduleId = Convert.ToInt32(cmd.ExecuteScalar());
+                }
+
+                // 2. For each Topic, insert EducationSubTopic, then its pages
+                foreach (var topic in Topics)
+                {
+                    // Insert EducationSubTopic
+                    string insertSubTopic = @"
+                INSERT INTO EducationSubTopics (ModuleId, Name)
+                VALUES (@ModuleId, @Name);
+                SELECT SCOPE_IDENTITY();";
+                    int subTopicId = 0;
+                    using (var cmd = new System.Data.SqlClient.SqlCommand(insertSubTopic, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@ModuleId", moduleId);
+                        cmd.Parameters.AddWithValue("@Name", topic.TopicName.Trim());
+                        subTopicId = Convert.ToInt32(cmd.ExecuteScalar());
+                    }
+
+                    // Insert each Page for this SubTopic
+                    foreach (var page in topic.Pages)
+                    {
+                        string insertPage = @"
+                    INSERT INTO EducationPages (SubTopicId, Title, Content)
+                    VALUES (@SubTopicId, @Title, @Content);";
+                        using (var cmd = new System.Data.SqlClient.SqlCommand(insertPage, conn))
+                        {
+                            cmd.Parameters.AddWithValue("@SubTopicId", subTopicId);
+                            cmd.Parameters.AddWithValue("@Title", page.Trim());
+                            cmd.Parameters.AddWithValue("@Content", ""); // Or extend to allow page content
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+                }
+            }
+
+            lblMessage.Text = "Education module created successfully!";
+            // Optionally: clear the form and/or redirect
         }
+
         private void RenderTopics()
         {
             phTopics.Controls.Clear();

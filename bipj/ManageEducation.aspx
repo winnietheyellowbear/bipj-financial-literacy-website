@@ -134,18 +134,18 @@
             No topics created.
         </asp:Panel>
 
-       <asp:Repeater ID="rptTopics" runat="server">
-    <ItemTemplate>
-        <div class="edu-card">
-            <img src='<%# Eval("ImageUrl") %>' alt="Topic Image" />
-            <div class="edu-title"><%# Eval("Name") %></div>
-            <div style="color:#777; font-size:0.97rem; margin-bottom:7px;"><%# Eval("BriefDescription") %></div>
-            <%-- Show number of subtopics, if you want: --%>
-            <div style="font-size:0.85rem; color:#4e57c7;"><%# Eval("SubTopicCount") %> topics</div>
-            <a href='<%# "ManageSingleTopic.aspx?id=" + Eval("Id") %>' class="edu-manage-btn">Manage</a>
-        </div>
-    </ItemTemplate>
+<asp:Repeater ID="rptTopics" runat="server">
+  <ItemTemplate>
+    <div class="module-card">
+      <h4><%# Eval("Name") %></h4>
+      <p><%# Eval("BriefDescription") %></p>
+      <!-- More info if needed -->
+
+      <a href='<%# "EditEducationPage.aspx?id=" + Eval("Id") %>' class="btn btn-outline-primary btn-sm">Manage Module</a>
+    </div>
+  </ItemTemplate>
 </asp:Repeater>
+
 
 
 

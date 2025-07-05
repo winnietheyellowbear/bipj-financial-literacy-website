@@ -131,6 +131,7 @@
     <Content Include="BookingForum.aspx" />
     <Content Include="CreateVoucherAuto.aspx" />
     <Content Include="Discussion.aspx" />
+    <Content Include="EditEducationPage.aspx" />
     <Content Include="EditMyPost.aspx" />
     <Content Include="Education.aspx" />
     <Content Include="Forum_Nav.css" />
@@ -234,6 +235,13 @@
     </Compile>
     <Compile Include="Discussion.aspx.designer.cs">
       <DependentUpon>Discussion.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="EditEducationPage.aspx.cs">
+      <DependentUpon>EditEducationPage.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="EditEducationPage.aspx.designer.cs">
+      <DependentUpon>EditEducationPage.aspx</DependentUpon>
     </Compile>
     <Compile Include="EditMyPost.aspx.cs">
       <DependentUpon>EditMyPost.aspx</DependentUpon>

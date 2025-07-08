@@ -49,7 +49,8 @@ namespace bipj
             var q = txtSearch.Text.Trim().ToLower();
             if (!string.IsNullOrEmpty(q))
                 filtered = filtered
-                    .Where(a => a.Name.ToLower().Contains(q) || a.Category.ToLower().Contains(q))
+                    .Where(a => a.Name.ToLower().Contains(q)
+                             || a.Category.ToLower().Contains(q))
                     .ToList();
 
             // Min rating
@@ -59,7 +60,10 @@ namespace bipj
 
             // Specialties
             var chosen = cblSpecialties.Items
-                .Cast<ListItem>().Where(i => i.Selected).Select(i => i.Value).ToList();
+                .Cast<ListItem>()
+                .Where(i => i.Selected)
+                .Select(i => i.Value)
+                .ToList();
             if (chosen.Any())
                 filtered = filtered
                     .Where(a => chosen.Contains(a.Specialty1)
@@ -94,15 +98,25 @@ namespace bipj
             return string.Join("", list);
         }
 
+        // When user clicks “Select”
         protected void btnSelectAdvisor_Click(object sender, EventArgs e)
         {
             var btn = (Button)sender;
             int advisorId = int.Parse(btn.CommandArgument);
             var adv = Advisor.GetById(advisorId);
-            if (adv == null) { Response.Redirect("Booking2.aspx"); return; }
+            if (adv == null)
+            {
+                Response.Redirect("Booking2.aspx");
+                return;
+            }
 
+            // store under the keys Booking5.aspx.cs expects:
+            Session["BookingAdvisorName"] = adv.Name;
+            Session["BookingAdvisorEmail"] = adv.Email;
+            Session["BookingAdvisorCategory"] = adv.Category;
+            // still keep the raw ID if you need it later
             Session["AdvisorId"] = adv.AdvisorId;
-            Session["AdvisorName"] = adv.Name;
+
             Response.Redirect("Booking3.aspx");
         }
     }

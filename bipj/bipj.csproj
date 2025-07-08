@@ -129,6 +129,9 @@
     </Content>
     <Content Include="Booking1.aspx" />
     <Content Include="Booking2.aspx" />
+    <Content Include="Booking3.aspx" />
+    <Content Include="Booking4.aspx" />
+    <Content Include="Booking5.aspx" />
     <Content Include="BookingForum.aspx" />
     <Content Include="CreateVoucherAuto.aspx" />
     <Content Include="Discussion.aspx" />
@@ -208,6 +211,27 @@
     </Compile>
     <Compile Include="Booking2.aspx.designer.cs">
       <DependentUpon>Booking2.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Booking3.aspx.cs">
+      <DependentUpon>Booking3.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Booking3.aspx.designer.cs">
+      <DependentUpon>Booking3.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Booking4.aspx.cs">
+      <DependentUpon>Booking4.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Booking4.aspx.designer.cs">
+      <DependentUpon>Booking4.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Booking5.aspx.cs">
+      <DependentUpon>Booking5.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Booking5.aspx.designer.cs">
+      <DependentUpon>Booking5.aspx</DependentUpon>
     </Compile>
     <Compile Include="BookingForum.aspx.cs">
       <DependentUpon>BookingForum.aspx</DependentUpon>

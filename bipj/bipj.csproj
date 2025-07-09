@@ -48,6 +48,18 @@
     <Reference Include="GemBox.Email, Version=2025.6.102.0, Culture=neutral, PublicKeyToken=b1b72c69714d4847, processorArchitecture=MSIL">
       <HintPath>..\packages\GemBox.Email.2025.6.102\lib\net462\GemBox.Email.dll</HintPath>
     </Reference>
+    <Reference Include="Google.Apis, Version=1.70.0.0, Culture=neutral, PublicKeyToken=4b01fa6e34db77ab, processorArchitecture=MSIL">
+      <HintPath>..\packages\Google.Apis.1.70.0\lib\net462\Google.Apis.dll</HintPath>
+    </Reference>
+    <Reference Include="Google.Apis.Auth, Version=1.70.0.0, Culture=neutral, PublicKeyToken=4b01fa6e34db77ab, processorArchitecture=MSIL">
+      <HintPath>..\packages\Google.Apis.Auth.1.70.0\lib\net462\Google.Apis.Auth.dll</HintPath>
+    </Reference>
+    <Reference Include="Google.Apis.Calendar.v3, Version=1.69.0.3746, Culture=neutral, PublicKeyToken=4b01fa6e34db77ab, processorArchitecture=MSIL">
+      <HintPath>..\packages\Google.Apis.Calendar.v3.1.69.0.3746\lib\net462\Google.Apis.Calendar.v3.dll</HintPath>
+    </Reference>
+    <Reference Include="Google.Apis.Core, Version=1.70.0.0, Culture=neutral, PublicKeyToken=4b01fa6e34db77ab, processorArchitecture=MSIL">
+      <HintPath>..\packages\Google.Apis.Core.1.70.0\lib\net462\Google.Apis.Core.dll</HintPath>
+    </Reference>
     <Reference Include="MailKit, Version=4.12.0.0, Culture=neutral, PublicKeyToken=4e064fe7c44a8f1b, processorArchitecture=MSIL">
       <HintPath>..\packages\MailKit.4.12.1\lib\net47\MailKit.dll</HintPath>
     </Reference>
@@ -76,6 +88,7 @@
     <Reference Include="System.Formats.Asn1, Version=8.0.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Formats.Asn1.8.0.1\lib\net462\System.Formats.Asn1.dll</HintPath>
     </Reference>
+    <Reference Include="System.Management" />
     <Reference Include="System.Memory, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Memory.4.6.0\lib\net462\System.Memory.dll</HintPath>
     </Reference>
@@ -124,11 +137,16 @@
     <Content Include="AllProfile.aspx" />
     <Content Include="AllRecent.aspx" />
     <Content Include="AllTopics.aspx" />
+    <Content Include="ApproveAdvisor.aspx" />
     <Content Include="App_Data\FinLitDB.mdf" />
     <Content Include="App_Data\FinLitDB_log.ldf">
       <DependentUpon>FinLitDB.mdf</DependentUpon>
     </Content>
-    <Content Include="Booking.aspx" />
+    <Content Include="Booking1.aspx" />
+    <Content Include="Booking2.aspx" />
+    <Content Include="Booking3.aspx" />
+    <Content Include="Booking4.aspx" />
+    <Content Include="Booking5.aspx" />
     <Content Include="BookingForum.aspx" />
     <Content Include="CreateVoucherAuto.aspx" />
     <Content Include="Discussion.aspx" />
@@ -151,6 +169,7 @@
     <Content Include="QRCodeScanner.aspx" />
     <Content Include="RegisterAdvisor.aspx" />
     <Content Include="SmartSearch.aspx" />
+    <Content Include="ViewAdvisor.aspx" />
     <Content Include="ViewEducationPage.aspx" />
     <Content Include="ViewSpecificEdu.aspx" />
     <Content Include="ViewSpecificProfile.aspx" />
@@ -205,14 +224,49 @@
     <Compile Include="AllTopics.aspx.designer.cs">
       <DependentUpon>AllTopics.aspx</DependentUpon>
     </Compile>
-    <Compile Include="Booking.aspx.cs">
-      <DependentUpon>Booking.aspx</DependentUpon>
+    <Compile Include="ApproveAdvisor.aspx.cs">
+      <DependentUpon>ApproveAdvisor.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="Booking.aspx.designer.cs">
-      <DependentUpon>Booking.aspx</DependentUpon>
+    <Compile Include="ApproveAdvisor.aspx.designer.cs">
+      <DependentUpon>ApproveAdvisor.aspx</DependentUpon>
     </Compile>
     <Compile Include="Booking.cs" />
+    <Compile Include="Booking1.aspx.cs">
+      <DependentUpon>Booking1.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Booking1.aspx.designer.cs">
+      <DependentUpon>Booking1.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Booking2.aspx.cs">
+      <DependentUpon>Booking2.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Booking2.aspx.designer.cs">
+      <DependentUpon>Booking2.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Booking3.aspx.cs">
+      <DependentUpon>Booking3.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Booking3.aspx.designer.cs">
+      <DependentUpon>Booking3.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Booking4.aspx.cs">
+      <DependentUpon>Booking4.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Booking4.aspx.designer.cs">
+      <DependentUpon>Booking4.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Booking5.aspx.cs">
+      <DependentUpon>Booking5.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Booking5.aspx.designer.cs">
+      <DependentUpon>Booking5.aspx</DependentUpon>
+    </Compile>
     <Compile Include="BookingForum.aspx.cs">
       <DependentUpon>BookingForum.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -347,6 +401,13 @@
     <Compile Include="SmartSearch.aspx.designer.cs">
       <DependentUpon>SmartSearch.aspx</DependentUpon>
     </Compile>
+    <Compile Include="ViewAdvisor.aspx.cs">
+      <DependentUpon>ViewAdvisor.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ViewAdvisor.aspx.designer.cs">
+      <DependentUpon>ViewAdvisor.aspx</DependentUpon>
+    </Compile>
     <Compile Include="ViewEducationPage.aspx.cs">
       <DependentUpon>ViewEducationPage.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -435,10 +496,10 @@
   <ItemGroup>
     <Content Include="Customer_Nav.Master" />
     <Content Include="Customer_Nav_loggedin.Master" />
-    <None Include="packages.config" />
     <Content Include="Staff_Nav.Master" />
     <Content Include="Voucher.Master" />
     <Content Include="UploadHandler.ashx" />
+    <None Include="packages.config" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -479,15 +540,15 @@
       </FlavorProperties>
     </VisualStudio>
   </ProjectExtensions>
+  <Import Project="..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets" Condition="Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\GemBox.Email.2025.6.102\build\netstandard2.0\GemBox.Email.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GemBox.Email.2025.6.102\build\netstandard2.0\GemBox.Email.targets'))" />
     <Error Condition="!Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets'))" />
+    <Error Condition="!Exists('..\packages\GemBox.Email.2025.6.102\build\netstandard2.0\GemBox.Email.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GemBox.Email.2025.6.102\build\netstandard2.0\GemBox.Email.targets'))" />
   </Target>
   <Import Project="..\packages\GemBox.Email.2025.6.102\build\netstandard2.0\GemBox.Email.targets" Condition="Exists('..\packages\GemBox.Email.2025.6.102\build\netstandard2.0\GemBox.Email.targets')" />
-  <Import Project="..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets" Condition="Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

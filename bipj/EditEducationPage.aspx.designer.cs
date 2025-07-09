@@ -24,51 +24,6 @@ namespace bipj
         protected global::System.Web.UI.WebControls.Repeater rptTopics;
 
         /// <summary>
-        /// pnlToolbar control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Panel pnlToolbar;
-
-        /// <summary>
-        /// btnAddTitle control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnAddTitle;
-
-        /// <summary>
-        /// btnAddText control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnAddText;
-
-        /// <summary>
-        /// btnRemove control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnRemove;
-
-        /// <summary>
-        /// btnAddVideo control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnAddVideo;
-
-        /// <summary>
         /// txtPageTitle control.
         /// </summary>
         /// <remarks>
@@ -78,15 +33,6 @@ namespace bipj
         protected global::System.Web.UI.WebControls.TextBox txtPageTitle;
 
         /// <summary>
-        /// txtContent control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox txtContent;
-
-        /// <summary>
         /// btnSave control.
         /// </summary>
         /// <remarks>
@@ -94,6 +40,15 @@ namespace bipj
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Button btnSave;
+
+        /// <summary>
+        /// hfEditorContent control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.HiddenField hfEditorContent;
 
         /// <summary>
         /// lblMessage control.

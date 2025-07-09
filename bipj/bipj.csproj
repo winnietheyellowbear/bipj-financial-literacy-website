@@ -149,6 +149,8 @@
     <Content Include="QRCodeScanner.aspx" />
     <Content Include="RegisterAdvisor.aspx" />
     <Content Include="SmartSearch.aspx" />
+    <Content Include="ViewEducationPage.aspx" />
+    <Content Include="ViewSpecificEdu.aspx" />
     <Content Include="VoucherActive.aspx" />
     <Content Include="VoucherExchange.aspx" />
     <Content Include="VoucherManagement.aspx" />
@@ -328,6 +330,20 @@
     <Compile Include="SmartSearch.aspx.designer.cs">
       <DependentUpon>SmartSearch.aspx</DependentUpon>
     </Compile>
+    <Compile Include="ViewEducationPage.aspx.cs">
+      <DependentUpon>ViewEducationPage.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ViewEducationPage.aspx.designer.cs">
+      <DependentUpon>ViewEducationPage.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="ViewSpecificEdu.aspx.cs">
+      <DependentUpon>ViewSpecificEdu.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ViewSpecificEdu.aspx.designer.cs">
+      <DependentUpon>ViewSpecificEdu.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Voucher.Master.cs">
       <DependentUpon>Voucher.Master</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -398,6 +414,7 @@
     <None Include="packages.config" />
     <Content Include="Staff_Nav.Master" />
     <Content Include="Voucher.Master" />
+    <Content Include="UploadHandler.ashx" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -409,6 +426,7 @@
     <Folder Include="Forum\Icon\" />
     <Folder Include="Forum\Images\" />
     <Folder Include="Forum\Videos\" />
+    <Folder Include="uploadcontents\" />
     <Folder Include="Voucher\" />
   </ItemGroup>
   <PropertyGroup>

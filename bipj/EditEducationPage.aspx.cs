@@ -1,27 +1,66 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Web.UI;
+using System.Web.UI.WebControls;
 
 namespace bipj
 {
     public partial class EditEducationPage : System.Web.UI.Page
     {
-        protected int ModuleId
-        {
-            get { int id; int.TryParse(Request.QueryString["moduleId"], out id); return id; }
-        }
-
-        protected int PageId
-        {
-            get { int id; int.TryParse(Request.QueryString["pageId"], out id); return id; }
-        }
+        protected int ModuleId => int.TryParse(Request.QueryString["moduleId"], out int id) ? id : 0;
+        protected int PageId => int.TryParse(Request.QueryString["pageId"], out int id) ? id : 0;
 
         protected void Page_Load(object sender, EventArgs e)
         {
             if (!IsPostBack)
             {
-                LoadSideNav();
-                LoadPageContent();
+                if (ModuleId > 0)
+                {
+                    LoadSideNav();
+
+                    if (PageId > 0)
+                    {
+                        LoadPageContent();
+                    }
+                    else
+                    {
+                        LoadFirstPageOfModule();
+                    }
+                }
+                else
+                {
+                    lblMessage.Text = "ERROR: No ModuleId specified";
+                }
+            }
+        }
+
+        private void LoadFirstPageOfModule()
+        {
+            string connStr = System.Configuration.ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString;
+            using (var conn = new SqlConnection(connStr))
+            {
+                conn.Open();
+                string sql = @"SELECT TOP 1 p.Id 
+                              FROM EducationPages p
+                              JOIN EducationSubTopics s ON p.SubTopicId = s.Id
+                              WHERE s.ModuleId = @ModuleId
+                              ORDER BY p.Id";
+
+                using (var cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@ModuleId", ModuleId);
+                    var firstPageId = cmd.ExecuteScalar();
+
+                    if (firstPageId != null)
+                    {
+                        Response.Redirect($"EditEducationPage.aspx?moduleId={ModuleId}&pageId={firstPageId}");
+                    }
+                    else
+                    {
+                        lblMessage.Text = "No pages exist for this module";
+                    }
+                }
             }
         }
 
@@ -31,9 +70,11 @@ namespace bipj
             using (var conn = new SqlConnection(connStr))
             {
                 conn.Open();
+
                 // Fetch topics
                 var topics = new List<dynamic>();
                 string topicSql = "SELECT Id, Name FROM EducationSubTopics WHERE ModuleId=@ModuleId";
+
                 using (var cmd = new SqlCommand(topicSql, conn))
                 {
                     cmd.Parameters.AddWithValue("@ModuleId", ModuleId);
@@ -52,6 +93,7 @@ namespace bipj
                 {
                     var pages = new List<object>();
                     string pageSql = "SELECT Id, Title FROM EducationPages WHERE SubTopicId=@SubTopicId";
+
                     using (var cmd = new SqlCommand(pageSql, conn))
                     {
                         cmd.Parameters.AddWithValue("@SubTopicId", topic.Id);
@@ -84,20 +126,23 @@ namespace bipj
 
         private void LoadPageContent()
         {
-            string connStr = System.Configuration.ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString;
-            using (var conn = new SqlConnection(connStr))
+            if (PageId > 0)
             {
-                conn.Open();
-                string sql = "SELECT Title, Content FROM EducationPages WHERE Id=@Id";
-                using (var cmd = new SqlCommand(sql, conn))
+                string connStr = System.Configuration.ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString;
+                using (var conn = new SqlConnection(connStr))
                 {
-                    cmd.Parameters.AddWithValue("@Id", PageId);
-                    using (var reader = cmd.ExecuteReader())
+                    conn.Open();
+                    string sql = "SELECT Title, Content FROM EducationPages WHERE Id=@Id";
+                    using (var cmd = new SqlCommand(sql, conn))
                     {
-                        if (reader.Read())
+                        cmd.Parameters.AddWithValue("@Id", PageId);
+                        using (var reader = cmd.ExecuteReader())
                         {
-                            txtPageTitle.Text = reader["Title"].ToString();
-                            txtContent.Text = reader["Content"].ToString();
+                            if (reader.Read())
+                            {
+                                txtPageTitle.Text = reader["Title"].ToString();
+                                hfEditorContent.Value = reader["Content"].ToString();
+                            }
                         }
                     }
                 }
@@ -106,23 +151,41 @@ namespace bipj
 
         protected void btnSave_Click(object sender, EventArgs e)
         {
-            string connStr = System.Configuration.ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString;
-            using (var conn = new SqlConnection(connStr))
+            if (PageId > 0)
             {
-                conn.Open();
-                string sql = "UPDATE EducationPages SET Title=@Title, Content=@Content WHERE Id=@Id";
-                using (var cmd = new SqlCommand(sql, conn))
+                string connStr = System.Configuration.ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString;
+                using (var conn = new SqlConnection(connStr))
                 {
-                    cmd.Parameters.AddWithValue("@Title", txtPageTitle.Text.Trim());
-                    cmd.Parameters.AddWithValue("@Content", txtContent.Text.Trim());
-                    cmd.Parameters.AddWithValue("@Id", PageId);
-                    cmd.ExecuteNonQuery();
+                    conn.Open();
+                    string sql = "UPDATE EducationPages SET Title=@Title, Content=@Content WHERE Id=@Id";
+                    using (var cmd = new SqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Title", txtPageTitle.Text.Trim());
+                        cmd.Parameters.AddWithValue("@Content", hfEditorContent.Value); // This is now JSON from Editor.js
+                        cmd.Parameters.AddWithValue("@Id", PageId);
+                        cmd.ExecuteNonQuery();
+                    }
                 }
+                lblMessage.Text = "Page updated successfully!";
             }
-            lblMessage.Text = "Page updated successfully!";
-            // Optionally reload side nav if you want
-            LoadSideNav();
+            else
+            {
+                lblMessage.Text = "Error: No page selected";
+            }
         }
 
+        protected void rptTopics_ItemDataBound(object sender, RepeaterItemEventArgs e)
+        {
+            if (e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem)
+            {
+                var dataItem = e.Item.DataItem;
+                var propertyInfo = dataItem.GetType().GetProperty("Pages");
+                var pages = propertyInfo.GetValue(dataItem, null) as IEnumerable<object>;
+
+                var rptPages = (Repeater)e.Item.FindControl("rptPages");
+                rptPages.DataSource = pages;
+                rptPages.DataBind();
+            }
+        }
     }
 }

@@ -141,7 +141,10 @@
       <p><%# Eval("BriefDescription") %></p>
       <!-- More info if needed -->
 
-      <a href='<%# "EditEducationPage.aspx?id=" + Eval("Id") %>' class="btn btn-outline-primary btn-sm">Manage Module</a>
+      <a href='<%# "EditEducationPage.aspx?moduleId=" + Eval("Id") + "&pageId=0" %>' 
+         class="btn btn-outline-primary btn-sm">
+         Manage Module
+      </a>
     </div>
   </ItemTemplate>
 </asp:Repeater>

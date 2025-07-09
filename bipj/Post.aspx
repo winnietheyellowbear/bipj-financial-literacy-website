@@ -192,6 +192,8 @@
        <!-- Sidebar -->
        <div class="sidebar">
            <ul>
+               <br />
+               <br />
             <li>
                 <a href="Discussion.aspx">
                     <img src='<%= ResolveUrl("~/Forum/Icon/Discussion_Icon.png") %>' alt="Discussion Icon"/>

@@ -48,6 +48,7 @@
              border-bottom: 1px solid #E5E7EB;
              flex-wrap: wrap;
              gap: 10px;
+             position: sticky;
          }
 
          .stat-pill {
@@ -211,10 +212,12 @@
         }
 
     </style>
-
+    <br />
+    <br />
      
 
      <div class="top-bar">
+
      <h2>Active Voucher</h2>
      <div style="display: flex; gap: 10px;">
          <div class="stat-pill">

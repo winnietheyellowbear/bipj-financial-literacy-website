@@ -1,4 +1,4 @@
-﻿<%@ Page Title="Admin Dashboard" Language="C#" MasterPageFile="~/Customer_Nav_loggedin.Master" AutoEventWireup="true" CodeBehind="AdminPage.aspx.cs" Inherits="bipj.AdminPage" %>
+﻿<%@ Page Title="Admin Dashboard" Language="C#" MasterPageFile="~/Staff_Nav.Master" AutoEventWireup="true" CodeBehind="AdminPage.aspx.cs" Inherits="bipj.AdminPage" %>
 
 <asp:Content ID="headContent" ContentPlaceHolderID="head" runat="server">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600&display=swap" rel="stylesheet">

@@ -118,6 +118,7 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="AddEducationTopic.aspx" />
     <Content Include="AdminPage.aspx" />
     <Content Include="AllCompleted.aspx" />
     <Content Include="AllRecent.aspx" />
@@ -135,9 +136,11 @@
     <Content Include="BookingForum.aspx" />
     <Content Include="CreateVoucherAuto.aspx" />
     <Content Include="Discussion.aspx" />
+    <Content Include="EditEducationPage.aspx" />
     <Content Include="EditMyPost.aspx" />
     <Content Include="Education.aspx" />
     <Content Include="Forum_Nav.css" />
+    <Content Include="Forum_Post.css" />
     <Content Include="Home.aspx" />
     <Content Include="Images\hello kitty.png" />
     <Content Include="Images\logo.png" />
@@ -161,6 +164,12 @@
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AddEducationTopic.aspx.cs">
+      <DependentUpon>AddEducationTopic.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="AddEducationTopic.aspx.designer.cs">
+      <DependentUpon>AddEducationTopic.aspx</DependentUpon>
+    </Compile>
     <Compile Include="AdminPage.aspx.cs">
       <DependentUpon>AdminPage.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -267,6 +276,13 @@
     </Compile>
     <Compile Include="Discussion.aspx.designer.cs">
       <DependentUpon>Discussion.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="EditEducationPage.aspx.cs">
+      <DependentUpon>EditEducationPage.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="EditEducationPage.aspx.designer.cs">
+      <DependentUpon>EditEducationPage.aspx</DependentUpon>
     </Compile>
     <Compile Include="EditMyPost.aspx.cs">
       <DependentUpon>EditMyPost.aspx</DependentUpon>

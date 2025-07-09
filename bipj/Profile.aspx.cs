@@ -3,12 +3,14 @@ using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.Web.UI;
+using System.Web.UI.WebControls;
+using System.Xml.Linq;
 
 namespace bipj
 {
     public partial class Profile : System.Web.UI.Page
     {
-        protected int CurrentUserId => Convert.ToInt32(Session["UserId"]); // Assuming you store user ID in session
+        protected int CurrentUserId => Convert.ToInt32(Session["UserId"]);
         protected int ProfileUserId => Request.QueryString["userId"] != null ?
             Convert.ToInt32(Request.QueryString["userId"]) : CurrentUserId;
 
@@ -27,6 +29,42 @@ namespace bipj
             }
         }
 
+        // Helper method to check if current user can delete a comment
+        protected bool CanDeleteComment(int commentAuthorId)
+        {
+            // Users can delete their own comments or if they're viewing their own profile
+            return commentAuthorId == CurrentUserId || ProfileUserId == CurrentUserId;
+        }
+
+        // Handle comment deletion
+        protected void rptComments_ItemCommand(object source, RepeaterCommandEventArgs e)
+        {
+            if (e.CommandName == "Delete")
+            {
+                int commentId = Convert.ToInt32(e.CommandArgument);
+                DeleteComment(commentId);
+                LoadComments(); // Refresh the comments list
+            }
+        }
+
+        private void DeleteComment(int commentId)
+        {
+            string connStr = ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString;
+            using (SqlConnection conn = new SqlConnection(connStr))
+            {
+                string sql = "DELETE FROM ProfileComments WHERE Id = @CommentId AND (UserId = @CurrentUserId OR @ProfileUserId = @CurrentUserId)";
+
+                SqlCommand cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@CommentId", commentId);
+                cmd.Parameters.AddWithValue("@CurrentUserId", CurrentUserId);
+                cmd.Parameters.AddWithValue("@ProfileUserId", ProfileUserId);
+
+                conn.Open();
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        // Your existing LoadProfileData(), LoadComments(), and btnPostComment_Click() methods
         private void LoadProfileData()
         {
             string connStr = ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString;
@@ -53,10 +91,9 @@ namespace bipj
                             ltJoinDate.Text = joinDate.ToString("MMMM yyyy");
                         }
 
-                        // Set profile picture (assuming Profile column stores image path)
                         string profilePic = reader["Profile"].ToString();
                         imgProfile.ImageUrl = string.IsNullOrEmpty(profilePic) ?
-                            "/images/default-profile.png" : profilePic;
+                            "/Profileuploads" : profilePic;
                     }
                 }
             }
@@ -67,7 +104,7 @@ namespace bipj
             string connStr = ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString;
             using (SqlConnection conn = new SqlConnection(connStr))
             {
-                string sql = @"SELECT c.*, u.Name AS UserName 
+                string sql = @"SELECT c.Id, c.UserId, c.CommentText, c.CommentDate, u.Name AS UserName 
                               FROM ProfileComments c
                               JOIN [User] u ON c.UserId = u.Id
                               WHERE c.ProfileUserId = @ProfileUserId
@@ -91,7 +128,10 @@ namespace bipj
                 }
             }
         }
-
+        protected void btnEditProfile_Click(object sender, EventArgs e)
+        {
+            Response.Redirect("EditProfile.aspx");
+        }
         protected void btnPostComment_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(txtComment.Text))
@@ -115,7 +155,6 @@ namespace bipj
                 cmd.ExecuteNonQuery();
             }
 
-            // Refresh comments and clear textbox
             LoadComments();
             txtComment.Text = string.Empty;
         }

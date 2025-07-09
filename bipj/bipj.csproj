@@ -121,6 +121,7 @@
     <Content Include="AddEducationTopic.aspx" />
     <Content Include="AdminPage.aspx" />
     <Content Include="AllCompleted.aspx" />
+    <Content Include="AllProfile.aspx" />
     <Content Include="AllRecent.aspx" />
     <Content Include="AllTopics.aspx" />
     <Content Include="App_Data\FinLitDB.mdf" />
@@ -133,6 +134,7 @@
     <Content Include="Discussion.aspx" />
     <Content Include="EditEducationPage.aspx" />
     <Content Include="EditMyPost.aspx" />
+    <Content Include="EditProfile.aspx" />
     <Content Include="Education.aspx" />
     <Content Include="Forum_Nav.css" />
     <Content Include="Forum_Post.css" />
@@ -151,6 +153,7 @@
     <Content Include="SmartSearch.aspx" />
     <Content Include="ViewEducationPage.aspx" />
     <Content Include="ViewSpecificEdu.aspx" />
+    <Content Include="ViewSpecificProfile.aspx" />
     <Content Include="VoucherActive.aspx" />
     <Content Include="VoucherExchange.aspx" />
     <Content Include="VoucherManagement.aspx" />
@@ -180,6 +183,13 @@
     </Compile>
     <Compile Include="AllCompleted.aspx.designer.cs">
       <DependentUpon>AllCompleted.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="AllProfile.aspx.cs">
+      <DependentUpon>AllProfile.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="AllProfile.aspx.designer.cs">
+      <DependentUpon>AllProfile.aspx</DependentUpon>
     </Compile>
     <Compile Include="AllRecent.aspx.cs">
       <DependentUpon>AllRecent.aspx</DependentUpon>
@@ -251,6 +261,13 @@
     </Compile>
     <Compile Include="EditMyPost.aspx.designer.cs">
       <DependentUpon>EditMyPost.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="EditProfile.aspx.cs">
+      <DependentUpon>EditProfile.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="EditProfile.aspx.designer.cs">
+      <DependentUpon>EditProfile.aspx</DependentUpon>
     </Compile>
     <Compile Include="Education.aspx.cs">
       <DependentUpon>Education.aspx</DependentUpon>
@@ -344,6 +361,13 @@
     <Compile Include="ViewSpecificEdu.aspx.designer.cs">
       <DependentUpon>ViewSpecificEdu.aspx</DependentUpon>
     </Compile>
+    <Compile Include="ViewSpecificProfile.aspx.cs">
+      <DependentUpon>ViewSpecificProfile.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ViewSpecificProfile.aspx.designer.cs">
+      <DependentUpon>ViewSpecificProfile.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Voucher.Master.cs">
       <DependentUpon>Voucher.Master</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -426,6 +450,7 @@
     <Folder Include="Forum\Icon\" />
     <Folder Include="Forum\Images\" />
     <Folder Include="Forum\Videos\" />
+    <Folder Include="Profileuploads\" />
     <Folder Include="uploadcontents\" />
     <Folder Include="Voucher\" />
   </ItemGroup>

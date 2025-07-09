@@ -499,6 +499,7 @@
     <Content Include="Staff_Nav.Master" />
     <Content Include="Voucher.Master" />
     <Content Include="UploadHandler.ashx" />
+    <Content Include="App_Data\google-service-account.json" />
     <None Include="packages.config" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>

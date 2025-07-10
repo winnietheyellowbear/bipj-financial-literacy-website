@@ -84,7 +84,6 @@
          cursor: pointer;
          font-size: 16px;
          transition: background-color 0.3s ease;
-         font-family: 'Titan One';
          text-decoration: none
      }
 

@@ -24,15 +24,6 @@ namespace bipj
         protected global::System.Web.UI.ScriptManager ScriptManager;
 
         /// <summary>
-        /// lbl_User_Name control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.HtmlControls.HtmlGenericControl lbl_User_Name;
-
-        /// <summary>
         /// UpdatePanel_Post control.
         /// </summary>
         /// <remarks>

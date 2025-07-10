@@ -11,7 +11,7 @@ namespace bipj
 {
     public partial class Discussion : System.Web.UI.Page
     {
-        string user_id = "2";
+        public string user_id = "2";
 
         public List<User_Post> post_list = new List<User_Post>();
         User_Post user_post = new User_Post();
@@ -52,20 +52,6 @@ namespace bipj
                 commentRepeater.DataSource = comment_list;
                 commentRepeater.DataBind();
 
-                // -------------- edit & delete --------------
-                LinkButton btnEdit = (LinkButton)e.Item.FindControl("btn_edit");
-                LinkButton btnDelete = (LinkButton)e.Item.FindControl("btn_delete");
-
-                if (user_id == currentPost.User_ID)
-                {
-                    btnEdit.Visible = true;
-                    btnDelete.Visible = true;
-                }
-                else
-                {
-                    btnEdit.Visible = false;
-                    btnDelete.Visible = false;
-                }
             }
         }
 
@@ -119,19 +105,6 @@ namespace bipj
             updatePanel.Update();
         }
 
-        protected void btn_delete_Click(object sender, EventArgs e)
-        {
-            LinkButton btn = (LinkButton)sender;
-            string post_id = btn.CommandArgument;
-
-            user_post.PostDelete(post_id);
-
-            post_list = user_post.GetAllPosts();
-            Post.DataSource = post_list;
-            Post.DataBind();
-            UpdatePanel_Post.Update();
-        }
-
         protected void btn_delete_comment_Click(object sender, EventArgs e)
         {
             LinkButton btn = (LinkButton)sender;
@@ -146,17 +119,6 @@ namespace bipj
 
         }
 
-        protected void btn_edit_Click(object sender, EventArgs e)
-        {
-            LinkButton btn = (LinkButton)sender;
-            string post_id = btn.CommandArgument;
-
-            Session["Post_ID"] = post_id;
-            Session["Edit_Post_Source_Url"] = "Discussion";
-
-            Response.Redirect("EditMyPost.aspx");
-
-        }
 
     }
 }

@@ -72,7 +72,7 @@
 
         <!-- Main content -->
         <div class="main-content">
-            <h1>Welcome <span id="lbl_User_Name" runat="server"></span> to the forum</h1>
+            <h1>Welcome to the forum</h1>
             <asp:UpdatePanel ID="UpdatePanel_Post" runat="server" UpdateMode="Conditional">
             <ContentTemplate>         
             <asp:Repeater ID="Post" runat="server" OnItemDataBound="post_ItemDataBound">
@@ -130,14 +130,7 @@
                              </ContentTemplate>
                              </asp:UpdatePanel>
 
-                             <!-- Right aligned Edit and Delete buttons -->
-                             <div class="edit-delete-btn-container">
-                                 <asp:LinkButton ID="btn_edit" runat="server" CssClass="btn-edit"
-                                     CommandArgument='<%# Eval("Post_ID") %>' OnClick="btn_edit_Click">Edit</asp:LinkButton>
-                                 <asp:LinkButton ID="btn_delete" runat="server" CssClass="btn-delete"
-                                     OnClientClick="return confirm('Are you sure you want to delete this post?')"
-                                     CommandArgument='<%# Eval("Post_ID") %>' OnClick="btn_delete_Click">Delete</asp:LinkButton>
-                             </div>
+                             
                          </div>
                         <!-- Comments Section -->
                         <div class="comments-section" style="overflow:scroll; overflow-x: hidden; min-height: 0px; max-height: 100px">
@@ -155,6 +148,11 @@
                                                     <div class="comment-text">
                                                         <%# Eval("Text") %>
                                                     </div>
+                                      
+                                                    <asp:LinkButton ID="btn_delete" runat="server" CssClass="btn-delete"
+                                                         OnClientClick="return confirm('Are you sure you want to delete this comment?')"
+                                                         Visible='<%# Eval("User_ID").ToString() == user_id %>' CommandArgument='<%# Eval("Comment_ID") %>' OnClick="btn_delete_comment_Click">Delete</asp:LinkButton>
+                            
                                                 </div>
                                             </div>
                                         </ItemTemplate>

@@ -65,6 +65,10 @@ namespace bipj
             UpdatePanel_Video.Update();
         }
 
+        protected void btn_back_Click(object sender, EventArgs e)
+        {
+            Response.Redirect("MyPost.aspx");
+        }
         protected void btn_update_Click(object sender, EventArgs e)
         {
             int result = 0;
@@ -113,14 +117,7 @@ namespace bipj
 
             if (result > 0)
             {
-                string Edit_Post_Source_Url = Session["Edit_Post_Source_Url"].ToString();
-                Session["Edit_Post_Source_Url"] = null;
-
-                if (Edit_Post_Source_Url == "Discussion")
-                {
-                    ScriptManager.RegisterStartupScript(this, this.GetType(), "alert", "alert('Post updated. 😊'); window.location='Disucssion.aspx';", true);
-                }
-                
+                ScriptManager.RegisterStartupScript(this, this.GetType(), "alert", "alert('Post updated. 😊'); window.location='MyPost.aspx';", true);
             }
             else
             {

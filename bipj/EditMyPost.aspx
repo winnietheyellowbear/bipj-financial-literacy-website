@@ -4,35 +4,32 @@
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
 
  <head>
-  <link rel="stylesheet" href="Forum_Nav.css">
-  <asp:ScriptManager ID="ScriptManager" runat="server" />
+    <link rel="stylesheet" href="Forum_Nav.css">
+    <link rel="stylesheet" href="Forum_Post.css">
+    <asp:ScriptManager ID="ScriptManager" runat="server" />
 </head>
 
+<!-- Inline CSS Styling -->
+<style>
+    /* Main Content Styling */
+    .form {
+        padding: 30px;
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+        max-width: 500px;
+        margin: 20px auto;
+        padding: 20px;
+        flex: 1;
+    }
 
- <style>
- body {
- font-family: 'Quicksand', sans-serif;
- }
-
- /* Main Content Styling */
- .main-content {
-     padding: 30px;
-     background-color: white;
-     border-radius: 10px;
-     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
-     max-width: 500px;
-     margin: 20px auto;
-     padding: 20px;
-     flex: 1;
- }
-
- /* Heading */
- h1 {
-     font-size: 26px;
-     margin-bottom: 20px;
-     color: #333;
-     text-align: center;
- }
+    .main-content {
+        flex: 1;
+        background-color: #f8f9fa;
+        padding: 30px;
+        margin-left: 20px;
+        max-width: 1000px;
+    }
 
  /* Form Styling */
  .form-group {
@@ -177,6 +174,24 @@
     border-radius: 5px;
 }
 
+/* Back Button Styles */
+.back-button {
+    
+    background-color: #3B387E;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+    text-decoration: none
+}
+
+.back-button:hover {
+    background-color: #59569E;
+}
+   
 
 </style>
 
@@ -214,7 +229,7 @@
                  <span>My Post</span>
              </a>
          </li>
-         <li class="active">
+         <li>
              <a href="Post.aspx">
                  <img src='<%= ResolveUrl("~/Forum/Icon/Post_Icon.png") %>' alt="Post Icon"/>
                  <span>Post</span>
@@ -227,8 +242,14 @@
     
  <!-- Main content -->
  <div class="main-content">
- <h1>CREATE A POST</h1>
+ <h1>Edit post</h1>
 
+ <div style="margin-top: 20px">
+     <asp:LinkButton class="back-button" OnClick="btn_back_Click" runat="server">
+         <img src="<%= ResolveUrl("~/Images/back_icon.png") %>" alt="Back" style="width: 20px; height: 20px"/> back
+     </asp:LinkButton>
+ </div>
+<div class="form">
  <div class="form-group">
      <div class="form-group">
          <label>Upload Images:</label>
@@ -301,7 +322,7 @@
  <asp:Button ID="btn_update" runat="server" Text="Update"
      CssClass="btn-submit btn-disabled" Disabled="true" ToolTip="You cannot update a blank post." OnClick="btn_update_Click"/>
  </div>
-
+</div>
 
 </div>
 

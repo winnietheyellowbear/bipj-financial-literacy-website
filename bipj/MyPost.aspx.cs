@@ -9,9 +9,11 @@ namespace bipj
 {
     public partial class MyPost : System.Web.UI.Page
     {
+        public string user_id = "2";
+
         User_Post user_post = new User_Post();
         public List<User_Post> post_list = new List<User_Post>();
-        public string user_id = "2";
+        
 
         protected void Page_Load(object sender, EventArgs e)
         {

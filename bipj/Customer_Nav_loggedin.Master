@@ -106,6 +106,9 @@
                     <li class="nav-item">
                         <a class="nav-link" href="#">Voucher</a>
                     </li>
+                    <li class="nav-item">
+                     <a class="nav-link" href="AllProfile.aspx">Profiles</a>
+                    </li>
                 </ul>
                 <div class="dropdown ms-lg-3">
     <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
@@ -114,7 +117,7 @@
     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
         <li><a class="dropdown-item" href="Profile.aspx">Profile</a></li>
         <li><hr class="dropdown-divider"></li>
-        <li><a class="dropdown-item text-danger" href="Logout.aspx">Sign Out</a></li>
+        <li><a class="dropdown-item text-danger" href="Loginpage.aspx">Sign Out</a></li>
     </ul>
 </div>
 

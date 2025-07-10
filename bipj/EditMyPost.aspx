@@ -3,7 +3,7 @@
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
 
- <head>
+<head>
     <link rel="stylesheet" href="Forum_Nav.css">
     <link rel="stylesheet" href="Forum_Post.css">
     <asp:ScriptManager ID="ScriptManager" runat="server" />
@@ -191,12 +191,7 @@
 .back-button:hover {
     background-color: #59569E;
 }
-   
-
 </style>
-
-
-
 
 <!-- Sidebar and main content wrapper -->
 <div class="content-wrapper">
@@ -238,216 +233,188 @@
      </ul>
     </div>
 
-  
-    
- <!-- Main content -->
- <div class="main-content">
- <h1>Edit post</h1>
+    <!-- Main content -->
+    <div class="main-content">
+        <h1>Edit post</h1>
 
- <div style="margin-top: 20px">
-     <asp:LinkButton class="back-button" OnClick="btn_back_Click" runat="server">
-         <img src="<%= ResolveUrl("~/Images/back_icon.png") %>" alt="Back" style="width: 20px; height: 20px"/> back
-     </asp:LinkButton>
- </div>
-<div class="form">
- <div class="form-group">
-     <div class="form-group">
-         <label>Upload Images:</label>
-         <div id="drop_zone" class="drop-zone" ondrop="handleImageDrop(event)" ondragover="handleDragOver(event)">
-            Drag & Drop Images Here or Click to Upload
-            <input type="file" id="img_post" name="img_post[]" multiple accept="image/*" onchange="handleImageFiles(this.files); validatePost();" />
+        <div style="margin-top: 20px">
+            <asp:LinkButton class="back-button" OnClick="btn_back_Click" runat="server">
+                <img src="<%= ResolveUrl("~/Images/back_icon.png") %>" alt="Back" style="width: 20px; height: 20px"/> back
+            </asp:LinkButton>
         </div>
-        <div id="image_preview" class="image-preview"></div>
+        
+        <div class="form">
+            <div class="form-group">
+                <label>Upload Images:</label>
+                <div id="drop_zone" class="drop-zone" ondrop="handleImageDrop(event)" ondragover="handleDragOver(event)">
+                    Drag & Drop Images Here or Click to Upload
+                    <input type="file" id="img_post" name="img_post[]" multiple accept="image/*" />
+                </div>
+                <div id="image_preview" class="image-preview"></div>
+            </div>
+            
+            <asp:UpdatePanel ID="UpdatePanel_Image" runat="server" UpdateMode="Conditional">
+                <ContentTemplate>     
+                    <asp:Repeater ID="Image" runat="server">
+                        <ItemTemplate>
+                            <img src='<%# ResolveUrl((string)Container.DataItem) %>' class="post-img" style="width: 50px; height: 50px"/>
+                            <asp:Button ID="btn_remove_image" runat="server" Text="remove" CommandArgument='<%# (string)Container.DataItem %>' OnClick="btn_remove_image_Click" />
+                        </ItemTemplate>
+                    </asp:Repeater>
+                </ContentTemplate>
+            </asp:UpdatePanel>
 
-         <!--
-         <input type="file" id="img_post" name="img_post[]" multiple accept="image/*" onchange="validatePost()" /> -->
-     </div>
-     <asp:UpdatePanel ID="UpdatePanel_Image" runat="server" UpdateMode="Conditional">
-     <ContentTemplate>     
-     <asp:Repeater ID="Image" runat="server">
-     <ItemTemplate>
-         <img src='<%# ResolveUrl((string)Container.DataItem) %>' class="post-img" Visible='<%# !string.IsNullOrEmpty((string)Container.DataItem) %>' style="width: 50px; height: 50px"/>
-         <asp:Button ID="btn_remove_image" runat="server" Text="remove" CommandArgument='<%# (string)Container.DataItem %>' OnClick="btn_remove_image_Click" />
-     </ItemTemplate>
-     </asp:Repeater>
-     </ContentTemplate>
-     </asp:UpdatePanel>
- </div>
+            <div class="form-group">
+                <label>Upload Videos:</label>
+                <div id="video_drop_zone" class="drop-zone" ondrop="handleVideoDrop(event)" ondragover="handleDragOver(event)">
+                    Drag & Drop Videos Here or Click to Upload
+                    <input type="file" id="video_post" name="video_post[]" multiple accept="video/*" />
+                </div>
+                <div id="video_preview" class="video-preview"></div>
+            </div>
 
- <div class="form-group">
-     <div class="form-group">
-         <label>Upload Videos:</label>
-         <div id="video_drop_zone" class="drop-zone" ondrop="handleVideoDrop(event)" ondragover="handleDragOver(event)">
-            Drag & Drop Videos Here or Click to Upload
-            <input type="file" id="video_post" name="video_post[]" multiple accept="video/*" onchange="handleVideoFiles(this.files); validatePost();" />
+            <asp:UpdatePanel ID="UpdatePanel_Video" runat="server" UpdateMode="Conditional">
+                <ContentTemplate>       
+                    <asp:Repeater ID="Video" runat="server">
+                        <ItemTemplate>
+                            <video controls class="post-video" style="width: 50px; height: 50px">
+                                <source src='<%# ResolveUrl((string)Container.DataItem) %>' type="video/mp4" />
+                            </video>
+                            <asp:Button ID="btn_remove_video" runat="server" Text="remove" CommandArgument='<%# (string)Container.DataItem %>' OnClick="btn_remove_video_Click" />
+                        </ItemTemplate>
+                    </asp:Repeater>
+                </ContentTemplate>
+            </asp:UpdatePanel>
+
+            <div class="form-group">
+                <label for="tb_text">Text:</label>
+                <asp:TextBox ID="tb_text" runat="server" CssClass="form-control" Height="120px"></asp:TextBox>
+            </div>
+
+            <div class="form-group">
+                <label>Category:</label>
+                <div class="radio-group">
+                    <asp:RadioButtonList ID="radiobtn_category" runat="server" RepeatDirection="Horizontal">
+                        <asp:ListItem>ask a question</asp:ListItem>
+                        <asp:ListItem>share my journey</asp:ListItem>
+                        <asp:ListItem>share tips and tools</asp:ListItem>
+                    </asp:RadioButtonList>
+                </div>
+            </div>
+
+            <asp:Button ID="btn_update" runat="server" Text="Update"
+                CssClass="btn-submit btn-enabled" ToolTip="You can update now." OnClick="btn_update_Click"/>
         </div>
-        <div id="video_preview" class="video-preview"></div>
-         <!--
-         <input type="file" id="video_post" name="video_post[]" multiple accept="video/*" onchange="validatePost()" /> -->
-     </div>
-      <asp:UpdatePanel ID="UpdatePanel_Video" runat="server" UpdateMode="Conditional">
-      <ContentTemplate>       
-      <asp:Repeater ID="Video" runat="server">
-      <ItemTemplate>
-          <asp:Panel runat="server" Visible='<%# !string.IsNullOrEmpty((string)Container.DataItem) %>'>
-          <video controls class="post-video" style="width: 50px; height: 50px">
-              <source src='<%# ResolveUrl((string)Container.DataItem) %>' type="video/mp4" />
-              
-          </video>
-          <asp:Button ID="btn_remove_video" runat="server" Text="remove" CommandArgument='<%# (string)Container.DataItem %>' OnClick="btn_remove_video_Click" />
-          </asp:Panel>
-      </ItemTemplate>
-      </asp:Repeater>
-    </ContentTemplate>
-    </asp:UpdatePanel>
- </div>
-
- <div class="form-group">
-      <label for="tb_text">Text:</label>
-      <asp:TextBox ID="tb_text" runat="server" CssClass="form-control" 
-          Height="120px" onchange="validatePost()"></asp:TextBox>
- </div>
-
- <div class="form-group">
-   <label>Category:</label>
-   <div class="radio-group">
-       <asp:RadioButtonList ID="radiobtn_category" runat="server" RepeatDirection="Horizontal">
-           <asp:ListItem>ask a question</asp:ListItem>
-           <asp:ListItem>share my journey</asp:ListItem>
-           <asp:ListItem>share tips and tools</asp:ListItem>
-       </asp:RadioButtonList>
-   </div>
- </div>
-
- <asp:Button ID="btn_update" runat="server" Text="Update"
-     CssClass="btn-submit btn-disabled" Disabled="true" ToolTip="You cannot update a blank post." OnClick="btn_update_Click"/>
- </div>
+    </div>
 </div>
+<script>
+    // Handle file drag-over (to allow file dropping)
+    function handleDragOver(evt) {
+        evt.preventDefault();
+        evt.stopPropagation();
+    }
 
-</div>
+    // Handle Image Drop Event
+    function handleImageDrop(evt) {
+        evt.preventDefault();
+        evt.stopPropagation();
 
-    
-    
-   <script>
-       function validatePost() {
-           const text = document.getElementById("<%= tb_text.ClientID %>").value.trim();
-           const imageUpload = document.getElementById("img_post").files.length;
-           const videoUpload = document.getElementById("video_post").files.length;
-           const submitButton = document.getElementById("<%= btn_update.ClientID %>");
+        // Retrieve files from the event
+        const files = evt.dataTransfer.files;
 
-           if (text.length > 0 || imageUpload > 0 || videoUpload > 0) {
-               submitButton.disabled = false;
-               submitButton.classList.remove("btn-disabled");
-               submitButton.classList.add("btn-enabled");
-               submitButton.removeAttribute("title");
-           } else {
-               submitButton.disabled = true;
-               submitButton.classList.remove("btn-enabled");
-               submitButton.classList.add("btn-disabled");
-               submitButton.title = "You cannot submit a blank post.";
-           }
-       }
+        const input = document.getElementById("img_post");
 
-   </script>
- 
-
-    <script>
-        function validatePost() {
-            const text = document.getElementById("<%= tb_text.ClientID %>").value.trim();
-        const imageUpload = document.getElementById("img_post").files.length;
-        const videoUpload = document.getElementById("video_post").files.length;
-        const submitButton = document.getElementById("<%= btn_update.ClientID %>");
-
-            if (text.length > 0 || imageUpload > 0 || videoUpload > 0) {
-                submitButton.disabled = false;
-                submitButton.classList.remove("btn-disabled");
-                submitButton.classList.add("btn-enabled");
-                submitButton.removeAttribute("title");
-            } else {
-                submitButton.disabled = true;
-                submitButton.classList.remove("btn-enabled");
-                submitButton.classList.add("btn-disabled");
-                submitButton.title = "You cannot submit a blank post.";
+        // Prepare a DataTransfer object to collect valid files (image files)
+        let dt = new DataTransfer();
+        for (let i = 0; i < files.length; i++) {
+            if (files[i].type.startsWith("image/")) {
+                dt.items.add(files[i]);
             }
         }
 
-        function handleDragOver(evt) {
-            evt.preventDefault();
-            evt.stopPropagation();
-        }
+        // Assign files to the input
+        input.files = dt.files;
 
-        function handleImageDrop(evt) {
-            evt.preventDefault();
-            evt.stopPropagation();
+        // Call the function to handle files and show the preview
+        handleImageFiles(input.files);
+    }
 
-            const files = evt.dataTransfer.files;
-            const input = document.getElementById("img_post");
+    // Handle Video Drop Event
+    function handleVideoDrop(evt) {
+        evt.preventDefault();
+        evt.stopPropagation();
 
-            let dt = new DataTransfer();
-            for (let i = 0; i < files.length; i++) {
-                if (files[i].type.startsWith("image/")) {
-                    dt.items.add(files[i]);
-                }
-            }
-            input.files = dt.files;
+        // Retrieve files from the event
+        const files = evt.dataTransfer.files;
 
-            handleImageFiles(input.files);
-            validatePost();
-        }
+        const input = document.getElementById("video_post");
 
-        function handleVideoDrop(evt) {
-            evt.preventDefault();
-            evt.stopPropagation();
-
-            const files = evt.dataTransfer.files;
-            const input = document.getElementById("video_post");
-
-            let dt = new DataTransfer();
-            for (let i = 0; i < files.length; i++) {
-                if (files[i].type.startsWith("video/")) {
-                    dt.items.add(files[i]);
-                }
-            }
-            input.files = dt.files;
-
-            handleVideoFiles(input.files);
-            validatePost();
-        }
-
-        function handleImageFiles(files) {
-            const preview = document.getElementById("image_preview");
-            preview.innerHTML = "";
-
-            for (let i = 0; i < files.length; i++) {
-                if (files[i].type.startsWith("image/")) {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        const img = document.createElement("img");
-                        img.src = e.target.result;
-                        preview.appendChild(img);
-                    };
-                    reader.readAsDataURL(files[i]);
-                }
+        // Prepare a DataTransfer object to collect valid files (video files)
+        let dt = new DataTransfer();
+        for (let i = 0; i < files.length; i++) {
+            if (files[i].type.startsWith("video/")) {
+                dt.items.add(files[i]);
             }
         }
 
-        function handleVideoFiles(files) {
-            const preview = document.getElementById("video_preview");
-            preview.innerHTML = "";
+        // Assign files to the input
+        input.files = dt.files;
 
-            for (let i = 0; i < files.length; i++) {
-                if (files[i].type.startsWith("video/")) {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        const video = document.createElement("video");
-                        video.src = e.target.result;
-                        video.controls = true;
-                        preview.appendChild(video);
-                    };
-                    reader.readAsDataURL(files[i]);
-                }
+        // Call the function to handle files and show the preview
+        handleVideoFiles(input.files);
+    }
+
+    // Handle and display image preview
+    function handleImageFiles(files) {
+        const preview = document.getElementById("image_preview");
+        preview.innerHTML = ""; // Clear existing preview
+
+        // Iterate over each file and display the preview
+        for (let i = 0; i < files.length; i++) {
+            if (files[i].type.startsWith("image/")) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = document.createElement("img");
+                    img.src = e.target.result; // Set image source to file data
+                    img.style.height = "80px";
+                    img.style.marginRight = "10px";
+                    preview.appendChild(img); // Append the image to the preview container
+                };
+                reader.readAsDataURL(files[i]); // Read the file as Data URL
             }
         }
-    </script>
+    }
+
+    // Handle and display video preview
+    function handleVideoFiles(files) {
+        const preview = document.getElementById("video_preview");
+        preview.innerHTML = ""; // Clear existing preview
+
+        // Iterate over each file and display the preview
+        for (let i = 0; i < files.length; i++) {
+            if (files[i].type.startsWith("video/")) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const video = document.createElement("video");
+                    video.src = e.target.result; // Set video source to file data
+                    video.controls = true; // Enable controls for the video
+                    video.style.height = "120px";
+                    video.style.marginRight = "10px";
+                    preview.appendChild(video); // Append the video to the preview container
+                };
+                reader.readAsDataURL(files[i]); // Read the file as Data URL
+            }
+        }
+    }
+
+    // Ensure file input changes also trigger preview
+    document.getElementById("img_post").addEventListener("change", function () {
+        handleImageFiles(this.files);
+    });
+
+    document.getElementById("video_post").addEventListener("change", function () {
+        handleVideoFiles(this.files);
+    });
+</script>
 
 </asp:Content>

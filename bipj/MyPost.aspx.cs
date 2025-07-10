@@ -11,9 +11,14 @@ namespace bipj
     {
         public string user_id = "2";
 
-        User_Post user_post = new User_Post();
         public List<User_Post> post_list = new List<User_Post>();
-        
+        User_Post user_post = new User_Post();
+
+        List<User_Comment> comment_list = new List<User_Comment>();
+        User_Comment user_comment = new User_Comment();
+
+        List<User_Like> like_list = new List<User_Like>();
+        User_Like user_like = new User_Like();
 
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -35,19 +40,12 @@ namespace bipj
                 var currentPost = (User_Post)e.Item.DataItem;
 
                 // Find the nested Repeater (comment) inside the current post
-                Repeater commentRepeater = (Repeater)e.Item.FindControl("Comment");
-
-                List<User_Comment> comment_list = new List<User_Comment>();
-                User_Comment user_comment = new User_Comment();
                 comment_list = user_comment.GetCommentsByPostID(currentPost.Post_ID);
-
+                Repeater commentRepeater = (Repeater)e.Item.FindControl("Comment");
                 commentRepeater.DataSource = comment_list;
                 commentRepeater.DataBind();
 
-                List<User_Like> like_list = new List<User_Like>();
-                User_Like user_like = new User_Like();
                 like_list = user_like.GetLikesByPostID(currentPost.Post_ID);
-
                 Label likeCountLabel = (Label)e.Item.FindControl("lbl_Like_Count");
                 likeCountLabel.Text = like_list.Count.ToString();
             }
@@ -59,14 +57,11 @@ namespace bipj
         {
             LinkButton btn = (LinkButton)sender;
             string post_id = btn.CommandArgument;
-            string user_id = "2";
 
             User_Like user_like = new User_Like(post_id, user_id);
             user_like.LikeInsert();
 
-            List<User_Like> like_list = new List<User_Like>();
             like_list = user_like.GetLikesByPostID(post_id);
-
             if (user_like.IsPostLiked(post_id, user_id) == 1)
             {
                 btn.CssClass = "btn-red";
@@ -88,7 +83,6 @@ namespace bipj
         {
             Button btn = (Button)sender;
             string post_id = btn.CommandArgument;
-            string user_id = "2";
 
             RepeaterItem item = (RepeaterItem)btn.NamingContainer;
 
@@ -100,18 +94,10 @@ namespace bipj
             User_Comment user_comment = new User_Comment(text, user_id, post_id);
             user_comment.CommentInsert();
 
-            List<User_Comment> comment_list = new List<User_Comment>();
-            comment_list = user_comment.GetCommentsByPostID(post_id);
-
-            Repeater commentRepeater = (Repeater)item.FindControl("Comment");
-            UpdatePanel updatePanel = (UpdatePanel)item.FindControl("UpdatePanel_Comment");
-
-            commentRepeater.DataSource = comment_list;
-            commentRepeater.DataBind();
-
-            updatePanel.Update();
-
-
+            post_list = user_post.GetAllPosts();
+            Post.DataSource = post_list;
+            Post.DataBind();
+            UpdatePanel_Post.Update();
         }
 
         protected void btn_delete_Click(object sender, EventArgs e)
@@ -119,10 +105,8 @@ namespace bipj
             LinkButton btn = (LinkButton)sender;
             string post_id = btn.CommandArgument;
 
-            User_Post user_post = new User_Post();
             user_post.PostDelete(post_id);
 
-            string user_id = "2";
             post_list = user_post.GetPostsByUserID(user_id);
 
             Post.DataSource = post_list;
@@ -138,15 +122,11 @@ namespace bipj
             LinkButton btn = (LinkButton)sender;
             string comment_id = btn.CommandArgument;
 
-            User_Comment user_comment = new User_Comment();
             user_comment.CommentDelete(comment_id);
 
-            string user_id = "2";
-            post_list = user_post.GetPostsByUserID(user_id);
-
+            post_list = user_post.GetAllPosts();
             Post.DataSource = post_list;
             Post.DataBind();
-
             UpdatePanel_Post.Update();
 
         }
@@ -155,7 +135,6 @@ namespace bipj
         {
             LinkButton btn = (LinkButton)sender;
             string post_id = btn.CommandArgument;
-
             Session["Post_ID"] = post_id;
 
             Response.Redirect("EditMyPost.aspx");

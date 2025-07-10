@@ -47,8 +47,8 @@ namespace bipj
                 likeCountLabel.Text = like_list.Count.ToString();
 
                 // -------------- comment --------------
-                Repeater commentRepeater = (Repeater)e.Item.FindControl("Comment");
                 comment_list = user_comment.GetCommentsByPostID(currentPost.Post_ID);
+                Repeater commentRepeater = (Repeater)e.Item.FindControl("Comment");
                 commentRepeater.DataSource = comment_list;
                 commentRepeater.DataBind();
 
@@ -96,13 +96,10 @@ namespace bipj
             User_Comment user_comment = new User_Comment(text, user_id, post_id);
             user_comment.CommentInsert();
 
-            comment_list = user_comment.GetCommentsByPostID(post_id);
-
-            Repeater commentRepeater = (Repeater)item.FindControl("Comment");
-            UpdatePanel updatePanel = (UpdatePanel)item.FindControl("UpdatePanel_Comment");
-            commentRepeater.DataSource = comment_list;
-            commentRepeater.DataBind();
-            updatePanel.Update();
+            post_list = user_post.GetAllPosts();
+            Post.DataSource = post_list;
+            Post.DataBind();
+            UpdatePanel_Post.Update();
         }
 
         protected void btn_delete_comment_Click(object sender, EventArgs e)

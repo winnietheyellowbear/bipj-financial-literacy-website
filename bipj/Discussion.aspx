@@ -1,35 +1,36 @@
-﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Customer_Nav.Master" AutoEventWireup="true" MaintainScrollPositionOnPostBack="true" CodeBehind="Discussion.aspx.cs" Inherits="bipj.Discussion" %>
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Customer_Nav.Master" AutoEventWireup="true" 
+    MaintainScrollPositionOnPostBack="true" CodeBehind="Discussion.aspx.cs" Inherits="bipj.Discussion" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     <head>
+        <!-- Include external CSS files -->
         <link rel="stylesheet" href="Forum_Nav.css">
         <link rel="stylesheet" href="Forum_Post.css">
+
+        <!-- Include ScriptManager for AJAX functionality -->
         <asp:ScriptManager ID="ScriptManager" runat="server" />
     </head>
 
     <style>
-        /* Ensure the sidebar and main content are aligned properly */
         .content-wrapper {
             display: flex;
-            align-items: flex-start; /* Align items at the top */
+            align-items: flex-start;
             margin-top: 10px;
         }
 
-        /* Main content takes the remaining space */
         .main-content {
             flex: 1;
             background-color: #f8f9fa;
             padding: 30px;
             border-radius: 10px;
-            margin-left: 20px; /* Add spacing so it doesn't overlap with the sidebar */
+            margin-left: 20px;
             max-width: 1000px;
         }
     </style>
 
-    <!-- Sidebar and main content wrapper -->
     <div class="content-wrapper">
         
         <!-- Sidebar -->
@@ -74,112 +75,111 @@
         <div class="main-content">
             <h1>Welcome to the forum</h1>
             <asp:UpdatePanel ID="UpdatePanel_Post" runat="server" UpdateMode="Conditional">
-            <ContentTemplate>         
-            <asp:Repeater ID="Post" runat="server" OnItemDataBound="post_ItemDataBound">
-                <ItemTemplate>
-                    <div class="forum-post">
-                        
-                        <!-- Profile Section -->
-                        <div class="post-header">
-                            <div class="profile-image">
-                                <asp:Image ID="imgProfile" runat="server" CssClass="profile-pic" 
-                                    ImageUrl='<%# ResolveUrl("~/Images/" + Eval("Profile")) %>' />
-                            </div>
-                            <div class="user-info">
-                                <strong><%# Eval("Name") %></strong><br />
-                                <%# Eval("Post_DateTime") %> <%# Eval("Last_Update_DateTime") %>
-                            </div>
-                        </div>
+                <ContentTemplate>
+                    <asp:Repeater ID="Post" runat="server" OnItemDataBound="post_ItemDataBound">
+                        <ItemTemplate>
+                            <!-- Forum Post Section -->
+                            <div class="forum-post">
+                                
+                                <!-- Profile Section -->
+                                <div class="post-header">
+                                    <div class="profile-image">
+                                        <asp:Image ID="imgProfile" runat="server" CssClass="profile-pic" 
+                                            ImageUrl='<%# ResolveUrl("~/Images/" + Eval("Profile")) %>' />
+                                    </div>
+                                    <div class="user-info">
+                                        <div><strong><%# Eval("Name") %></strong></div>
+                                        <div><%# Eval("Post_DateTime") %> <%# Eval("Last_Update_DateTime") %></div>
+                                    </div>
+                                </div>
+                                 
+                                <!-- Post Content -->
+                                <div class="post-content">
+                                    <%# Eval("Text") %>
+                                </div>
 
-                        <!-- Post Content -->
-                        <div class="post-content">
-                            <%# Eval("Text") %>
-                        </div>
-
-                        <!-- Image & Video Section -->
-                        <div class="post-media">
-                            <asp:Repeater ID="Image" runat="server" DataSource='<%# Eval("Images_List") %>'>
-                                <ItemTemplate>
-                                    <asp:Image runat="server" CssClass="post-img" style="width:100px; height: 100px"
-                                        ImageUrl='<%# ResolveUrl((string)Container.DataItem) %>' 
-                                        Visible='<%# !string.IsNullOrEmpty((string)Container.DataItem) %>' />
-                                </ItemTemplate>
-                            </asp:Repeater>
-
-                            <asp:Repeater ID="Video" runat="server" DataSource='<%# Eval("Videos_List") %>'>
-                                <ItemTemplate>
-                                    <asp:Panel runat="server" Visible='<%# !string.IsNullOrEmpty((string)Container.DataItem) %>'>
-                                        <video controls class="post-video" style="max-width:100px; border-radius:8px;">
-                                            <source src='<%# ResolveUrl((string)Container.DataItem) %>' type="video/mp4" />
-                                        </video>
-                                    </asp:Panel>
-                                </ItemTemplate>
-                            </asp:Repeater>
-                        </div>
-
-                        <!-- Like & Comment Buttons -->
-                         <div class="forum-actions">
-                             <!-- Left aligned Like button -->
-                             <asp:UpdatePanel ID="UpdatePanel_Like" runat="server" UpdateMode="Conditional">
-                             <ContentTemplate>     
-                             <asp:LinkButton ID="btn_like" runat="server" CommandArgument='<%# Eval("Post_ID") %>' 
-                                 CssClass='<%# (bool)Eval("Like_Status") ? "btn-red" : "btn-blue" %>' OnClick="btn_like_Click">
-                                 <%# (bool)Eval("Like_Status") ? "Liked" : "Like" %>
-                                 (<asp:Label ID="lbl_Like_Count" runat="server" Text=""></asp:Label>)
-                             </asp:LinkButton>
-                             </ContentTemplate>
-                             </asp:UpdatePanel>
-
-                             
-                         </div>
-                        <!-- Comments Section -->
-                        <div class="comments-section" style="overflow:scroll; overflow-x: hidden; min-height: 0px; max-height: 100px">
-                            <asp:UpdatePanel ID="UpdatePanel_Comment" runat="server" UpdateMode="Conditional">
-                                <ContentTemplate>
-                                    <asp:Repeater ID="Comment" runat="server">
+                                <!-- Image & Video Section -->
+                                <div class="post-media">
+                                    <asp:Repeater ID="Image" runat="server" DataSource='<%# Eval("Images_List") %>'>
                                         <ItemTemplate>
-                                            <div class="comment">
-                                                <img src='<%# ResolveUrl("~/Images/" + Eval("User_Profile")) ?? "https://via.placeholder.com/32"  %>' 
-                                                     alt='<%# Eval("User_Name") %> Profile' 
-                                                     class="profile-pic" />
-                                                <div class="comment-content">
-                                                    <div class="comment-author"><%# Eval("User_Name") %></div>
-                                                    <div class="comment-time"><%# Eval("Comment_DateTime", "{0:dd MMM yyyy, hh:mmtt}") %></div>
-                                                    <div class="comment-text">
-                                                        <%# Eval("Text") %>
-                                                    </div>
-                                      
-                                                    <asp:LinkButton ID="btn_delete" runat="server" CssClass="btn-delete"
-                                                         OnClientClick="return confirm('Are you sure you want to delete this comment?')"
-                                                         Visible='<%# Eval("User_ID").ToString() == user_id %>' CommandArgument='<%# Eval("Comment_ID") %>' OnClick="btn_delete_comment_Click">Delete</asp:LinkButton>
-                            
-                                                </div>
-                                            </div>
+                                            <asp:Image runat="server" style="width:100px; height: 100px"
+                                                ImageUrl='<%# ResolveUrl((string)Container.DataItem) %>' 
+                                                Visible='<%# !string.IsNullOrEmpty((string)Container.DataItem) %>' />
                                         </ItemTemplate>
                                     </asp:Repeater>
-                                </ContentTemplate>
-                            </asp:UpdatePanel>
-                        </div>
 
-                        <!-- Comment Input Section -->
-                        <div class="comment-input">
-                            <asp:TextBox ID="tb_text" runat="server" class="comment-textbox" placeholder="Write a comment..."
-                                onchange="validatePost(this)" oninput="validatePost(this)"></asp:TextBox>
-                            <asp:Button ID="btn_publish" runat="server" Text="Comment" class="comment-button btn-submit btn-disabled"
-                                ToolTip="You cannot submit a blank comment." Disabled="true" CommandArgument='<%# Eval("Post_ID") %>'
-                                OnClick="btn_comment_Click" />
-                        </div>
-                    </div>
-                </ItemTemplate>
-            </asp:Repeater>
-            </ContentTemplate>
+                                    <asp:Repeater ID="Video" runat="server" DataSource='<%# Eval("Videos_List") %>'>
+                                        <ItemTemplate>
+                                            <asp:Panel runat="server" Visible='<%# !string.IsNullOrEmpty((string)Container.DataItem) %>'>
+                                                <video controls class="post-video" style="width:100px">
+                                                    <source src='<%# ResolveUrl((string)Container.DataItem) %>' type="video/mp4" />
+                                                </video>
+                                            </asp:Panel>
+                                        </ItemTemplate>
+                                    </asp:Repeater>
+                                </div>
+
+                                <!-- Like & Comment Buttons -->
+                                <div class="forum-actions">
+                                    <asp:UpdatePanel ID="UpdatePanel_Like" runat="server" UpdateMode="Conditional">
+                                        <ContentTemplate>     
+                                            <asp:LinkButton ID="btn_like" runat="server" CommandArgument='<%# Eval("Post_ID") %>' 
+                                                CssClass='<%# (bool)Eval("Like_Status") ? "btn-red" : "btn-blue" %>' OnClick="btn_like_Click">
+                                                <%# (bool)Eval("Like_Status") ? "Liked" : "Like" %>
+                                                (<asp:Label ID="lbl_Like_Count" runat="server" Text=""></asp:Label>)
+                                            </asp:LinkButton>
+                                        </ContentTemplate>
+                                    </asp:UpdatePanel>
+                                </div>
+
+                                <!-- Comments Section -->
+                               
+                                    <div class="comments-section">
+                                        <asp:UpdatePanel ID="UpdatePanel_Comment" runat="server" UpdateMode="Conditional">
+                                            <ContentTemplate>
+                                                <asp:Repeater ID="Comment" runat="server">
+                                                    <ItemTemplate>
+                                                        <div class="comment">
+                                                            <img src='<%# ResolveUrl("~/Images/" + Eval("User_Profile")) %>' 
+                                                                 class="profile-pic" />
+                                                            <div class="comment-content">
+                                                                <div class="comment-author"><%# Eval("User_Name") %></div>
+                                                                <div class="comment-time"><%# Eval("Comment_DateTime", "{0:dd MMM yyyy, hh:mmtt}") %></div>
+                                                                <div class="comment-text">
+                                                                    <%# Eval("Text") %>
+                                                                </div>
+        
+                                                                <asp:LinkButton ID="btn_delete" runat="server" CssClass="btn-delete"
+                                                                            OnClientClick="return confirm('Are you sure you want to delete this comment?')"
+                                                                            Visible='<%# Eval("User_ID").ToString() == user_id %>' 
+                                                                            CommandArgument='<%# Eval("Comment_ID") %>' OnClick="btn_delete_comment_Click">Delete</asp:LinkButton>
+                                                            </div>
+                                                        </div>
+                                                    </ItemTemplate>
+                                                </asp:Repeater>
+                                            </ContentTemplate>
+                                        </asp:UpdatePanel>
+                                    </div>
+                                
+                                <!-- Comment Input Section -->
+                                <div class="comment-input">
+                                    <asp:TextBox ID="tb_text" runat="server" class="comment-textbox" placeholder="Write a comment..."
+                                        onchange="validateComment(this)" oninput="validateComment(this)"></asp:TextBox>
+                                    <asp:Button ID="btn_publish" runat="server" Text="Comment" class="comment-button btn-submit btn-disabled"
+                                        ToolTip="You cannot submit a blank comment." Disabled="true" CommandArgument='<%# Eval("Post_ID") %>'
+                                        OnClick="btn_comment_Click" />
+                                </div>
+                            </div>
+                        </ItemTemplate>
+                    </asp:Repeater>
+                </ContentTemplate>
             </asp:UpdatePanel>
-
         </div>
     </div>
 
+    <!-- Validation script for comment input -->
     <script>
-        function validatePost(textbox) {
+        function validateComment(textbox) {
             const text = textbox.value.trim();
             const container = textbox.closest(".forum-post");
             const submitButton = container.querySelector(".comment-button");
@@ -197,5 +197,4 @@
             }
         }
     </script>
-
 </asp:Content>

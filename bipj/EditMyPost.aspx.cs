@@ -19,19 +19,26 @@ namespace bipj
                 User_Post user_post = new User_Post();
                 user_post = user_post.GetPostByPostID(post_id);
 
-                Image.DataSource = user_post.Images_List;
+                // Filter out invalid or empty entries from the Images_List
+                var validImages = user_post.Images_List?.Where(img => !string.IsNullOrEmpty(img)).ToList() ?? new List<string>();
+
+                Image.DataSource = validImages;
                 Image.DataBind();
 
-                Video.DataSource = user_post.Videos_List;
+                // Same for Videos if necessary
+                var validVideos = user_post.Videos_List?.Where(v => !string.IsNullOrEmpty(v)).ToList() ?? new List<string>();
+
+                Video.DataSource = validVideos;
                 Video.DataBind();
 
-                Session["ImagesList"] = user_post.Images_List;
-                Session["VideosList"] = user_post.Videos_List;
+                Session["ImagesList"] = validImages;
+                Session["VideosList"] = validVideos;
 
                 tb_text.Text = user_post.Text;
                 radiobtn_category.SelectedValue = user_post.Category;
             }
         }
+
 
         protected void btn_remove_image_Click(object sender, EventArgs e)
         {

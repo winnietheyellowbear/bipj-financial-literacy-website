@@ -5,11 +5,9 @@
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     <head>
-        <!-- Include external CSS files -->
         <link rel="stylesheet" href="Forum_Nav.css">
         <link rel="stylesheet" href="Forum_Post.css">
 
-        <!-- Include ScriptManager for AJAX functionality -->
         <asp:ScriptManager ID="ScriptManager" runat="server" />
     </head>
 
@@ -239,7 +237,6 @@
         </div>
     </div>
 
-    <!-- Validation script for comment input -->
     <script>
         function validateComment(textbox) {
             const text = textbox.value.trim();

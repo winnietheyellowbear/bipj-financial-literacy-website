@@ -27,7 +27,7 @@ namespace bipj
         {
             if (!IsPostBack)
             {
-                Load_Post();
+                Load_Matched_Post();
             }
         }
 
@@ -35,10 +35,8 @@ namespace bipj
         {
             string user_input = txtSearch.Text.Trim();
 
-            // Get all posts
-            List<User_Post> post_list = user_post.GetAllPosts();
-
-            // Prepare a list of post summaries
+            // Prepare post summaries
+            post_list = user_post.GetAllPosts();
             var post_summary_list = post_list.Select(p => $"Post {p.Post_ID}: {p.Text}").ToList();
             string combined_post_summary = string.Join("\n", post_summary_list);
 
@@ -46,30 +44,19 @@ namespace bipj
             string prompt = $"User is interested in: '{user_input}'. " +
                             $"Here are the posts:\n{combined_post_summary}\n" +
                             $"Which posts best match the interest? Reply with a comma-separated list of Post_IDs only.";
+            string result = await AI(prompt);
 
-            // Ask AI for matching post IDs
-            string result = await AskAI(prompt);
-
-            // Split the result into a list of matched post IDs
             var matched_id = result
                              .Split(',')
-                             .Select(id => id.Trim())  // Remove spaces or unwanted characters
+                             .Select(id => id.Trim())
                              .Where(id => !string.IsNullOrEmpty(id))
                              .ToList();
-
-            post_list = user_post.GetAllPosts();
             var matched_post = post_list.Where(p => matched_id.Contains(p.Post_ID)).ToList();
 
-
-            // Show an alert with the number of matched posts and then redirect
             string redirectUrl = $"SmartSearch.aspx?post_id={HttpUtility.UrlEncode(string.Join(",", matched_id))}";
             string script = $"alert('Number of posts found: {matched_post.Count}'); window.location = '{redirectUrl}';";
-
-            // Execute the script to show the alert and then redirect
             ScriptManager.RegisterStartupScript(this, this.GetType(), "AlertAndRedirect", script, true);
         }
-
-
 
         protected void post_ItemDataBound(object sender, RepeaterItemEventArgs e)
         {
@@ -133,7 +120,7 @@ namespace bipj
             User_Comment user_comment = new User_Comment(text, user_id, post_id);
             user_comment.CommentInsert();
 
-            Load_Post();
+            Load_Matched_Post();
         }
 
 
@@ -144,11 +131,11 @@ namespace bipj
 
             user_comment.CommentDelete(comment_id);
 
-            Load_Post();
+            Load_Matched_Post();
 
         }
 
-        protected void Load_Post()
+        protected void Load_Matched_Post()
         {
 
             string post_id = Request.QueryString["post_id"];
@@ -170,7 +157,7 @@ namespace bipj
             }
         }
 
-        private async Task<string> AskAI(string prompt)
+        private async Task<string> AI(string prompt)
         {
             string apiKey = ""; // Replace with your OpenAI API key
             string endpoint = "https://api.openai.com/v1/chat/completions";

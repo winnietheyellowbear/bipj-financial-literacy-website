@@ -113,7 +113,14 @@ namespace bipj
 
             if (result > 0)
             {
-                ScriptManager.RegisterStartupScript(this, this.GetType(), "alert", "alert('Post updated. 😊'); window.location='Post.aspx';", true);
+                string Edit_Post_Source_Url = Session["Edit_Post_Source_Url"].ToString();
+                Session["Edit_Post_Source_Url"] = null;
+
+                if (Edit_Post_Source_Url == "Discussion")
+                {
+                    ScriptManager.RegisterStartupScript(this, this.GetType(), "alert", "alert('Post updated. 😊'); window.location='Disucssion.aspx';", true);
+                }
+                
             }
             else
             {

@@ -11,8 +11,16 @@ namespace bipj
 {
     public partial class Discussion : System.Web.UI.Page
     {
-        User_Post user_post = new User_Post();
+        string user_id = "2";
+
         public List<User_Post> post_list = new List<User_Post>();
+        User_Post user_post = new User_Post();
+
+        List<User_Like> like_list = new List<User_Like>();
+        User_Like user_like = new User_Like();
+
+        List<User_Comment> comment_list = new List<User_Comment>();
+        User_Comment user_comment = new User_Comment();
 
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -33,22 +41,31 @@ namespace bipj
                 // Get the current post
                 var currentPost = (User_Post)e.Item.DataItem;
 
-                // Find the nested Repeater (comment) inside the current post
+                // -------------- like --------------
+                like_list = user_like.GetLikesByPostID(currentPost.Post_ID);
+                Label likeCountLabel = (Label)e.Item.FindControl("lbl_Like_Count");
+                likeCountLabel.Text = like_list.Count.ToString();
+
+                // -------------- comment --------------
                 Repeater commentRepeater = (Repeater)e.Item.FindControl("Comment");
-
-                List<User_Comment> comment_list = new List<User_Comment>();
-                User_Comment user_comment = new User_Comment();
                 comment_list = user_comment.GetCommentsByPostID(currentPost.Post_ID);
-
                 commentRepeater.DataSource = comment_list;
                 commentRepeater.DataBind();
 
-                List<User_Like> like_list = new List<User_Like>();
-                User_Like user_like = new User_Like();
-                like_list = user_like.GetLikesByPostID(currentPost.Post_ID);
+                // -------------- edit & delete --------------
+                LinkButton btnEdit = (LinkButton)e.Item.FindControl("btn_edit");
+                LinkButton btnDelete = (LinkButton)e.Item.FindControl("btn_delete");
 
-                Label likeCountLabel = (Label)e.Item.FindControl("lbl_Like_Count");
-                likeCountLabel.Text = like_list.Count.ToString();
+                if (user_id == currentPost.User_ID)
+                {
+                    btnEdit.Visible = true;
+                    btnDelete.Visible = true;
+                }
+                else
+                {
+                    btnEdit.Visible = false;
+                    btnDelete.Visible = false;
+                }
             }
         }
 
@@ -56,14 +73,11 @@ namespace bipj
         {
             LinkButton btn = (LinkButton)sender;
             string post_id = btn.CommandArgument;
-            string user_id = "2";
 
             User_Like user_like = new User_Like(post_id, user_id);
             user_like.LikeInsert();
 
-            List<User_Like> like_list = new List<User_Like>();
             like_list = user_like.GetLikesByPostID(post_id);
-
             if (user_like.IsPostLiked(post_id, user_id) == 1)
             {
                 btn.CssClass = "btn-red";
@@ -85,8 +99,7 @@ namespace bipj
         {
             Button btn = (Button)sender;
             string post_id = btn.CommandArgument;
-            string user_id = "1";
-
+           
             RepeaterItem item = (RepeaterItem)btn.NamingContainer;
 
             // Get the comment TextBox from the same RepeaterItem
@@ -97,17 +110,51 @@ namespace bipj
             User_Comment user_comment = new User_Comment(text, user_id, post_id);
             user_comment.CommentInsert();
 
-            List<User_Comment> comment_list = new List<User_Comment>();
             comment_list = user_comment.GetCommentsByPostID(post_id);
 
             Repeater commentRepeater = (Repeater)item.FindControl("Comment");
             UpdatePanel updatePanel = (UpdatePanel)item.FindControl("UpdatePanel_Comment");
-
             commentRepeater.DataSource = comment_list;
             commentRepeater.DataBind();
-
             updatePanel.Update();
+        }
 
+        protected void btn_delete_Click(object sender, EventArgs e)
+        {
+            LinkButton btn = (LinkButton)sender;
+            string post_id = btn.CommandArgument;
+
+            user_post.PostDelete(post_id);
+
+            post_list = user_post.GetAllPosts();
+            Post.DataSource = post_list;
+            Post.DataBind();
+            UpdatePanel_Post.Update();
+        }
+
+        protected void btn_delete_comment_Click(object sender, EventArgs e)
+        {
+            LinkButton btn = (LinkButton)sender;
+            string comment_id = btn.CommandArgument;
+
+            user_comment.CommentDelete(comment_id);
+
+            post_list = user_post.GetAllPosts();
+            Post.DataSource = post_list;
+            Post.DataBind();
+            UpdatePanel_Post.Update();
+
+        }
+
+        protected void btn_edit_Click(object sender, EventArgs e)
+        {
+            LinkButton btn = (LinkButton)sender;
+            string post_id = btn.CommandArgument;
+
+            Session["Post_ID"] = post_id;
+            Session["Edit_Post_Source_Url"] = "Discussion";
+
+            Response.Redirect("EditMyPost.aspx");
 
         }
 

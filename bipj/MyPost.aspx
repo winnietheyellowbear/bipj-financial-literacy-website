@@ -118,18 +118,19 @@
                 </asp:Repeater>
            </div>
 
-            
-            <!-- Like & Comment Buttons -->
+       
             <!-- Like & Comment Buttons -->
             <div class="forum-actions">
                 <!-- Left aligned Like button -->
-                <div class="like-btn-container">
-                    <asp:LinkButton ID="btn_like" runat="server" CommandArgument='<%# Eval("Post_ID") %>' 
-                        CssClass='<%# (bool)Eval("Like_Status") ? "btn-red" : "btn-blue" %>' OnClick="btn_like_Click">
-                        <%# (bool)Eval("Like_Status") ? "Liked" : "Like" %>
-                        (<asp:Label ID="lbl_Like_Count" runat="server" Text=""></asp:Label>)
-                    </asp:LinkButton>
-                </div>
+                <asp:UpdatePanel ID="UpdatePanel_Like" runat="server" UpdateMode="Conditional">
+                <ContentTemplate>     
+                <asp:LinkButton ID="btn_like" runat="server" CommandArgument='<%# Eval("Post_ID") %>' 
+                    CssClass='<%# (bool)Eval("Like_Status") ? "btn-red" : "btn-blue" %>' OnClick="btn_like_Click">
+                    <%# (bool)Eval("Like_Status") ? "Liked" : "Like" %>
+                    (<asp:Label ID="lbl_Like_Count" runat="server" Text=""></asp:Label>)
+                </asp:LinkButton>
+                </ContentTemplate>
+                </asp:UpdatePanel>
 
                 <!-- Right aligned Edit and Delete buttons -->
                 <div class="edit-delete-btn-container">

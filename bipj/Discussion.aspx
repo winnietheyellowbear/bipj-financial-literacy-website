@@ -29,6 +29,39 @@
             margin-left: 20px;
             max-width: 1000px;
         }
+
+        
+
+        .search-filter-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            
+        }
+
+        .search-bar {
+            padding: 10px;
+            font-size: 14px;
+            width: 250px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .search-bar:focus {
+            border-color: #3B387E;
+        }
+
+        .filter-dropdown {
+            padding: 10px;
+            font-size: 14px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            background-color: #fff;
+            cursor: pointer;
+        }
+
     </style>
 
     <div class="content-wrapper">
@@ -74,6 +107,22 @@
         <!-- Main content -->
         <div class="main-content">
             <h1>Welcome to the forum</h1>
+
+            
+        <!-- Search and Filter Section -->
+            <div class="search-filter-container">
+                <asp:TextBox ID="searchInput" runat="server" CssClass="search-bar" 
+                             placeholder="Search by username or text..." OnTextChanged="Search" AutoPostBack="true" />
+                
+                <asp:DropDownList ID="categoryFilter" runat="server" CssClass="filter-dropdown" OnSelectedIndexChanged="Search" AutoPostBack="true">
+                    <asp:ListItem>category</asp:ListItem>
+                    <asp:ListItem>ask a question</asp:ListItem>
+                    <asp:ListItem>share my journey</asp:ListItem>
+                    <asp:ListItem>share tips and tools</asp:ListItem>
+                </asp:DropDownList>
+                
+            </div>
+
             <asp:UpdatePanel ID="UpdatePanel_Post" runat="server" UpdateMode="Conditional">
                 <ContentTemplate>
                     <asp:Repeater ID="Post" runat="server" OnItemDataBound="post_ItemDataBound">

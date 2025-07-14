@@ -116,6 +116,23 @@ namespace bipj
 
         }
 
+        protected void Search(object sender, EventArgs e)
+        {
+            // Get search text and filter category
+            string searchInput = this.searchInput.Text.Trim();
+            string category = categoryFilter.SelectedValue;
+
+            // Call method to get filtered posts
+            post_list = user_post.GetSearchPosts(searchInput, category);
+
+            // Bind filtered posts to the Repeater
+            Post.DataSource = post_list;
+            Post.DataBind();
+
+            // Update the UpdatePanel (to avoid full page reload)
+            UpdatePanel_Post.Update();
+        }
+
 
     }
 }

@@ -436,7 +436,103 @@ namespace bipj
             return nofRow;
         }
 
+        public List<User_Post> GetSearchPosts(string searchInput, string filterInput)
+        {
+            string post_id, images, videos, text, category, user_id, post_datetime, last_update_datetime, name, profile;
+            bool like_status;
+            List<string> images_list = new List<string>();
+            List<string> videos_list = new List<string>();
 
+            List<User_Post> post_list = new List<User_Post>();
+            User_Post user_post = new User_Post();
+
+            string queryStr = "SELECT * FROM Post p LEFT OUTER JOIN [User] u ON p.User_ID = u.Id";
+
+            if (!string.IsNullOrEmpty(searchInput) && filterInput != "category")
+            {
+                queryStr += " WHERE (Text LIKE @searchInput OR Name LIKE @searchInput) AND Category = @category";
+            }
+            else if (!string.IsNullOrEmpty(searchInput))
+            {
+                queryStr += " WHERE (Text LIKE @searchInput OR Name LIKE @searchInput)";
+            }
+            else if (!string.IsNullOrEmpty(filterInput))
+            {
+                queryStr += " WHERE Category = @category";
+            }
+
+            queryStr += " ORDER BY p.Post_ID DESC";
+
+            SqlConnection conn = new SqlConnection(_connStr);
+            SqlCommand cmd = new SqlCommand(queryStr, conn);
+
+            if (!string.IsNullOrEmpty(searchInput) && filterInput != "category")
+            {
+                cmd.Parameters.AddWithValue("@searchInput", "%" + searchInput + "%");
+                cmd.Parameters.AddWithValue("@category", filterInput);
+            }
+
+            else if (!string.IsNullOrEmpty(searchInput))
+            {
+                cmd.Parameters.AddWithValue("@searchInput", "%" + searchInput + "%");
+
+            }
+            else if (!string.IsNullOrEmpty(filterInput))
+            {
+                cmd.Parameters.AddWithValue("@category", filterInput);
+            }
+
+            conn.Open();
+            SqlDataReader dr = cmd.ExecuteReader();
+
+            while (dr.Read())
+            {
+                post_id = dr["Post_ID"].ToString();
+                images = dr["Images"].ToString();
+                videos = dr["Videos"].ToString();
+                text = dr["Text"].ToString();
+                category = dr["Category"].ToString();
+                user_id = dr["User_ID"].ToString();
+                post_datetime = dr["Post_DateTime"].ToString();
+                last_update_datetime = dr["Last_Update_DateTime"].ToString();
+                name = dr["Name"].ToString();
+                profile = dr["Profile"].ToString();
+
+                User_Like user_like = new User_Like();
+                string User_ID = "2";
+                int result = user_like.IsPostLiked(post_id, User_ID);
+
+                if (result == 1)
+                {
+                    like_status = true;
+                }
+                else
+                {
+                    like_status = false;
+                }
+
+                images_list = images.Split(',').ToList();
+                videos_list = videos.Split(',').ToList();
+
+                User_Comment user_Comment = new User_Comment();
+                List<User_Comment> comments_list = new List<User_Comment>();
+                comments_list = user_Comment.GetCommentsByPostID(post_id);
+
+                user_post = new User_Post(post_id, images_list, videos_list, text, category, user_id, post_datetime, last_update_datetime, name, profile, like_status, comments_list);
+                post_list.Add(user_post);
+            }
+
+            conn.Close();
+            dr.Close();
+            dr.Dispose();
+
+            if ((string.IsNullOrEmpty(searchInput) || (searchInput == "") ) && (filterInput == "category"))
+            {
+                post_list = user_post.GetAllPosts();
+            }
+
+            return post_list;
+        }
 
     }
 }

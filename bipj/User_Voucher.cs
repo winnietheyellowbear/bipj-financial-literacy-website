@@ -158,7 +158,10 @@ namespace bipj
         public List<User_Voucher> GetVoucherByUserID(string user_id)
         {
             string user_voucher_id, company_name, description, expiry_date, status, token;
+            User_Voucher user_voucher = new User_Voucher();
             List<User_Voucher> voucher_list = new List<User_Voucher>();
+
+            user_voucher.VoucherExpiry();
 
             string queryStr = "SELECT * FROM User_Voucher WHERE User_ID = @User_ID";
 
@@ -178,7 +181,7 @@ namespace bipj
                 status = dr["Status"].ToString();
                 token = dr["Token"].ToString();
 
-                User_Voucher user_voucher = new User_Voucher(user_voucher_id, company_name, description, expiry_date, user_id, status, token);
+                user_voucher = new User_Voucher(user_voucher_id, company_name, description, expiry_date, user_id, status, token);
                 voucher_list.Add(user_voucher);
             }
 
@@ -241,5 +244,40 @@ namespace bipj
 
             return nofRow;
         }
+
+        public void VoucherExpiry()
+        {
+            string expiry_date, token;
+            User_Voucher user_voucher = new User_Voucher();
+
+            string queryStr = "SELECT * FROM User_Voucher WHERE Status != 'Expired'";
+
+            SqlConnection conn = new SqlConnection(_connStr);
+            SqlCommand cmd = new SqlCommand(queryStr, conn);
+            
+            conn.Open();
+            SqlDataReader dr = cmd.ExecuteReader();
+
+            while (dr.Read())
+            {
+                expiry_date = dr["Expiry_Date"].ToString();
+                token = dr["Token"].ToString();
+
+                // Convert expiry_date string to DateTime (assuming it's stored as string in database)
+                DateTime expiryDateTime = DateTime.Parse(expiry_date);
+
+                // Check if the voucher has expired
+                if (expiryDateTime <= DateTime.Now)
+                {
+                    user_voucher.StatusUpdate(token, "Expired");
+                }
+
+            }
+
+            conn.Close();
+            dr.Close();
+            dr.Dispose();
+        }
+
     }
 }

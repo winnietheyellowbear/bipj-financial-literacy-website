@@ -1,237 +1,209 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Customer_Nav.Master" AutoEventWireup="true" CodeBehind="VoucherActive.aspx.cs" Inherits="bipj.VoucherActive" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
- <div id="voucherModal" class="modal" style="display:none;">
-  <div class="modal-content">
-    <span class="close" onclick="closeModal()">&times;</span>
-    <h2>Voucher Details</h2>
-    <p><strong>Description:</strong> <span id="modalDescription"></span></p>
-    <p><strong>Company:</strong> <span id="modalCompany"></span></p>
-    <p><strong>Expiry Date:</strong> <span id="modalExpiry"></span></p>
-    <div>
-      <h3>Scan QR Code</h3>
-      <canvas id="qrcode"></canvas>
+   <div id="voucherModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <h2>Time to Enjoy Your Reward!</h2>
+            <p><strong>🏢Sponsor:</strong> <span id="modalCompany"></span></p>
+            <p><strong>📅Valid until:</strong> <span id="modalExpiry"></span></p>
+            <p><strong>📃Description:</strong> <span id="modalDescription"></span></p>
+
+            
+            <div class="qrcode-container">
+                Scan this at the counter to redeem the discount!🥳
+                <canvas id="qrcode"></canvas>
+            </div>
+
+            <button class="close-button" onclick="closeModal()">Use another time</button>
+        </div>
     </div>
-  </div>
-</div>
 
      <head>
      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+     <link href="https://fonts.googleapis.com/css2?family=Titan+One&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+     <link rel="stylesheet" href="Voucher.css">
      <link rel="stylesheet" href=" https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css ">
      <style>
          :root {
-             --primary: #3B82F6;
-             --secondary: #10B981;
+             --primary: #10B981;
              --background: #F9FAFB;
              --card-bg: #FFFFFF;
-             --text-color: #1F2937;
+             --text-color: #1f3720;
              --border-radius: 16px;
              --shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
              --section-gap: 40px;
              --transition: all 0.3s ease;
          }
 
-         body {
-             font-family: 'Inter', sans-serif;
-             background-color: var(--background);
-             color: var(--text-color);
-             margin: 0;
-             padding: 0;
-         }
+         
 
-         .top-bar {
-             background: var(--card-bg);
-             box-shadow: var(--shadow);
-             padding: 20px 30px;
-             display: flex;
-             justify-content: space-between;
-             align-items: center;
-             border-bottom: 1px solid #E5E7EB;
-             flex-wrap: wrap;
-             gap: 10px;
-             position: sticky;
-         }
-
-         .stat-pill {
-             display: flex;
-             align-items: center;
-             gap: 8px;
-             background: #bffeea;
-             color: #1eaf6b;
-             padding: 6px 14px;
-             border-radius: 999px;
-             font-size: 14px;
-             font-weight: 600;
-         }
-
-         .container {
-             max-width: 1200px;
-             margin: auto;
-             padding: 40px 20px;
-         }
-
-         h2 {
-             font-size: 28px;
-             font-weight: 600;
-             color: black;
-             margin: 0;
-         }
-
-         .voucher-container {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr); /* Exactly 4 columns */
-            gap: 24px;
-            margin-top: 20px;
-        }
-
-        @media (max-width: 992px) {
-            .voucher-container {
-                grid-template-columns: repeat(2, 1fr); /* 2 per row on tablets */
-            }
-        }
-
-        @media (max-width: 576px) {
-            .voucher-container {
-                grid-template-columns: 1fr; /* 1 per row on mobile */
-            }
-        }
-
-
-         .voucher-box {
-             background-color: var(--card-bg);
-             border-radius: var(--border-radius);
-             box-shadow: var(--shadow);
-             padding: 20px;
-             display: flex;
-             flex-direction: column;
-             font-size: 14px;
-             transition: transform 0.3s ease;
-             border: 1px solid #E5E7EB;
-         }
-
-         .voucher-box:hover {
-             transform: translateY(-6px);
-         }
-
-         .voucher-company {
-             font-weight: 600;
-             font-size: 18px;
-             color: #111827;
-             margin-bottom: 8px;
-         }
-
-         .voucher-description {
-             font-size: 13px;
-             color: #6B7280;
-             margin-bottom: 12px;
-         }
-
-         .voucher-meta {
-             font-size: 12px;
-             color: #9CA3AF;
-             display: flex;
-             flex-direction: column;
-             gap: 6px;
-             margin-bottom: 16px;
-         }
-
-         .redeem-button {
-             margin-top: auto;
-             padding: 10px 16px;
-             font-size: 13px;
-             font-weight: 600;
-             background-color: var(--secondary);
-             color: white;
-             border: none;
-             border-radius: var(--border-radius);
-             cursor: pointer;
-             display: inline-flex;
-             align-items: center;
-             gap: 8px;
-             transition: background-color 0.3s ease;
-             text-decoration: none;
-         }
-
-         .redeem-button:hover {
-             background-color: #19d194;
-         }
-
-         .empty-state {
-             text-align: center;
-             padding: 60px 20px;
-             background-color: var(--card-bg);
-             border-radius: var(--border-radius);
-             box-shadow: var(--shadow);
-             margin-top: 60px;
-         }
-
-         .empty-state i {
-             font-size: 80px;
-             color: #D1D5DB;
-             margin-bottom: 24px;
-         }
-
-         .empty-state h3 {
-             font-size: 22px;
-             font-weight: 600;
-             color: #4B5563;
-             margin-bottom: 12px;
-         }
-
-         .empty-state p {
-             font-size: 14px;
-             color: #6B7280;
-             max-width: 500px;
-             margin: 0 auto;
-         }
      </style>
  </head>
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
 
-    <style>
+        <style>
         .modal {
-          position: fixed;
-          top: 0; left: 0; right: 0; bottom: 0;
-          background: rgba(0,0,0,0.5);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 9999;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
         }
+
         .modal-content {
-          background: white;
-          padding: 20px;
-          border-radius: 5px;
-          width: 300px;
-          text-align: center;
+            background: #fff;
+            width: 360px;
+            padding: 30px 20px;
+            border-radius: 16px;
+            font-family: 'Inter', sans-serif;
+            position: relative;
         }
+
+        .modal-content h2 {
+            font-family: 'Titan One', cursive; /* ✅ Use Titan One here */
+            color: #3B387E;
+            font-size: 20px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: 100;
+        }
+
+
+        .modal-content p {
+            margin: 6px 0;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .modal-content strong {
+            font-weight: 600;
+        }
+
+
+
+        .close-button {
+            background-color: #3B387E;
+            color: #fff;
+            border: none;
+            padding: 12px 20px;
+            font-size: 14px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: 0.3s ease;
+        }
+
+        .close-button:hover {
+            background-color: #59569E;
+        }
+
         .close {
-          float: right;
-          font-size: 1.5rem;
-          cursor: pointer;
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .qrcode-container {
+            margin: 20px 0;
+            font-size: 13px;
+            
+        }
+
+        #qrcode {
+            display: block;      /* 👈 force it to behave like a block */
+            margin: 0 auto;       /* 👈 horizontally center it */
+        }
+
+
+                    
+
+        .search-filter-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            justify-content: flex-end; /* Align to the right */
+            width: 100%; /* Ensure it spans the entire width */
+        }
+
+        .search-bar {
+            padding: 10px;
+            font-size: 14px;
+            width: 250px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .search-bar:focus {
+            border-color: #10B981;
+        }
+
+        .filter-dropdown {
+            padding: 10px;
+            font-size: 14px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            background-color: #fff;
+            cursor: pointer;
+        }
+
+
+        .redeem-button {
+            padding: 6px 10px;
+            font-size: 14px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s ease;
+            border: none;
+            width: 100%;
+            text-decoration: none;
         }
 
     </style>
-    <br />
-    <br />
-     
+   
 
      <div class="top-bar">
 
-     <h2>Active Voucher</h2>
+     <h2>My voucher</h2>
      <div style="display: flex; gap: 10px;">
-         <div class="stat-pill">
-             <i class="fas fa-ticket-alt"></i> Available Vouchers: <asp:Label ID="lbl_Voucher_Count" runat="server" Text='<%# Eval("TotalVouchers") %>'></asp:Label>
+         <div class="stat-pill" style="background-color: #bffedf; color: #10B981">
+             <i class="fas fa-ticket-alt"></i> Available vouchers: <asp:Label ID="lbl_Voucher_Count" runat="server" Text='<%# Eval("TotalVouchers") %>'></asp:Label>
          </div>
+         <div class="stat-pill" style="background-color: #f5f2f3; color: #b0b0b0">
+            <i class="fas fa-ticket-alt"></i> Used vouchers: <asp:Label ID="Label1" runat="server" Text='<%# Eval("TotalVouchers") %>'></asp:Label>
+        </div>
+         <div class="stat-pill" style="background-color: #febfc5; color: #b91032">
+    <i class="fas fa-ticket-alt"></i> Expired vouchers: <asp:Label ID="Label2" runat="server" Text='<%# Eval("TotalVouchers") %>'></asp:Label>
+</div>
      </div>
  </div>
 
+    
+
  <div class="container">
+
+       <!-- Search and Filter Section -->
+<div class="search-filter-container">
+    <!-- Search Bar -->
+    <input type="text" id="searchInput" class="search-bar" placeholder="Search by company or description..." onkeyup="filterVouchers()" />
+    
+    <!-- Filter Dropdown -->
+    <select id="statusFilter" class="filter-dropdown" onchange="filterVouchers()">
+        <option value="">Filter by Status</option>
+        <option value="Available">Available</option>
+        <option value="Used">Used</option>
+        <option value="Expired">Expired</option>
+    </select>
+</div>
      <!-- Vouchers Grid -->
      <div class="voucher-container">
          <asp:Repeater ID="Voucher" runat="server">
              <ItemTemplate>
-                 <asp:Panel runat="server" Visible='<%# Eval("Status").ToString() == "Available" %>'>
                  <div class="voucher-box">
                      <div class="voucher-company"><%# Eval("Company_Name") %></div>
                      <div class="voucher-description"><%# Eval("Description") %></div>
@@ -239,17 +211,31 @@
                          <span><i class="fas fa-calendar-alt"></i> Expiry Date: <%# Eval("Expiry_Date") %></span>
                      </div>
                      <asp:LinkButton runat="server"
-                         Text="<i class='fas fa-gift'></i> Use"
-                         CssClass="redeem-button show-voucher"
+                         Text="Use"
+                         CssClass="use-button redeem-button show-voucher"
+                         style="background-color: #bffedf; color: #10B981"
                          OnClientClick="return false;" 
                         data-description='<%# Eval("Description") %>' 
                         data-company-name='<%# Eval("Company_Name") %>' 
                         data-expiry-date='<%# Eval("Expiry_Date") %>' 
                         data-token='<%# Eval("Token") %>'
-                         CausesValidation="false">
+                         CausesValidation="false"
+                         Visible='<%# Eval("Status").ToString() == "Available" %>'>
                      </asp:LinkButton>
+
+                     <asp:LinkButton runat="server"
+                                    Text="Used"
+                                    CssClass="used-button redeem-button" style="background-color: #f5f2f3; color: #b0b0b0; cursor: not-allowed;"
+                                    Visible='<%# Eval("Status").ToString() == "Used" %>'>
+                    </asp:LinkButton>
+                    <asp:LinkButton runat="server"
+                                    Text="Expired"
+                                    CssClass="expired-button redeem-button" style="background-color: #febfc5; color: #b91032; cursor: not-allowed;"
+                                    Visible='<%# Eval("Status").ToString() == "Expired" %>'>
+                    </asp:LinkButton>
+
                  </div>
-                 </asp:Panel>
+                
              </ItemTemplate>
          </asp:Repeater>
      </div>

@@ -178,7 +178,7 @@
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="/VoucherSponsor.aspx">Sponsor</a></li>
                             <li><a class="dropdown-item" href="/VoucherStaff.aspx">Voucher</a></li>
-                            <li><a class="dropdown-item" href="/CreateVoucher.aspx">Create Voucher</a></li>
+                            
                         </ul>
                     </li>
 

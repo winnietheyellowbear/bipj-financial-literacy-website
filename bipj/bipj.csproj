@@ -173,6 +173,7 @@
     <Content Include="ViewEducationPage.aspx" />
     <Content Include="ViewSpecificEdu.aspx" />
     <Content Include="ViewSpecificProfile.aspx" />
+    <Content Include="Voucher.css" />
     <Content Include="VoucherActive.aspx" />
     <Content Include="VoucherExchange.aspx" />
     <Content Include="VoucherManagement.aspx" />

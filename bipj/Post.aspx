@@ -1,4 +1,4 @@
-﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Customer_Nav.Master" AutoEventWireup="true" CodeBehind="Post.aspx.cs" Inherits="bipj.Post" %>
+﻿<%@ Page Async="true" Title="" Language="C#" MasterPageFile="~/Customer_Nav.Master" AutoEventWireup="true" CodeBehind="Post.aspx.cs" Inherits="bipj.Post" MaintainScrollPositionOnPostBack="true" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
 </asp:Content>
@@ -9,6 +9,8 @@
     <head>
         <link rel="stylesheet" href="Forum_Nav.css">
         <link rel="stylesheet" href="Forum_Post.css">
+
+        <asp:ScriptManager ID="ScriptManager" runat="server" />
     </head>
 
     <!-- Inline CSS Styling -->
@@ -268,6 +270,11 @@
                 </div>
 
                 <!-- Publish Button -->
+                <asp:UpdatePanel ID="UpdatePanel" runat="server" UpdateMode="Conditional">
+                <ContentTemplate>
+                <asp:Label ID="lbl_error_msg" runat="server" Text=""></asp:Label>
+                </ContentTemplate>
+                </asp:UpdatePanel>
                 <asp:Button ID="btn_publish" runat="server" Text="Publish" CssClass="btn-submit btn-disabled" Disabled="true" ToolTip="You cannot submit a blank post." OnClick="btn_publish_Click" />
             </div>
         </div>

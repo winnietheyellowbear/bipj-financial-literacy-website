@@ -1,13 +1,18 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-
+using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
-using System.Configuration;
-using static System.Net.Mime.MediaTypeNames;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using System.Web;
 using System.Xml.Linq;
+using static System.Net.Mime.MediaTypeNames;
+
 
 namespace bipj
 {
@@ -340,7 +345,7 @@ namespace bipj
                 videos = dr["Videos"].ToString();
                 text = dr["Text"].ToString();
                 category = dr["Category"].ToString();
-                
+
                 images_list = images.Split(',').ToList();
                 videos_list = videos.Split(',').ToList();
 
@@ -526,12 +531,65 @@ namespace bipj
             dr.Close();
             dr.Dispose();
 
-            if ((string.IsNullOrEmpty(searchInput) || (searchInput == "") ) && (filterInput == "category"))
+            if ((string.IsNullOrEmpty(searchInput) || (searchInput == "")) && (filterInput == "category"))
             {
                 post_list = user_post.GetAllPosts();
             }
 
             return post_list;
+        }
+
+
+        public async Task<string> ContentModerator(string text)
+        {
+            using (var client = new HttpClient())
+            {
+                // Set Authorization header with the OpenAI API key
+                client.DefaultRequestHeaders.Add("Authorization", "Bearer ");  // Replace with your OpenAI API key
+
+                // Prepare the request body for the Chat Completion API
+                var requestBody = new
+                {
+                    model = "gpt-4",  // You can use gpt-3.5-turbo if needed
+                    messages = new[]
+                    {
+                new
+                {
+                    role = "system",
+                    content = "You are a content moderator. Respond ONLY with 'Yes' if the text contains rude, offensive, disrespectful, or insulting language, even if it's mild. Respond 'No' otherwise."
+                },
+                new
+                {
+                    role = "user",
+                    content = $"Is this content inappropriate? '{text}'"
+                }
+            }
+                };
+
+                // Send the request to the OpenAI API
+                var response = await client.PostAsync("https://api.openai.com/v1/chat/completions",
+                    new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json"));
+
+                // Read the response content
+                var responseString = await response.Content.ReadAsStringAsync();
+
+                // Debugging: Log the full response
+                Console.WriteLine("Response from OpenAI API: " + responseString);
+
+                // Parse the JSON response to get the assistant's reply
+                var responseObject = JsonConvert.DeserializeObject<dynamic>(responseString);
+                string resultText = responseObject.choices[0].message.content.ToString().Trim();
+
+                // Return 'Yes' or 'No' based on the result
+                if (resultText.Equals("Yes", StringComparison.OrdinalIgnoreCase))
+                {
+                    return "Yes";
+                }
+                else
+                {
+                    return "No";
+                }
+            }
         }
 
     }

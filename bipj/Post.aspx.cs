@@ -1,10 +1,16 @@
-﻿using System;
+﻿using Microsoft.Azure.CognitiveServices.ContentModerator.Models;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+
 
 namespace bipj
 {
@@ -17,19 +23,16 @@ namespace bipj
         }
 
 
-        protected void btn_publish_Click(object sender, EventArgs e)
+        protected async void btn_publish_Click(object sender, EventArgs e)
         {
             int result = 0;
 
             List<string> imagePaths = new List<string>();
             List<string> videoPaths = new List<string>();
 
-            //string images = null;
-            //string videos = null;
             string text = tb_text.Text;
             string category = radiobtn_category.SelectedValue;
             string user_id = "2";
-
 
             // Loop through uploaded files
             HttpFileCollection uploadedFiles = Request.Files;
@@ -62,34 +65,34 @@ namespace bipj
             string images = string.Join(",", imagePaths);
             string videos = string.Join(",", videoPaths);
 
-            //if (img_post.HasFile)
-            //{
-            //    string fileName = Path.GetFileName(img_post.FileName);
-            //    string savePath = Server.MapPath("~/Forum/Images/") + fileName;
-            //    img_post.SaveAs(savePath);
-            //    images = "~/Forum/Images/" + fileName;    
-            //}
+            User_Post user_post = new User_Post();
 
-            //if (video_post.HasFile)
-            //{
-            //    string fileName = Path.GetFileName(video_post.FileName);
-            //    string savePath = Server.MapPath("~/Forum/Videos/") + fileName;
-            //    video_post.SaveAs(savePath);
-            //    videos = "~/Forum/Videos/" + fileName; 
-            //}
+            // Call the asynchronous ContentModerator method
+            string content_moderator = await user_post.ContentModerator(text);
 
-            User_Post user_post = new User_Post(images, videos, text, category, user_id);
-            result = user_post.PostInsert();
-
-            if (result > 0)
+            if (content_moderator == "Yes")
             {
-                ScriptManager.RegisterStartupScript(this, this.GetType(), "alert", "alert('Post published. 😊'); window.location='Post.aspx';", true);
+                lbl_error_msg.Text = "Your post contains inappropriate text.";
+                UpdatePanel.Update();
             }
             else
             {
-                ScriptManager.RegisterStartupScript(this, this.GetType(), "alert", "alert('Failed to publish post. 😞');", true);
+                user_post = new User_Post(images, videos, text, category, user_id);
+                result = user_post.PostInsert();
+
+                if (result > 0)
+                {
+                    ScriptManager.RegisterStartupScript(this, this.GetType(), "alert", "alert('Post published. 😊'); window.location='Post.aspx';", true);
+                }
+                else
+                {
+                    ScriptManager.RegisterStartupScript(this, this.GetType(), "alert", "alert('Failed to publish post. 😞');", true);
+                }
             }
         }
+
+
+
 
     }
 }

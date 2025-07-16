@@ -45,6 +45,11 @@ namespace bipj
             Staff_Voucher staff_voucher = new Staff_Voucher();
             int result = staff_voucher.StatusUpdate(token, status);
 
+            if (status == "Active")
+            {
+                WhatsApp();
+            }
+
             if (result > 0)
             {
                 ScriptManager.RegisterStartupScript(
@@ -62,5 +67,13 @@ namespace bipj
 
         }
 
+        private async void WhatsApp()
+        {
+            // Example: Send a message when voucher is used
+            Staff_Voucher staff_voucher = new Staff_Voucher();
+            string phoneNumber = "6582581110"; // Replace with the actual recipient's phone number
+
+            await staff_voucher.SendMessageAsync(phoneNumber);
+        }
     }
 }

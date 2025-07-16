@@ -7,6 +7,9 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Configuration;
 
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace bipj
 {
@@ -321,6 +324,42 @@ namespace bipj
 
             return voucher_list;
         }
+
+        // Method to send a WhatsApp message
+
+        public async Task SendMessageAsync(string toPhoneNumber)
+        {
+            string apiUrl = "https://graph.facebook.com/v22.0/662395820298319/messages";
+            string accessToken = "EAAQJhoZCqvUQBPGBudh8stCUI1K8xO5ZCq3IZBUiOcjeAAlUZAvcZC3gew4oajTrjoehFKMZAeEYEEjEtqWJMm2NYE4qLfRdHvC5LhDdjZASF5JjQ8CBZAb2mTDIVfdIRaSYdutZAXYQq8ZBYOmz9P2K219TdIlJ3wc9AyUaSJs6kQ6TXamUuuWB4jIW0SNXlAZC8iK0KAmX6S4XNgQbZAibTWsjFsbTSZBllKZAmoGxhIkx9uIQdGhQZDZD"; // Replace with your access token
+
+            using (var client = new HttpClient())
+            {
+                // Set the authorization header
+                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
+                client.DefaultRequestHeaders.Add("Accept", "application/json");
+
+                // Build the JSON payload
+                var jsonPayload = new StringContent(
+                    $"{{\"messaging_product\": \"whatsapp\", \"to\": \"{toPhoneNumber}\", \"type\": \"template\", \"template\": {{ \"name\": \"hello_world\", \"language\": {{ \"code\": \"en_US\" }} }} }}",
+                    Encoding.UTF8,
+                    "application/json"
+                );
+
+                // Send POST request
+                var response = await client.PostAsync(apiUrl, jsonPayload);
+
+                // Check if the request was successful
+                if (response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine("Message sent successfully!");
+                }
+                else
+                {
+                    Console.WriteLine($"Error sending message: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
+                }
+            }
+        }
+        
 
     }
 }

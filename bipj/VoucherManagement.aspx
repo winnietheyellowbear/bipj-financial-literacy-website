@@ -1,4 +1,4 @@
-﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Voucher.Master" AutoEventWireup="true" CodeBehind="VoucherManagement.aspx.cs" Inherits="bipj.VoucherManagement1" %>
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Voucher.Master" AutoEventWireup="true" CodeBehind="VoucherManagement.aspx.cs" Inherits="bipj.VoucherManagement1" Async="true" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">

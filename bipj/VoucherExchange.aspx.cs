@@ -27,7 +27,7 @@ namespace bipj
                 string user_id = "2";
                 int user_point = user_voucher.GetUserPoint(user_id);
 
-                lbl_Point.Text = user_point.ToString();
+                lbl_Point.Text = user_point.ToString() + " point";
             }
 
         }
@@ -112,6 +112,22 @@ namespace bipj
 
         }
 
+
+        protected void Search(object sender, EventArgs e)
+        {
+            // Get search text and filter category
+            string searchInput = this.searchInput.Text.Trim();
+            string order = statusFilter.SelectedValue;
+
+            // Call method to get filtered posts
+            voucher_list = staff_voucher.GetSearchVouchers(searchInput, order);
+
+            Voucher.DataSource = voucher_list;
+            Voucher.DataBind();
+
+            // Update the UpdatePanel (to avoid full page reload)
+            UpdatePanel.Update();
+        }
 
     }
 }

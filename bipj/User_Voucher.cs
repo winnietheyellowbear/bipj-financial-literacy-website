@@ -102,7 +102,7 @@ namespace bipj
             cmd.Parameters.AddWithValue("@Description", this.Description);
             cmd.Parameters.AddWithValue("@Expiry_Date", this.Expiry_Date);
             cmd.Parameters.AddWithValue("@User_ID", this.User_ID);
-            cmd.Parameters.AddWithValue("@Status", "Available");
+            cmd.Parameters.AddWithValue("@Status", "available");
             cmd.Parameters.AddWithValue("@Token", this.Token);
 
             conn.Open();
@@ -250,7 +250,7 @@ namespace bipj
             string expiry_date, token;
             User_Voucher user_voucher = new User_Voucher();
 
-            string queryStr = "SELECT * FROM User_Voucher WHERE Status != 'Expired'";
+            string queryStr = "SELECT * FROM User_Voucher WHERE Status = 'Available'";
 
             SqlConnection conn = new SqlConnection(_connStr);
             SqlCommand cmd = new SqlCommand(queryStr, conn);
@@ -269,7 +269,7 @@ namespace bipj
                 // Check if the voucher has expired
                 if (expiryDateTime <= DateTime.Now)
                 {
-                    user_voucher.StatusUpdate(token, "Expired");
+                    user_voucher.StatusUpdate(token, "expired");
                 }
 
             }
@@ -279,5 +279,75 @@ namespace bipj
             dr.Dispose();
         }
 
+        public List<User_Voucher> GetSearchVouchers(string searchInput, string filterInput, string userID)
+        {
+            string user_voucher_id, company_name, description, expiry_date, status, token;
+            User_Voucher user_voucher = new User_Voucher();
+            List<User_Voucher> voucher_list = new List<User_Voucher>();
+
+            string queryStr = "SELECT * FROM User_Voucher WHERE User_ID = @User_ID";
+
+            if (!string.IsNullOrEmpty(searchInput) && filterInput != "status")
+            {
+                queryStr += " AND (Company_Name LIKE @searchInput OR Description LIKE @searchInput) AND Status = @status";
+            }
+            else if (!string.IsNullOrEmpty(searchInput))
+            {
+                queryStr += " AND (Company_Name LIKE @searchInput OR Description LIKE @searchInput)";
+            }
+            else if (!string.IsNullOrEmpty(filterInput))
+            {
+                queryStr += " AND Status = @status";
+            }
+
+            queryStr += " ORDER BY User_Voucher_ID DESC";
+
+            SqlConnection conn = new SqlConnection(_connStr);
+            SqlCommand cmd = new SqlCommand(queryStr, conn);
+            cmd.Parameters.AddWithValue("@User_ID", userID);
+
+            if (!string.IsNullOrEmpty(searchInput) && filterInput != "status")
+            {
+                cmd.Parameters.AddWithValue("@searchInput", "%" + searchInput + "%");
+                cmd.Parameters.AddWithValue("@status", filterInput);
+            }
+
+            else if (!string.IsNullOrEmpty(searchInput))
+            {
+                cmd.Parameters.AddWithValue("@searchInput", "%" + searchInput + "%");
+
+            }
+            else if (!string.IsNullOrEmpty(filterInput))
+            {
+                cmd.Parameters.AddWithValue("@status", filterInput);
+            }
+
+            conn.Open();
+            SqlDataReader dr = cmd.ExecuteReader();
+
+            while (dr.Read())
+            {
+                user_voucher_id = dr["User_Voucher_ID"].ToString();
+                company_name = dr["Company_Name"].ToString();
+                description = dr["Description"].ToString();
+                expiry_date = dr["Expiry_Date"].ToString();
+                status = dr["Status"].ToString();
+                token = dr["Token"].ToString();
+
+                user_voucher = new User_Voucher(user_voucher_id, company_name, description, expiry_date, userID, status, token);
+                voucher_list.Add(user_voucher);
+            }
+
+            conn.Close();
+            dr.Close();
+            dr.Dispose();
+
+            if ((string.IsNullOrEmpty(searchInput) || (searchInput == "")) && (filterInput == "status"))
+            {
+                voucher_list = user_voucher.GetVoucherByUserID(userID);
+            }
+
+            return voucher_list;
+        }
     }
 }

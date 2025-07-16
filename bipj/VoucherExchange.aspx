@@ -61,7 +61,21 @@
             border: none;
             width: 100%;
             text-decoration: none;
+            font-weight: 600;
         }
+
+               
+.stat-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #cccafa;
+    color: #3B387E;
+    padding: 6px 14px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+}
 
         </style>
     </head>
@@ -69,33 +83,39 @@
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     
-    <div class="top-bar">
-        <h2>Exchange voucher</h2>
-        <div style="display: flex; gap: 10px;">
-            <div class="stat-pill">
-                <i class="fas fa-ticket-alt"></i> Available vouchers: <asp:Label ID="lbl_Voucher_Count" runat="server" Text='<%# Eval("TotalVouchers") %>'></asp:Label>
-            </div>
-            <div class="stat-pill">
-                <i class="fas fa-coins"></i> My points: <asp:Label ID="lbl_Point" runat="server" Text='<%# Eval("UserPoints") %>'></asp:Label>
-            </div>
-        </div>
-    </div>
+    <br />
+    <br />
+    <head>
+    <asp:ScriptManager ID="ScriptManager" runat="server" />
+</head>
 
+
+    <asp:UpdatePanel ID="UpdatePanel" runat="server" UpdateMode="Conditional">
+<ContentTemplate>
     <div class="container">
 
-        
+        <h1>Exchange voucher</h1>
+<div style="display: flex; gap: 10px;">
+
+    <div class="stat-pill">
+       <asp:Label ID="lbl_Point" runat="server" Text='<%# Eval("UserPoints") %>'></asp:Label>
+    </div>
+</div>
        <!-- Search and Filter Section -->
 <div class="search-filter-container">
     <!-- Search Bar -->
-    <input type="text" id="searchInput" class="search-bar" placeholder="Search by company or description..." onkeyup="filterVouchers()" />
-    
-    <!-- Filter Dropdown -->
-    <select id="statusFilter" class="filter-dropdown" onchange="filterVouchers()">
-        <option value="">Filter by Status</option>
-        <option value="Available">Available</option>
-        <option value="Used">Used</option>
-        <option value="Expired">Expired</option>
-    </select>
+   <asp:TextBox ID="searchInput" runat="server" CssClass="search-bar" 
+             placeholder="Search by company name or description..." OnTextChanged="Search" AutoPostBack="true" />
+
+<asp:DropDownList ID="statusFilter" runat="server" CssClass="filter-dropdown" OnSelectedIndexChanged="Search" AutoPostBack="true">
+    <asp:ListItem Value="order">order</asp:ListItem>
+    <asp:ListItem Value="ORDER BY Voucher_ID ASC">voucher ID ascending</asp:ListItem>
+    <asp:ListItem Value="ORDER BY Voucher_ID DESC">voucher ID descending</asp:ListItem>
+    <asp:ListItem Value="ORDER BY Validity ASC">validity ascending</asp:ListItem>
+    <asp:ListItem Value="ORDER BY Validity DESC">validity descending</asp:ListItem>
+    <asp:ListItem Value="ORDER BY Points_Required ASC">points required ascending</asp:ListItem>
+    <asp:ListItem Value="ORDER BY Points_Required DESC">points required descending</asp:ListItem>
+</asp:DropDownList>
 </div>
         <!-- Vouchers Grid -->
         <div class="voucher-container">
@@ -130,4 +150,7 @@
             <p>There are currently no vouchers available for exchange. Check back later or earn more points to unlock premium vouchers.</p>
         </asp:Panel>
     </div>
+    </ContentTemplate>
+</asp:UpdatePanel>
+
 </asp:Content>

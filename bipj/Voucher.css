@@ -1,36 +1,5 @@
-﻿body {
-    font-family: 'Inter', sans-serif;
-    background-color: var(--background);
-    color: var(--text-color);
-    margin: 0;
-    padding: 0;
-}
+﻿
 
-.top-bar {
-    background: var(--card-bg);
-    box-shadow: var(--shadow);
-    padding: 20px 30px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #E5E7EB;
-    flex-wrap: wrap;
-    gap: 10px;
-    position: sticky;
-    margin-top: 70px;
-}
-
-.stat-pill {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: #BFDBFE;
-    color: #1E40AF;
-    padding: 6px 14px;
-    border-radius: 999px;
-    font-size: 14px;
-    font-weight: 600;
-}
 
 .container {
     max-width: 1200px;

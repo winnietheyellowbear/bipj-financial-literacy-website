@@ -22,7 +22,20 @@
      <link href="https://fonts.googleapis.com/css2?family=Titan+One&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
      <link rel="stylesheet" href="Voucher.css">
      <link rel="stylesheet" href=" https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css ">
+     
      <style>
+
+         
+.top-bar {
+    padding: 20px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    position: sticky;
+    margin-top: 70px;
+}
          :root {
              --primary: #10B981;
              --background: #F9FAFB;
@@ -40,6 +53,9 @@
  </head>
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+    <head>
+        <asp:ScriptManager ID="ScriptManager" runat="server" />
+    </head>
 
         <style>
         .modal {
@@ -162,44 +178,55 @@
             border: none;
             width: 100%;
             text-decoration: none;
+            font-weight: 600;
         }
+
+        
+.stat-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #BFDBFE;
+    color: #1E40AF;
+    padding: 6px 14px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: white;
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+}
 
     </style>
    
 
-     <div class="top-bar">
+     <br />
+<br />
 
-     <h2>My voucher</h2>
-     <div style="display: flex; gap: 10px;">
-         <div class="stat-pill" style="background-color: #bffedf; color: #10B981">
-             <i class="fas fa-ticket-alt"></i> Available vouchers: <asp:Label ID="lbl_Voucher_Count" runat="server" Text='<%# Eval("TotalVouchers") %>'></asp:Label>
-         </div>
-         <div class="stat-pill" style="background-color: #f5f2f3; color: #b0b0b0">
-            <i class="fas fa-ticket-alt"></i> Used vouchers: <asp:Label ID="Label1" runat="server" Text='<%# Eval("TotalVouchers") %>'></asp:Label>
-        </div>
-         <div class="stat-pill" style="background-color: #febfc5; color: #b91032">
-    <i class="fas fa-ticket-alt"></i> Expired vouchers: <asp:Label ID="Label2" runat="server" Text='<%# Eval("TotalVouchers") %>'></asp:Label>
-</div>
-     </div>
- </div>
-
-    
+  <asp:UpdatePanel ID="UpdatePanel" runat="server" UpdateMode="Conditional">
+  <ContentTemplate>
 
  <div class="container">
-
+          <h1>My voucher</h1>
+     
        <!-- Search and Filter Section -->
-<div class="search-filter-container">
-    <!-- Search Bar -->
-    <input type="text" id="searchInput" class="search-bar" placeholder="Search by company or description..." onkeyup="filterVouchers()" />
-    
-    <!-- Filter Dropdown -->
-    <select id="statusFilter" class="filter-dropdown" onchange="filterVouchers()">
-        <option value="">Filter by Status</option>
-        <option value="Available">Available</option>
-        <option value="Used">Used</option>
-        <option value="Expired">Expired</option>
-    </select>
-</div>
+ <div class="search-filter-container">
+     <asp:TextBox ID="searchInput" runat="server" CssClass="search-bar" 
+                  placeholder="Search by company name or description..." OnTextChanged="Search" AutoPostBack="true" />
+     
+     <asp:DropDownList ID="statusFilter" runat="server" CssClass="filter-dropdown" OnSelectedIndexChanged="Search" AutoPostBack="true">
+         <asp:ListItem>status</asp:ListItem>
+         <asp:ListItem>available</asp:ListItem>
+         <asp:ListItem>used</asp:ListItem>
+         <asp:ListItem>expired</asp:ListItem>
+     </asp:DropDownList>
+     
+ </div>
      <!-- Vouchers Grid -->
      <div class="voucher-container">
          <asp:Repeater ID="Voucher" runat="server">
@@ -220,18 +247,18 @@
                         data-expiry-date='<%# Eval("Expiry_Date") %>' 
                         data-token='<%# Eval("Token") %>'
                          CausesValidation="false"
-                         Visible='<%# Eval("Status").ToString() == "Available" %>'>
+                         Visible='<%# Eval("Status").ToString() == "available" %>'>
                      </asp:LinkButton>
 
                      <asp:LinkButton runat="server"
                                     Text="Used"
                                     CssClass="used-button redeem-button" style="background-color: #f5f2f3; color: #b0b0b0; cursor: not-allowed;"
-                                    Visible='<%# Eval("Status").ToString() == "Used" %>'>
+                                    Visible='<%# Eval("Status").ToString() == "used" %>'>
                     </asp:LinkButton>
                     <asp:LinkButton runat="server"
                                     Text="Expired"
                                     CssClass="expired-button redeem-button" style="background-color: #febfc5; color: #b91032; cursor: not-allowed;"
-                                    Visible='<%# Eval("Status").ToString() == "Expired" %>'>
+                                    Visible='<%# Eval("Status").ToString() == "expired" %>'>
                     </asp:LinkButton>
 
                  </div>
@@ -241,7 +268,8 @@
      </div>
 
  </div>
-
+</ContentTemplate>
+</asp:UpdatePanel>
 
 
 

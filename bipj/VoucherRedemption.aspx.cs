@@ -24,11 +24,11 @@ namespace bipj
                 companyName.Text = user_voucher.Company_Name;
                 expiryDate.Text = user_voucher.Expiry_Date;
                 
-                if (user_voucher.Status == "Available")
+                if (user_voucher.Status == "available")
                 {
                     btnUsed.Visible = false;
                 }
-                else if (user_voucher.Status == "Used")
+                else if (user_voucher.Status == "used")
                 {
                     btnUse.Visible = false;
                 }

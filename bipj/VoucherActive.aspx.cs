@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using System.Web.Configuration;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
@@ -42,5 +43,42 @@ namespace bipj
             // Update the UpdatePanel (to avoid full page reload)
             UpdatePanel.Update();
         }
+
+        protected void statusCheckTimer_Tick(object sender, EventArgs e)
+        {
+            string token = voucherToken.Text;
+
+            // Get the latest voucher status from the database
+            user_voucher = user_voucher.GetVoucherByToken(token);
+
+            if (user_voucher != null && user_voucher.Status == "used")
+            {
+                // Stop the timer and close the modal (triggered by ScriptManager)
+
+                CloseModalWithAlert();
+                voucher_list = user_voucher.GetVoucherByUserID(user_id);
+                Voucher.DataSource = voucher_list;
+                Voucher.DataBind();
+                UpdatePanel.Update();
+
+                
+            }
+        }
+
+     
+
+        // Method to close the modal and show an alert from C#
+        private void CloseModalWithAlert()
+        {
+            // JavaScript to close the modal and show the alert
+            ScriptManager.RegisterStartupScript(
+                this,
+                this.GetType(),
+                "closeModalAndAlert",
+                "closeModal(); alert('Voucher used. 😊');",
+                true
+            );
+        }
+
     }
 }

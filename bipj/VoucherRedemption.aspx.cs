@@ -48,6 +48,7 @@ namespace bipj
 
             if (result > 0)
             {
+                Session["token"] = token;
                 ScriptManager.RegisterStartupScript(
                     this,
                     this.GetType(),
@@ -55,6 +56,8 @@ namespace bipj
                     "alert('Status updated successfully. 😊'); window.location='VoucherRedemption.aspx?token=" + token + "';",
                     true
                 );
+
+                
             }
             else
             {

@@ -100,7 +100,7 @@
   </div>
 
   <div class="buttons">
-      <asp:Button ID="btnUse" runat="server" Text="Use" CssClass="use-btn btn" CommandArgument="Used" OnClick="btn_status_Click"/>
+      <asp:Button ID="btnUse" runat="server" Text="Use" CssClass="use-btn btn" CommandArgument="used" OnClick="btn_status_Click"/>
       <asp:Button ID="btnUsed" runat="server" Text="used" CssClass="used-btn btn"/>
   </div>
 

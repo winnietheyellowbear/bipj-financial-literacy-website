@@ -94,7 +94,7 @@ namespace bipj
             User_Comment user_comment = new User_Comment(text, user_id, post_id);
             user_comment.CommentInsert();
 
-            post_list = user_post.GetAllPosts();
+            post_list = user_post.GetAllPosts(user_id);
             Post.DataSource = post_list;
             Post.DataBind();
             UpdatePanel_Post.Update();
@@ -124,7 +124,7 @@ namespace bipj
 
             user_comment.CommentDelete(comment_id);
 
-            post_list = user_post.GetAllPosts();
+            post_list = user_post.GetAllPosts(user_id);
             Post.DataSource = post_list;
             Post.DataBind();
             UpdatePanel_Post.Update();

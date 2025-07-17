@@ -36,7 +36,7 @@ namespace bipj
             string user_input = txtSearch.Text.Trim();
 
             // Prepare post summaries
-            post_list = user_post.GetAllPosts();
+            post_list = user_post.GetAllPosts(user_id);
             var post_summary_list = post_list.Select(p => $"Post {p.Post_ID}: {p.Text}").ToList();
             string combined_post_summary = string.Join("\n", post_summary_list);
 
@@ -149,7 +149,7 @@ namespace bipj
                     .Where(id => !string.IsNullOrEmpty(id))
                     .ToList();
 
-                post_list = user_post.GetAllPosts();
+                post_list = user_post.GetAllPosts(user_id);
                 var matched_post = post_list.Where(p => matched_id.Contains(p.Post_ID)).ToList();
 
                 Post.DataSource = matched_post;

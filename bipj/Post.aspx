@@ -184,6 +184,11 @@
             height: 200px;
             border-radius: 5px;
         }
+
+        .error_msg {
+            font-size: 16px;
+            color: red;
+        }
     </style>
 
     <!-- Sidebar and Main Content Wrapper -->
@@ -272,7 +277,7 @@
                 <!-- Publish Button -->
                 <asp:UpdatePanel ID="UpdatePanel" runat="server" UpdateMode="Conditional">
                 <ContentTemplate>
-                <asp:Label ID="lbl_error_msg" runat="server" Text=""></asp:Label>
+                <asp:Label ID="lbl_error_msg" runat="server" Text="" CssClass="error_msg"></asp:Label>
                 </ContentTemplate>
                 </asp:UpdatePanel>
                 <asp:Button ID="btn_publish" runat="server" Text="Publish" CssClass="btn-submit btn-disabled" Disabled="true" ToolTip="You cannot submit a blank post." OnClick="btn_publish_Click" />

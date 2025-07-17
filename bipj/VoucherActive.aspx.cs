@@ -49,15 +49,19 @@ namespace bipj
         protected void statusCheckTimer_Tick(object sender, EventArgs e)
         {
             string token = voucherToken.Text;
-
-            // Get the latest voucher status from the database
             user_voucher = user_voucher.GetVoucherByToken(token);
 
             if (user_voucher != null && user_voucher.Status == "used")
             {
                 // Stop the timer and close the modal (triggered by ScriptManager)
+                ScriptManager.RegisterStartupScript(
+                this,
+                this.GetType(),
+                "closeModalAndAlert",
+                "closeModal(); alert('Voucher used. 😊');",
+                true
+                );
 
-                CloseModalWithAlert();
                 voucher_list = user_voucher.GetVoucherByUserID(user_id);
                 Voucher.DataSource = voucher_list;
                 Voucher.DataBind();
@@ -67,21 +71,6 @@ namespace bipj
             }
         }
 
-       
-
-
-        // Method to close the modal and show an alert from C#
-        private void CloseModalWithAlert()
-        {
-            // JavaScript to close the modal and show the alert
-            ScriptManager.RegisterStartupScript(
-                this,
-                this.GetType(),
-                "closeModalAndAlert",
-                "closeModal(); alert('Voucher used. 😊');",
-                true
-            );
-        }
-
+      
     }
 }

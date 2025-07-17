@@ -30,12 +30,14 @@ namespace bipj
         private string _Last_Update_DateTime;
         private string _Name;
         private string _Profile;
+        private string _Type;
         private bool _Like_Status;
         private List<User_Comment> _Comments_List;
 
         private List<string> _Images_List;
         private List<string> _Videos_List;
 
+        
         public User_Post()
         {
         }
@@ -51,7 +53,7 @@ namespace bipj
         }
 
         // retrieve post
-        public User_Post(string post_id, List<string> images, List<string> videos, string text, string category, string user_id, string post_datetime, string last_update_datetime, string name, string profile, bool like_status, List<User_Comment> comments_list)
+        public User_Post(string post_id, List<string> images, List<string> videos, string text, string category, string user_id, string post_datetime, string last_update_datetime, string name, string profile, string type, bool like_status, List<User_Comment> comments_list)
         {
             _Post_ID = post_id;
             _Images_List = images;
@@ -63,6 +65,7 @@ namespace bipj
             _Last_Update_DateTime = last_update_datetime;
             _Name = name;
             _Profile = profile;
+            _Type = type;
             _Like_Status = like_status;
             _Comments_List = comments_list;
         }
@@ -147,6 +150,12 @@ namespace bipj
             set { _Profile = value; }
         }
 
+        public string Type
+        {
+            get { return _Type; }
+            set { _Type = value; }
+        }
+
         public bool Like_Status
         {
             get { return _Like_Status; }
@@ -199,9 +208,9 @@ namespace bipj
             return result;
         }
 
-        public List<User_Post> GetAllPosts()
+        public List<User_Post> GetAllPosts(string user_id)
         {
-            string post_id, images, videos, text, category, user_id, post_datetime, last_update_datetime, name, profile;
+            string post_id, images, videos, text, category, post_datetime, last_update_datetime, name, profile, type;
             bool like_status;
             List<string> images_list = new List<string>();
             List<string> videos_list = new List<string>();
@@ -223,15 +232,14 @@ namespace bipj
                 videos = dr["Videos"].ToString();
                 text = dr["Text"].ToString();
                 category = dr["Category"].ToString();
-                user_id = dr["User_ID"].ToString();
                 post_datetime = dr["Post_DateTime"].ToString();
                 last_update_datetime = dr["Last_Update_DateTime"].ToString();
                 name = dr["Name"].ToString();
                 profile = dr["Profile"].ToString();
+                type = dr["Type"].ToString();
 
                 User_Like user_like = new User_Like();
-                string User_ID = "2";
-                int result = user_like.IsPostLiked(post_id, User_ID);
+                int result = user_like.IsPostLiked(post_id, user_id);
 
                 if (result == 1)
                 {
@@ -249,7 +257,7 @@ namespace bipj
                 List<User_Comment> comments_list = new List<User_Comment>();
                 comments_list = user_Comment.GetCommentsByPostID(post_id);
 
-                User_Post user_post = new User_Post(post_id, images_list, videos_list, text, category, user_id, post_datetime, last_update_datetime, name, profile, like_status, comments_list);
+                User_Post user_post = new User_Post(post_id, images_list, videos_list, text, category, user_id, post_datetime, last_update_datetime, name, profile, type, like_status, comments_list);
                 post_list.Add(user_post);
             }
 
@@ -262,7 +270,7 @@ namespace bipj
 
         public List<User_Post> GetPostsByUserID(string user_id)
         {
-            string post_id, images, videos, text, category, post_datetime, last_update_datetime, name, profile;
+            string post_id, images, videos, text, category, post_datetime, last_update_datetime, name, profile, type;
             bool like_status;
             List<string> images_list = new List<string>();
             List<string> videos_list = new List<string>();
@@ -289,6 +297,7 @@ namespace bipj
                 last_update_datetime = dr["Last_Update_DateTime"].ToString();
                 name = dr["Name"].ToString();
                 profile = dr["Profile"].ToString();
+                type = dr["Type"].ToString();
 
                 // like
                 User_Like user_like = new User_Like();
@@ -310,7 +319,7 @@ namespace bipj
                 List<User_Comment> comments_list = new List<User_Comment>();
                 comments_list = user_Comment.GetCommentsByPostID(post_id);
 
-                User_Post user_post = new User_Post(post_id, images_list, videos_list, text, category, user_id, post_datetime, last_update_datetime, name, profile, like_status, comments_list);
+                User_Post user_post = new User_Post(post_id, images_list, videos_list, text, category, user_id, post_datetime, last_update_datetime, name, profile, type, like_status, comments_list);
                 post_list.Add(user_post);
             }
 
@@ -441,9 +450,9 @@ namespace bipj
             return nofRow;
         }
 
-        public List<User_Post> GetSearchPosts(string searchInput, string filterInput)
+        public List<User_Post> GetSearchPosts(string searchInput, string filterInput, string user_id)
         {
-            string post_id, images, videos, text, category, user_id, post_datetime, last_update_datetime, name, profile;
+            string post_id, images, videos, text, category, post_datetime, last_update_datetime, name, profile, type;
             bool like_status;
             List<string> images_list = new List<string>();
             List<string> videos_list = new List<string>();
@@ -497,11 +506,11 @@ namespace bipj
                 videos = dr["Videos"].ToString();
                 text = dr["Text"].ToString();
                 category = dr["Category"].ToString();
-                user_id = dr["User_ID"].ToString();
                 post_datetime = dr["Post_DateTime"].ToString();
                 last_update_datetime = dr["Last_Update_DateTime"].ToString();
                 name = dr["Name"].ToString();
                 profile = dr["Profile"].ToString();
+                type = dr["Type"].ToString();
 
                 User_Like user_like = new User_Like();
                 string User_ID = "2";
@@ -523,7 +532,7 @@ namespace bipj
                 List<User_Comment> comments_list = new List<User_Comment>();
                 comments_list = user_Comment.GetCommentsByPostID(post_id);
 
-                user_post = new User_Post(post_id, images_list, videos_list, text, category, user_id, post_datetime, last_update_datetime, name, profile, like_status, comments_list);
+                user_post = new User_Post(post_id, images_list, videos_list, text, category, user_id, post_datetime, last_update_datetime, name, profile, type, like_status, comments_list);
                 post_list.Add(user_post);
             }
 
@@ -533,7 +542,7 @@ namespace bipj
 
             if ((string.IsNullOrEmpty(searchInput) || (searchInput == "")) && (filterInput == "category"))
             {
-                post_list = user_post.GetAllPosts();
+                post_list = user_post.GetAllPosts(user_id);
             }
 
             return post_list;
@@ -573,9 +582,6 @@ namespace bipj
                 // Read the response content
                 var responseString = await response.Content.ReadAsStringAsync();
 
-                // Debugging: Log the full response
-                Console.WriteLine("Response from OpenAI API: " + responseString);
-
                 // Parse the JSON response to get the assistant's reply
                 var responseObject = JsonConvert.DeserializeObject<dynamic>(responseString);
                 string resultText = responseObject.choices[0].message.content.ToString().Trim();
@@ -592,5 +598,51 @@ namespace bipj
             }
         }
 
+        public async Task<string> Comment_AI_Suggestion(string text, string comment)
+        {
+          
+            using (HttpClient client = new HttpClient())
+            {
+                // Set the authorization header with your API key
+                client.DefaultRequestHeaders.Add("Authorization", "Bearer ");
+
+                // Prepare the request body for the Chat Completion API
+                var requestBody = new
+                {
+                    model = "gpt-4",  // Use gpt-4 for more advanced responses or gpt-3.5-turbo for lower cost
+                    messages = new[]
+                    {
+                    new
+                    {
+                        role = "system",
+                        content = "You are a staff member of a financial literacy website, commenting on the post of the forum. Your role is to engage with users in a friendly and helpful manner, providing constructive feedback, answering questions, and offering suggestions related to financial literacy topics. Your responses should be encouraging, professional, and informative, helping users to better understand financial concepts and encouraging positive discussions."
+                    },
+                    new
+                    {
+                        role = "user",
+                        content = $"Given the following text post by user, please suggest a comment and evaluate my comment if there is any. The post text is: '{text}'. My response is: '{comment}'"
+                    }
+                }
+                };
+
+                // Send the request to the OpenAI API
+                var response = await client.PostAsync("https://api.openai.com/v1/chat/completions",
+                    new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json"));
+
+                // Read the response content
+                var responseString = await response.Content.ReadAsStringAsync();
+
+                // Parse the JSON response to get the assistant's reply
+                var responseObject = JsonConvert.DeserializeObject<dynamic>(responseString);
+                string suggestion = responseObject.choices[0].message.content.ToString().Trim();
+
+
+                System.Diagnostics.Debug.WriteLine("Suggestion" + suggestion);
+                return suggestion;
+
+
+            }
+
+        }
     }
 }

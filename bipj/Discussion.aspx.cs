@@ -11,7 +11,8 @@ namespace bipj
 {
     public partial class Discussion : System.Web.UI.Page
     {
-        public string user_id = "2";
+        public string user_id = "5";
+        public string user_type = "Staff";
 
         public List<User_Post> post_list = new List<User_Post>();
         User_Post user_post = new User_Post();
@@ -24,7 +25,8 @@ namespace bipj
 
         protected void Page_Load(object sender, EventArgs e)
         {
-            post_list = user_post.GetAllPosts();
+            
+            post_list = user_post.GetAllPosts(user_id);
 
             if (!IsPostBack)
             {
@@ -96,11 +98,12 @@ namespace bipj
             User_Comment user_comment = new User_Comment(text, user_id, post_id);
             user_comment.CommentInsert();
 
-            post_list = user_post.GetAllPosts();
+            post_list = user_post.GetAllPosts(user_id);
             Post.DataSource = post_list;
             Post.DataBind();
             UpdatePanel_Post.Update();
         }
+
 
         protected void btn_delete_comment_Click(object sender, EventArgs e)
         {
@@ -109,7 +112,7 @@ namespace bipj
 
             user_comment.CommentDelete(comment_id);
 
-            post_list = user_post.GetAllPosts();
+            post_list = user_post.GetAllPosts(user_id);
             Post.DataSource = post_list;
             Post.DataBind();
             UpdatePanel_Post.Update();
@@ -123,7 +126,7 @@ namespace bipj
             string category = categoryFilter.SelectedValue;
 
             // Call method to get filtered posts
-            post_list = user_post.GetSearchPosts(searchInput, category);
+            post_list = user_post.GetSearchPosts(searchInput, category, user_id);
 
             // Bind filtered posts to the Repeater
             Post.DataSource = post_list;
@@ -133,6 +136,22 @@ namespace bipj
             UpdatePanel_Post.Update();
         }
 
+        protected async void btn_comment_AI_suggestion_Click(object sender, EventArgs e)
+        {
+            Button btn = (Button)sender;
+            string text = btn.CommandArgument;
 
+            RepeaterItem item = (RepeaterItem)btn.NamingContainer;
+
+            // Get the comment TextBox from the same RepeaterItem
+            TextBox textbox = (TextBox)item.FindControl("tb_text");
+            string comment = textbox.Text;
+            
+            string suggestion = await user_post.Comment_AI_Suggestion(text, comment);
+            Label label = (Label)item.FindControl("lbl_AISuggestion");
+            label.Text = suggestion;
+
+            UpdatePanel_Post.Update();
+        }
     }
 }

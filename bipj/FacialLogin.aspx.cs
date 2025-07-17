@@ -19,11 +19,11 @@ namespace badpjProject
         protected void btnLogin_Click(object sender, EventArgs e)
         {
             string descriptorJson = hfDescriptor.Value;
-            string loginName = txtUsername.Text.Trim(); // User-entered login name
+            string loginEmail = txtUsername.Text.Trim();
 
-            if (string.IsNullOrEmpty(loginName))
+            if (string.IsNullOrEmpty(loginEmail))
             {
-                lblResult.Text = "Please enter your username.";
+                lblResult.Text = "Please enter your email.";
                 return;
             }
             if (string.IsNullOrEmpty(descriptorJson))
@@ -37,13 +37,13 @@ namespace badpjProject
                 string connString = ConfigurationManager.ConnectionStrings["MyDBConnectionString"].ConnectionString;
                 string storedDescriptorJson = null;
 
-                // First, retrieve the stored facial descriptor for this login name from your facial authentication table.
+                // Retrieve stored facial descriptor using Email
                 using (SqlConnection conn = new SqlConnection(connString))
                 {
-                    string sql = "SELECT FaceDescriptor FROM UserFacialAuth WHERE Login_Name = @Login_Name";
+                    string sql = "SELECT FaceDescriptor FROM UserFacialAuth WHERE Login_Name = @Email";
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
-                        cmd.Parameters.AddWithValue("@Email", loginName);
+                        cmd.Parameters.AddWithValue("@Email", loginEmail);
                         conn.Open();
                         var result = cmd.ExecuteScalar();
                         if (result != null)
@@ -58,34 +58,29 @@ namespace badpjProject
                     }
                 }
 
-                // Deserialize both descriptors
                 float[] storedDescriptor = JsonConvert.DeserializeObject<float[]>(storedDescriptorJson);
                 float[] newDescriptor = JsonConvert.DeserializeObject<float[]>(descriptorJson);
-
-                // Compute Euclidean distance between the new and stored descriptors
                 float distance = EuclideanDistance(newDescriptor, storedDescriptor);
-                float threshold = 0.6f; // Typical threshold for 128D face descriptors
+                float threshold = 0.6f;
 
                 if (distance < threshold)
                 {
-                    // If the facial comparison is successful, retrieve user info from the main user table.
                     int userId = 0;
-                    string role = string.Empty;
+                    string userType = string.Empty;
 
                     using (SqlConnection conn = new SqlConnection(connString))
                     {
-                        // Assuming your main user table is named [Table]
-                        string sql = "SELECT Id, Role FROM [Table] WHERE Login_Name = @Login_Name";
+                        string sql = "SELECT Id, UserType FROM [User] WHERE Email = @Email";
                         using (SqlCommand cmd = new SqlCommand(sql, conn))
                         {
-                            cmd.Parameters.AddWithValue("@Login_Name", loginName);
+                            cmd.Parameters.AddWithValue("@Email", loginEmail);
                             conn.Open();
                             using (SqlDataReader reader = cmd.ExecuteReader())
                             {
                                 if (reader.Read())
                                 {
                                     userId = Convert.ToInt32(reader["Id"]);
-                                    role = reader["Role"].ToString();
+                                    userType = reader["UserType"].ToString();
                                 }
                                 else
                                 {
@@ -96,12 +91,10 @@ namespace badpjProject
                         }
                     }
 
-                    // Set session variables as in your standard login code.
                     Session["UserId"] = userId;
-                    Session["Username"] = loginName;
-                    Session["Role"] = role;
+                    Session["Username"] = loginEmail;
+                    Session["Role"] = userType;
 
-                    // Redirect to the user profile page
                     Response.Redirect("UserPage.aspx");
                 }
                 else
@@ -114,6 +107,7 @@ namespace badpjProject
                 lblResult.Text = "Error: " + ex.Message;
             }
         }
+
 
         private static float EuclideanDistance(float[] a, float[] b)
         {
@@ -128,3 +122,5 @@ namespace badpjProject
         }
     }
 }
+
+

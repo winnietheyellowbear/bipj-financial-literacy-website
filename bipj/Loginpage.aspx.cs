@@ -40,9 +40,10 @@ namespace bipj
                 using (SqlConnection conn = new SqlConnection(connStr))
                 {
                     conn.Open();
-                    string sql = @"SELECT Id, Name, UserType, Password, IsActive 
-                                 FROM [User] 
-                                 WHERE Email = @Email AND Password = @Password";
+                    string sql = @"SELECT Id, Name, Email, UserType, Password, IsActive 
+FROM [User] 
+WHERE Email = @Email AND Password = @Password
+";
 
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
@@ -64,6 +65,7 @@ namespace bipj
                                 int userId = Convert.ToInt32(reader["Id"]);
                                 string userName = reader["Name"].ToString();
                                 string userType = reader["UserType"].ToString();
+                                string userEmail = reader["Email"].ToString();
 
                                 // Update last login time
                                 UpdateLastLogin(userId);
@@ -72,6 +74,7 @@ namespace bipj
                                 Session["UserId"] = userId;
                                 Session["UserName"] = userName;
                                 Session["UserType"] = userType;
+                                Session["UserEmail"] = userEmail;
 
                                 // Set auth cookie if "Remember Me" is checked
                                 if (chkRememberMe.Checked)

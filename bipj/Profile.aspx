@@ -105,6 +105,38 @@
 .btn-edit-profile:hover {
     background: #2b48c4;
 }
+.profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-top: 30px;
+    position: relative;
+}
+
+.profile-header-right {
+    display: flex;
+    flex-direction: column; /* Vertical stack; use 'row' for horizontal */
+    align-items: flex-end;
+    gap: 12px;
+}
+
+.btn-facial-auth {
+    background: #16a085;
+    color: #fff;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 22px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.18s;
+    z-index: 3;
+    margin-top: 10px;
+}
+.btn-facial-auth:hover {
+    background: #11806a;
+}
 
     </style>
 </asp:Content>
@@ -114,17 +146,23 @@
 
 
         <!-- Profile Header -->
-      <div class="profile-header">
+ <div class="profile-header">
     <div class="profile-header-left">
         <asp:Image ID="imgProfile" runat="server" CssClass="profile-picture" AlternateText="Profile Picture" />
         <h2><asp:Literal ID="ltName" runat="server" /></h2>
         <p class="text-muted">Member since <asp:Literal ID="ltJoinDate" runat="server" /></p>
         <p><asp:Literal ID="ltPoints" runat="server" /> Points</p>
     </div>
-    <asp:Button ID="btnEditProfile" runat="server" Text="Edit Profile"
-        CssClass="btn-edit-profile"
-        OnClick="btnEditProfile_Click" />
+    <div class="profile-header-right">
+        <asp:Button ID="btnEditProfile" runat="server" Text="Edit Profile"
+            CssClass="btn-edit-profile"
+            OnClick="btnEditProfile_Click" />
+        <asp:Button ID="btnEnableFacialAuth" runat="server" Text="Enable Facial Authentication"
+            CssClass="btn-facial-auth"
+            OnClick="btnEnableFacialAuth_Click" />
+    </div>
 </div>
+
 
 
         <!-- Profile Info -->
@@ -175,3 +213,4 @@
         <asp:Label ID="lblNoComments" runat="server" Text="No comments yet." CssClass="text-muted" Visible="false"></asp:Label>
     </div>
 </asp:Content>
+

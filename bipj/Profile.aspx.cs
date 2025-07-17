@@ -158,5 +158,11 @@ namespace bipj
             LoadComments();
             txtComment.Text = string.Empty;
         }
+        protected void btnEnableFacialAuth_Click(object sender, EventArgs e)
+        {
+            // Pass userId as query if necessary
+            Response.Redirect("EnableFacialAuthentication.aspx?userId=" + CurrentUserId);
+        }
+
     }
 }

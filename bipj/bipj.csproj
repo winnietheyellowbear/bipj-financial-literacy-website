@@ -199,6 +199,7 @@
     <Content Include="EditMyPost.aspx" />
     <Content Include="EditProfile.aspx" />
     <Content Include="Education.aspx" />
+    <Content Include="EnableFacialAuthentication.aspx" />
     <Content Include="FacialLogin.aspx" />
     <Content Include="Forum_Nav.css" />
     <Content Include="Forum_Post.css" />
@@ -378,6 +379,13 @@
     </Compile>
     <Compile Include="Education.aspx.designer.cs">
       <DependentUpon>Education.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="EnableFacialAuthentication.aspx.cs">
+      <DependentUpon>EnableFacialAuthentication.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="EnableFacialAuthentication.aspx.designer.cs">
+      <DependentUpon>EnableFacialAuthentication.aspx</DependentUpon>
     </Compile>
     <Compile Include="FacialLogin.aspx.cs">
       <DependentUpon>FacialLogin.aspx</DependentUpon>

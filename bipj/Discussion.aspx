@@ -238,7 +238,7 @@
                                                                                                                 
                                     <asp:TextBox ID="tb_text" runat="server" class="comment-textbox" placeholder="Write a comment..."
                                         onchange="validateComment(this)" oninput="validateComment(this)"></asp:TextBox>
-                                    <asp:Button ID="btn_AI_suggestion" runat="server" Text="AI Suggestion" class="comment-button btn-submit btn-enable"
+                                    <asp:Button ID="btn_AI_suggestion" runat="server" Text="AI Suggestion" class=""
                                         CommandArgument='<%# Eval("Text") %>' OnClick="btn_comment_AI_suggestion_Click" Visible='<%# user_type == "Staff" %>' />
                                     <asp:Button ID="btn_publish" runat="server" Text="Comment" class="comment-button btn-submit btn-disabled"
                                         ToolTip="You cannot submit a blank comment." Disabled="true" CommandArgument='<%# Eval("Post_ID") %>'

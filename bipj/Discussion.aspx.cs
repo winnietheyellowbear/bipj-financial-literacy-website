@@ -26,12 +26,10 @@ namespace bipj
         protected void Page_Load(object sender, EventArgs e)
         {
             
-            post_list = user_post.GetAllPosts(user_id);
-
+            
             if (!IsPostBack)
             {
-                Post.DataSource = post_list;
-                Post.DataBind();
+                Update_Panel(); 
             }
 
         }
@@ -98,12 +96,28 @@ namespace bipj
             User_Comment user_comment = new User_Comment(text, user_id, post_id);
             user_comment.CommentInsert();
 
-            post_list = user_post.GetAllPosts(user_id);
-            Post.DataSource = post_list;
-            Post.DataBind();
-            UpdatePanel_Post.Update();
+            Update_Panel();
         }
 
+        protected void Update_Panel()
+        {
+            if ((Session["Discussion_Search"] != null) || (Session["Disucssion_Filter"] != null))
+            {
+                string search = Session["Discussion_Search"].ToString();
+                string category = Session["Discussion_Filter"].ToString();
+
+                post_list = user_post.GetSearchPosts(search, category, user_id);
+            }
+            else
+            {
+                post_list = user_post.GetAllPosts(user_id);
+            }
+
+            Post.DataSource = post_list;
+            Post.DataBind();
+
+            UpdatePanel_Post.Update();
+        }
 
         protected void btn_delete_comment_Click(object sender, EventArgs e)
         {
@@ -112,28 +126,20 @@ namespace bipj
 
             user_comment.CommentDelete(comment_id);
 
-            post_list = user_post.GetAllPosts(user_id);
-            Post.DataSource = post_list;
-            Post.DataBind();
-            UpdatePanel_Post.Update();
+            Update_Panel();
 
         }
 
         protected void Search(object sender, EventArgs e)
         {
             // Get search text and filter category
-            string searchInput = this.searchInput.Text.Trim();
+            string search = this.searchInput.Text.Trim();
             string category = categoryFilter.SelectedValue;
 
-            // Call method to get filtered posts
-            post_list = user_post.GetSearchPosts(searchInput, category, user_id);
+            Session["Discussion_Search"] = search;
+            Session["Discussion_Filter"] = category;
 
-            // Bind filtered posts to the Repeater
-            Post.DataSource = post_list;
-            Post.DataBind();
-
-            // Update the UpdatePanel (to avoid full page reload)
-            UpdatePanel_Post.Update();
+            Update_Panel();
         }
 
         protected async void btn_comment_AI_suggestion_Click(object sender, EventArgs e)

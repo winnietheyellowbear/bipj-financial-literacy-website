@@ -452,11 +452,7 @@ namespace bipj
 
         public List<User_Post> GetSearchPosts(string searchInput, string filterInput, string user_id)
         {
-            string post_id, images, videos, text, category, post_datetime, last_update_datetime, name, profile, type;
-            bool like_status;
-            List<string> images_list = new List<string>();
-            List<string> videos_list = new List<string>();
-
+            
             List<User_Post> post_list = new List<User_Post>();
             User_Post user_post = new User_Post();
 
@@ -501,38 +497,9 @@ namespace bipj
 
             while (dr.Read())
             {
-                post_id = dr["Post_ID"].ToString();
-                images = dr["Images"].ToString();
-                videos = dr["Videos"].ToString();
-                text = dr["Text"].ToString();
-                category = dr["Category"].ToString();
-                post_datetime = dr["Post_DateTime"].ToString();
-                last_update_datetime = dr["Last_Update_DateTime"].ToString();
-                name = dr["Name"].ToString();
-                profile = dr["Profile"].ToString();
-                type = dr["Type"].ToString();
+                string post_id = dr["Post_ID"].ToString();
 
-                User_Like user_like = new User_Like();
-                string User_ID = "2";
-                int result = user_like.IsPostLiked(post_id, User_ID);
-
-                if (result == 1)
-                {
-                    like_status = true;
-                }
-                else
-                {
-                    like_status = false;
-                }
-
-                images_list = images.Split(',').ToList();
-                videos_list = videos.Split(',').ToList();
-
-                User_Comment user_Comment = new User_Comment();
-                List<User_Comment> comments_list = new List<User_Comment>();
-                comments_list = user_Comment.GetCommentsByPostID(post_id);
-
-                user_post = new User_Post(post_id, images_list, videos_list, text, category, user_id, post_datetime, last_update_datetime, name, profile, type, like_status, comments_list);
+                user_post = user_post.GetPostByPostID(post_id);
                 post_list.Add(user_post);
             }
 
@@ -600,7 +567,6 @@ namespace bipj
 
         public async Task<string> Comment_AI_Suggestion(string text, string comment)
         {
-          
             using (HttpClient client = new HttpClient())
             {
                 // Set the authorization header with your API key
@@ -612,17 +578,19 @@ namespace bipj
                     model = "gpt-4",  // Use gpt-4 for more advanced responses or gpt-3.5-turbo for lower cost
                     messages = new[]
                     {
-                    new
-                    {
-                        role = "system",
-                        content = "You are a staff member of a financial literacy website, commenting on the post of the forum. Your role is to engage with users in a friendly and helpful manner, providing constructive feedback, answering questions, and offering suggestions related to financial literacy topics. Your responses should be encouraging, professional, and informative, helping users to better understand financial concepts and encouraging positive discussions."
-                    },
-                    new
-                    {
-                        role = "user",
-                        content = $"Given the following text post by user, please suggest a comment and evaluate my comment if there is any. The post text is: '{text}'. My response is: '{comment}'"
-                    }
+                new
+                {
+                    role = "system",
+                    content = "You are a staff member of a financial literacy website, commenting on a post in a forum. Your task is to evaluate the user's comment and suggest improvements if necessary. The format of your response should be as follows:\n\n" +
+                              "1. 'evaluation of comment (if any):' - Evaluate the user's comment and mention any improvements or praise if it's good.\n" +
+                              "2. 'suggested comment:' - If the comment could be improved, provide a suggested response that is professional, encouraging, and informative about financial literacy."
+                },
+                new
+                {
+                    role = "user",
+                    content = $"Given the following text post by the user, please evaluate my comment and suggest a new one if necessary. The post text is: '{text}'. My response is: '{comment}'"
                 }
+            }
                 };
 
                 // Send the request to the OpenAI API
@@ -636,13 +604,9 @@ namespace bipj
                 var responseObject = JsonConvert.DeserializeObject<dynamic>(responseString);
                 string suggestion = responseObject.choices[0].message.content.ToString().Trim();
 
-
-                System.Diagnostics.Debug.WriteLine("Suggestion" + suggestion);
                 return suggestion;
-
-
             }
-
         }
+
     }
 }

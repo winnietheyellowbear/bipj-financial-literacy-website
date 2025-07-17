@@ -66,20 +66,16 @@
 
     <style>
     .ai-suggestion-section {
-        margin-top: 20px;
-        padding: 15px;
-        background-color: #fff3cd;
-        color: #856404;
-        border-radius: 6px;
+        
+        color: #3B387E;
     }
 
-    
-.ai-suggestion-button {
-    padding: 10px 12px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    font-size: 14px;
-}
+    .ai-suggestion-button {
+        padding: 10px 12px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 14px;
+    }
     
 </style>
 
@@ -126,6 +122,8 @@
 
         <!-- Main content -->
         <div class="main-content">
+
+
             <h1>Welcome to the forum</h1>
 
             
@@ -145,7 +143,7 @@
 
             <asp:UpdatePanel ID="UpdatePanel_Post" runat="server" UpdateMode="Conditional">
                 <ContentTemplate>
-                    <asp:Repeater ID="Post" runat="server" OnItemDataBound="post_ItemDataBound">
+                    <asp:Repeater ID="Post" runat="server">
                         <ItemTemplate>
                             <!-- Forum Post Section -->
                             <div class="forum-post">
@@ -195,7 +193,7 @@
                                             <asp:LinkButton ID="btn_like" runat="server" CommandArgument='<%# Eval("Post_ID") %>' 
                                                 CssClass='<%# (bool)Eval("Like_Status") ? "btn-red" : "btn-blue" %>' OnClick="btn_like_Click">
                                                 <%# (bool)Eval("Like_Status") ? "Liked" : "Like" %>
-                                                (<asp:Label ID="lbl_Like_Count" runat="server" Text=""></asp:Label>)
+                                                (<%# GetLikeCount(Eval("Post_ID").ToString()) %>)
                                             </asp:LinkButton>
                                         </ContentTemplate>
                                     </asp:UpdatePanel>
@@ -208,7 +206,7 @@
                                             <ContentTemplate>
                                                 
 
-                                                <asp:Repeater ID="Comment" runat="server">
+                                                <asp:Repeater ID="Comment" runat="server" DataSource='<%# Eval("Comments_List") %>'>
                                                     <ItemTemplate>
                                                         <div class="comment">
                                                             <img src='<%# ResolveUrl("~/Images/" + Eval("User_Profile")) %>' 
@@ -233,7 +231,7 @@
                                     </div>
                                 
                                                                                                                                                 <div class="ai-suggestion-section">
-<asp:Label ID="lbl_AISuggestion" runat="server" CssClass="ai-suggestion-label" />
+<asp:Label ID="lbl_AISuggestion" runat="server" CssClass="ai-suggestion-label"/>
                                                                           
 </div>
      

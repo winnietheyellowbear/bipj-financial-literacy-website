@@ -34,26 +34,7 @@ namespace bipj
             }
         }
 
-        protected void post_ItemDataBound(object sender, RepeaterItemEventArgs e)
-        {
-            if (e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem)
-            {
-                // Get the current post
-                var currentPost = (User_Post)e.Item.DataItem;
-
-                // -------------- like --------------
-                like_list = user_like.GetLikesByPostID(currentPost.Post_ID);
-                Label likeCountLabel = (Label)e.Item.FindControl("lbl_Like_Count");
-                likeCountLabel.Text = like_list.Count.ToString();
-
-                // -------------- comment --------------
-                comment_list = user_comment.GetCommentsByPostID(currentPost.Post_ID);
-                Repeater commentRepeater = (Repeater)e.Item.FindControl("Comment");
-                commentRepeater.DataSource = comment_list;
-                commentRepeater.DataBind();
-
-            }
-        }
+        
 
         protected void btn_like_Click(object sender, EventArgs e)
         {
@@ -63,22 +44,7 @@ namespace bipj
             User_Like user_like = new User_Like(post_id, user_id);
             user_like.LikeInsert();
 
-            like_list = user_like.GetLikesByPostID(post_id);
-            if (user_like.IsPostLiked(post_id, user_id) == 1)
-            {
-                btn.CssClass = "btn-red";
-                btn.Text = "Liked (" + like_list.Count.ToString() + ")";
-            }
-            else
-            {
-                btn.CssClass = "btn-blue";
-                btn.Text = "Like (" + like_list.Count.ToString() + ")";
-            }
-
-            RepeaterItem item = (RepeaterItem)btn.NamingContainer;
-            UpdatePanel updatePanel = (UpdatePanel)item.FindControl("UpdatePanel_Like");
-            updatePanel.Update();
-
+            Update_Panel();
         }
 
         protected void btn_comment_Click(object sender, EventArgs e)
@@ -90,17 +56,14 @@ namespace bipj
             RepeaterItem item = (RepeaterItem)btn.NamingContainer;
             TextBox textbox = (TextBox)item.FindControl("tb_text");
             string text = textbox.Text;
-            textbox.Text = "";
-
+            
             user_comment = new User_Comment(text, user_id, post_id);
             user_comment.CommentInsert();
 
             Update_Panel();
         }
 
-        
-
-        
+   
 
         protected async void btn_comment_AI_suggestion_Click(object sender, EventArgs e)
         {
@@ -111,17 +74,13 @@ namespace bipj
             RepeaterItem item = (RepeaterItem)btn.NamingContainer;
             TextBox textbox = (TextBox)item.FindControl("tb_text");
             string comment = textbox.Text;
-            
+           
             string suggestion = await user_post.Comment_AI_Suggestion(text, comment);
             Label label = (Label)item.FindControl("lbl_AISuggestion");
             label.Text = suggestion;
 
             UpdatePanel_Post.Update();
         }
-
-
-
-
 
 
         protected void btn_delete_comment_Click(object sender, EventArgs e)
@@ -162,5 +121,13 @@ namespace bipj
             Post.DataBind();
             UpdatePanel_Post.Update();
         }
+
+        public int GetLikeCount(string post_id)
+        {
+            like_list = user_like.GetLikesByPostID(post_id);
+            return like_list.Count;
+        }
+
+
     }
 }

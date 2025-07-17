@@ -25,13 +25,13 @@ namespace bipj
 
         protected void Page_Load(object sender, EventArgs e)
         {
-            
-            
             if (!IsPostBack)
             {
+                Session["Discussion_Search"] = null;
+                Session["Discussion_Filter"] = null;
+
                 Update_Panel(); 
             }
-
         }
 
         protected void post_ItemDataBound(object sender, RepeaterItemEventArgs e)
@@ -85,16 +85,62 @@ namespace bipj
         {
             Button btn = (Button)sender;
             string post_id = btn.CommandArgument;
-           
-            RepeaterItem item = (RepeaterItem)btn.NamingContainer;
 
             // Get the comment TextBox from the same RepeaterItem
+            RepeaterItem item = (RepeaterItem)btn.NamingContainer;
             TextBox textbox = (TextBox)item.FindControl("tb_text");
             string text = textbox.Text;
             textbox.Text = "";
 
-            User_Comment user_comment = new User_Comment(text, user_id, post_id);
+            user_comment = new User_Comment(text, user_id, post_id);
             user_comment.CommentInsert();
+
+            Update_Panel();
+        }
+
+        
+
+        
+
+        protected async void btn_comment_AI_suggestion_Click(object sender, EventArgs e)
+        {
+            Button btn = (Button)sender;
+            string text = btn.CommandArgument;
+
+            // Get the comment TextBox from the same RepeaterItem
+            RepeaterItem item = (RepeaterItem)btn.NamingContainer;
+            TextBox textbox = (TextBox)item.FindControl("tb_text");
+            string comment = textbox.Text;
+            
+            string suggestion = await user_post.Comment_AI_Suggestion(text, comment);
+            Label label = (Label)item.FindControl("lbl_AISuggestion");
+            label.Text = suggestion;
+
+            UpdatePanel_Post.Update();
+        }
+
+
+
+
+
+
+        protected void btn_delete_comment_Click(object sender, EventArgs e)
+        {
+            LinkButton btn = (LinkButton)sender;
+            string comment_id = btn.CommandArgument;
+
+            user_comment.CommentDelete(comment_id);
+
+            Update_Panel();
+        }
+
+        protected void Search(object sender, EventArgs e)
+        {
+            string search = searchInput.Text.Trim();
+            string category = categoryFilter.SelectedValue;
+
+            Session["Discussion_Search"] = search;
+            Session["Discussion_Filter"] = category;
 
             Update_Panel();
         }
@@ -105,7 +151,6 @@ namespace bipj
             {
                 string search = Session["Discussion_Search"].ToString();
                 string category = Session["Discussion_Filter"].ToString();
-
                 post_list = user_post.GetSearchPosts(search, category, user_id);
             }
             else
@@ -115,48 +160,6 @@ namespace bipj
 
             Post.DataSource = post_list;
             Post.DataBind();
-
-            UpdatePanel_Post.Update();
-        }
-
-        protected void btn_delete_comment_Click(object sender, EventArgs e)
-        {
-            LinkButton btn = (LinkButton)sender;
-            string comment_id = btn.CommandArgument;
-
-            user_comment.CommentDelete(comment_id);
-
-            Update_Panel();
-
-        }
-
-        protected void Search(object sender, EventArgs e)
-        {
-            // Get search text and filter category
-            string search = this.searchInput.Text.Trim();
-            string category = categoryFilter.SelectedValue;
-
-            Session["Discussion_Search"] = search;
-            Session["Discussion_Filter"] = category;
-
-            Update_Panel();
-        }
-
-        protected async void btn_comment_AI_suggestion_Click(object sender, EventArgs e)
-        {
-            Button btn = (Button)sender;
-            string text = btn.CommandArgument;
-
-            RepeaterItem item = (RepeaterItem)btn.NamingContainer;
-
-            // Get the comment TextBox from the same RepeaterItem
-            TextBox textbox = (TextBox)item.FindControl("tb_text");
-            string comment = textbox.Text;
-            
-            string suggestion = await user_post.Comment_AI_Suggestion(text, comment);
-            Label label = (Label)item.FindControl("lbl_AISuggestion");
-            label.Text = suggestion;
-
             UpdatePanel_Post.Update();
         }
     }

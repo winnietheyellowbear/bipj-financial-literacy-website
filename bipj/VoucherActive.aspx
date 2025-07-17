@@ -317,7 +317,7 @@ body {
             // Set the interval to check the voucher status every 1 second
             statusCheckInterval = setInterval(function () {
                 checkVoucherStatus(token);
-            }, 100);
+            }, 5000);
         }
 
         // Function to stop the status check timer

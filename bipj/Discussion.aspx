@@ -1,5 +1,5 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Customer_Nav.Master" AutoEventWireup="true" 
-    MaintainScrollPositionOnPostBack="true" CodeBehind="Discussion.aspx.cs" Inherits="bipj.Discussion" %>
+    MaintainScrollPositionOnPostBack="true" CodeBehind="Discussion.aspx.cs" Inherits="bipj.Discussion" Async="true" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
 </asp:Content>
@@ -64,6 +64,22 @@
 
     </style>
 
+    <style>
+    .ai-suggestion-section {
+        
+        color: #3B387E;
+    }
+
+    .ai-suggestion-button {
+        padding: 10px 12px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+    
+</style>
+
+
     <div class="content-wrapper">
         
         <!-- Sidebar -->
@@ -106,6 +122,8 @@
 
         <!-- Main content -->
         <div class="main-content">
+
+
             <h1>Welcome to the forum</h1>
 
             
@@ -125,7 +143,7 @@
 
             <asp:UpdatePanel ID="UpdatePanel_Post" runat="server" UpdateMode="Conditional">
                 <ContentTemplate>
-                    <asp:Repeater ID="Post" runat="server" OnItemDataBound="post_ItemDataBound">
+                    <asp:Repeater ID="Post" runat="server">
                         <ItemTemplate>
                             <!-- Forum Post Section -->
                             <div class="forum-post">
@@ -175,7 +193,7 @@
                                             <asp:LinkButton ID="btn_like" runat="server" CommandArgument='<%# Eval("Post_ID") %>' 
                                                 CssClass='<%# (bool)Eval("Like_Status") ? "btn-red" : "btn-blue" %>' OnClick="btn_like_Click">
                                                 <%# (bool)Eval("Like_Status") ? "Liked" : "Like" %>
-                                                (<asp:Label ID="lbl_Like_Count" runat="server" Text=""></asp:Label>)
+                                                (<%# GetLikeCount(Eval("Post_ID").ToString()) %>)
                                             </asp:LinkButton>
                                         </ContentTemplate>
                                     </asp:UpdatePanel>
@@ -186,7 +204,9 @@
                                     <div class="comments-section">
                                         <asp:UpdatePanel ID="UpdatePanel_Comment" runat="server" UpdateMode="Conditional">
                                             <ContentTemplate>
-                                                <asp:Repeater ID="Comment" runat="server">
+                                                
+
+                                                <asp:Repeater ID="Comment" runat="server" DataSource='<%# Eval("Comments_List") %>'>
                                                     <ItemTemplate>
                                                         <div class="comment">
                                                             <img src='<%# ResolveUrl("~/Images/" + Eval("User_Profile")) %>' 
@@ -210,10 +230,19 @@
                                         </asp:UpdatePanel>
                                     </div>
                                 
+                                                                                                                                                <div class="ai-suggestion-section">
+<asp:Label ID="lbl_AISuggestion" runat="server" CssClass="ai-suggestion-label"/>
+                                                                          
+</div>
+     
                                 <!-- Comment Input Section -->
                                 <div class="comment-input">
+
+                                                                                                                
                                     <asp:TextBox ID="tb_text" runat="server" class="comment-textbox" placeholder="Write a comment..."
                                         onchange="validateComment(this)" oninput="validateComment(this)"></asp:TextBox>
+                                    <asp:Button ID="btn_AI_suggestion" runat="server" Text="AI Suggestion" CssClass="ai-suggestion-button"
+                                        CommandArgument='<%# Eval("Text") %>' OnClick="btn_comment_AI_suggestion_Click" Visible='<%# user_type == "Staff" %>' />
                                     <asp:Button ID="btn_publish" runat="server" Text="Comment" class="comment-button btn-submit btn-disabled"
                                         ToolTip="You cannot submit a blank comment." Disabled="true" CommandArgument='<%# Eval("Post_ID") %>'
                                         OnClick="btn_comment_Click" />

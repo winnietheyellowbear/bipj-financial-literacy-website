@@ -11,9 +11,6 @@
     text-decoration: none;
 }
 
-
-
-
 .btn-delete {
     background-color: #ff0d00;
     color: white;
@@ -166,7 +163,6 @@
     margin-top: 10px;
     padding-top: 10px;
     overflow: scroll;
-    min-height: 0px;
 }
 
 .comment {

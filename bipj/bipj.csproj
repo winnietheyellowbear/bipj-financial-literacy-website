@@ -471,6 +471,7 @@
     <Compile Include="SmartSearch.aspx.designer.cs">
       <DependentUpon>SmartSearch.aspx</DependentUpon>
     </Compile>
+    <Compile Include="User.cs" />
     <Compile Include="ViewAdvisor.aspx.cs">
       <DependentUpon>ViewAdvisor.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>

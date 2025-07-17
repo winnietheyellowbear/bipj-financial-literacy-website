@@ -330,7 +330,7 @@ namespace bipj
         public async Task SendMessageAsync(string toPhoneNumber)
         {
             string apiUrl = "https://graph.facebook.com/v22.0/662395820298319/messages";
-            string accessToken = "EAAQJhoZCqvUQBPGBudh8stCUI1K8xO5ZCq3IZBUiOcjeAAlUZAvcZC3gew4oajTrjoehFKMZAeEYEEjEtqWJMm2NYE4qLfRdHvC5LhDdjZASF5JjQ8CBZAb2mTDIVfdIRaSYdutZAXYQq8ZBYOmz9P2K219TdIlJ3wc9AyUaSJs6kQ6TXamUuuWB4jIW0SNXlAZC8iK0KAmX6S4XNgQbZAibTWsjFsbTSZBllKZAmoGxhIkx9uIQdGhQZDZD"; // Replace with your access token
+            string accessToken = "EAAQJhoZCqvUQBPGAxmUj4ClvQx6tslX0yvFCKu19HdzOecZCZAZCk5cCzOV6jD4GonWY0eWhOVCuQ8szu679V02nvI2wZAUSmZClwHECphqdle82su55afw1fqnKQL0KQ5ThMBsxspOrdRsqOt3f8ympIFwGbARuDB8lCFMh72I6MZAy8hvFhmDIXDPkZAYutQPnQwZByzEuk6GPUIQNwD7PV07tD9AKQ5KRzDV1NFRTPx337WQZDZD"; // Replace with your access token
 
             using (var client = new HttpClient())
             {
@@ -340,7 +340,7 @@ namespace bipj
 
                 // Build the JSON payload
                 var jsonPayload = new StringContent(
-                    $"{{\"messaging_product\": \"whatsapp\", \"to\": \"{toPhoneNumber}\", \"type\": \"template\", \"template\": {{ \"name\": \"hello_world\", \"language\": {{ \"code\": \"en_US\" }} }} }}",
+                    $"{{\"messaging_product\": \"whatsapp\", \"to\": \"{toPhoneNumber}\", \"type\": \"template\", \"template\": {{ \"name\": \"bipj\", \"language\": {{ \"code\": \"en\" }} }} }}",
                     Encoding.UTF8,
                     "application/json"
                 );

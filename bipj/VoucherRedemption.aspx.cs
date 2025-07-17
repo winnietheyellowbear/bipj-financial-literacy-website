@@ -10,6 +10,7 @@ namespace bipj
 {
     public partial class VoucherRedemption : System.Web.UI.Page
     {
+        User_Voucher user_voucher = new User_Voucher();
         protected void Page_Load(object sender, EventArgs e)
         {
 
@@ -17,7 +18,6 @@ namespace bipj
             {
                 // Retrieve the token from the query string
                 string token = Request.QueryString["token"];
-                User_Voucher user_voucher = new User_Voucher();
                 user_voucher = user_voucher.GetVoucherByToken(token);
 
                 description.Text = user_voucher.Description;
@@ -40,10 +40,7 @@ namespace bipj
         {
             Button btn = (Button)sender;
             string status = btn.CommandArgument;
-
             string token = Request.QueryString["token"];
-
-            User_Voucher user_voucher = new User_Voucher();
             int result = user_voucher.StatusUpdate(token, status);
 
             if (result > 0)
@@ -56,8 +53,6 @@ namespace bipj
                     "alert('Status updated successfully. 😊'); window.location='VoucherRedemption.aspx?token=" + token + "';",
                     true
                 );
-
-                
             }
             else
             {

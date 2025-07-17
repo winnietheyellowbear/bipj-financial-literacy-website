@@ -199,6 +199,7 @@
     <Content Include="EditMyPost.aspx" />
     <Content Include="EditProfile.aspx" />
     <Content Include="Education.aspx" />
+    <Content Include="FacialLogin.aspx" />
     <Content Include="Forum_Nav.css" />
     <Content Include="Forum_Post.css" />
     <Content Include="Home.aspx" />
@@ -209,10 +210,12 @@
     <Content Include="ManageEducation.aspx" />
     <Content Include="MyNotification.aspx" />
     <Content Include="MyPost.aspx" />
+    <Content Include="OtpConfirmation.aspx" />
     <Content Include="Post.aspx" />
     <Content Include="Profile.aspx" />
     <Content Include="QRCodeScanner.aspx" />
     <Content Include="RegisterAdvisor.aspx" />
+    <Content Include="RegisterPage.aspx" />
     <Content Include="SmartSearch.aspx" />
     <Content Include="ViewAdvisor.aspx" />
     <Content Include="ViewEducationPage.aspx" />
@@ -376,6 +379,13 @@
     <Compile Include="Education.aspx.designer.cs">
       <DependentUpon>Education.aspx</DependentUpon>
     </Compile>
+    <Compile Include="FacialLogin.aspx.cs">
+      <DependentUpon>FacialLogin.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="FacialLogin.aspx.designer.cs">
+      <DependentUpon>FacialLogin.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Home.aspx.cs">
       <DependentUpon>Home.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -411,6 +421,13 @@
     <Compile Include="MyPost.aspx.designer.cs">
       <DependentUpon>MyPost.aspx</DependentUpon>
     </Compile>
+    <Compile Include="OtpConfirmation.aspx.cs">
+      <DependentUpon>OtpConfirmation.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="OtpConfirmation.aspx.designer.cs">
+      <DependentUpon>OtpConfirmation.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Post.aspx.cs">
       <DependentUpon>Post.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -439,6 +456,13 @@
     </Compile>
     <Compile Include="RegisterAdvisor.aspx.designer.cs">
       <DependentUpon>RegisterAdvisor.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="RegisterPage.aspx.cs">
+      <DependentUpon>RegisterPage.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="RegisterPage.aspx.designer.cs">
+      <DependentUpon>RegisterPage.aspx</DependentUpon>
     </Compile>
     <Compile Include="SmartSearch.aspx.cs">
       <DependentUpon>SmartSearch.aspx</DependentUpon>

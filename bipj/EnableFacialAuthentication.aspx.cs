@@ -38,7 +38,7 @@ namespace badpjProject
             {
                 int userId = Convert.ToInt32(Session["UserId"]);
                 string email = Session["UserEmail"].ToString();
-                string connString = ConfigurationManager.ConnectionStrings["MyDBConnectionString"].ConnectionString;
+                string connString = ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString;
 
                 using (SqlConnection conn = new SqlConnection(connString))
                 {

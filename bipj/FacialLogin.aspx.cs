@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Configuration;
 using System.Data.SqlClient;
-using System.Web;
 using System.Web.UI;
-using System.Web.UI.WebControls;
 using Newtonsoft.Json;
 
 namespace badpjProject
@@ -12,14 +10,13 @@ namespace badpjProject
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-            // Optionally, allow access without session check if using facial login as an alternative.
+            // Optionally, allow access without session check
         }
 
-        // This event fires when the user clicks the "Login via Face" button.
         protected void btnLogin_Click(object sender, EventArgs e)
         {
             string descriptorJson = hfDescriptor.Value;
-            string loginEmail = txtUsername.Text.Trim();
+            string loginEmail = txtEmail.Text.Trim();
 
             if (string.IsNullOrEmpty(loginEmail))
             {
@@ -34,30 +31,43 @@ namespace badpjProject
 
             try
             {
-                string connString = ConfigurationManager.ConnectionStrings["MyDBConnectionString"].ConnectionString;
+                string connString = ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString;
                 string storedDescriptorJson = null;
+                int userId = 0;
+                string userType = string.Empty;
 
-                // Retrieve stored facial descriptor using Email
+                // Retrieve stored facial descriptor and user details
                 using (SqlConnection conn = new SqlConnection(connString))
                 {
-                    string sql = "SELECT FaceDescriptor FROM UserFacialAuth WHERE Login_Name = @Email";
+                    string sql = @"
+                        SELECT u.Id, u.UserType, ufa.FaceDescriptor 
+                        FROM [User] u
+                        INNER JOIN UserFacialAuth ufa ON u.Id = ufa.UserId
+                        WHERE u.Email = @Email";
+
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
                         cmd.Parameters.AddWithValue("@Email", loginEmail);
                         conn.Open();
-                        var result = cmd.ExecuteScalar();
-                        if (result != null)
+
+                        using (SqlDataReader reader = cmd.ExecuteReader())
                         {
-                            storedDescriptorJson = result.ToString();
-                        }
-                        else
-                        {
-                            lblResult.Text = "No facial data found for this user. Please enroll first.";
-                            return;
+                            if (reader.Read())
+                            {
+                                userId = reader.GetInt32(reader.GetOrdinal("Id"));
+                                userType = reader.GetString(reader.GetOrdinal("UserType"));
+                                storedDescriptorJson = reader.GetString(reader.GetOrdinal("FaceDescriptor"));
+                            }
+                            else
+                            {
+                                lblResult.Text = "No facial data found for this user. Please enroll first.";
+                                return;
+                            }
                         }
                     }
                 }
 
+                // Compare face descriptors
                 float[] storedDescriptor = JsonConvert.DeserializeObject<float[]>(storedDescriptorJson);
                 float[] newDescriptor = JsonConvert.DeserializeObject<float[]>(descriptorJson);
                 float distance = EuclideanDistance(newDescriptor, storedDescriptor);
@@ -65,37 +75,25 @@ namespace badpjProject
 
                 if (distance < threshold)
                 {
-                    int userId = 0;
-                    string userType = string.Empty;
+                    // Set session variables
+                    Session["UserId"] = userId;
+                    Session["UserEmail"] = loginEmail;
+                    Session["Role"] = userType;
 
+                    // Update last login date
                     using (SqlConnection conn = new SqlConnection(connString))
                     {
-                        string sql = "SELECT Id, UserType FROM [User] WHERE Email = @Email";
-                        using (SqlCommand cmd = new SqlCommand(sql, conn))
+                        string updateSql = "UPDATE [User] SET LastLoginDate = GETDATE() WHERE Id = @UserId";
+                        using (SqlCommand cmd = new SqlCommand(updateSql, conn))
                         {
-                            cmd.Parameters.AddWithValue("@Email", loginEmail);
+                            cmd.Parameters.AddWithValue("@UserId", userId);
                             conn.Open();
-                            using (SqlDataReader reader = cmd.ExecuteReader())
-                            {
-                                if (reader.Read())
-                                {
-                                    userId = Convert.ToInt32(reader["Id"]);
-                                    userType = reader["UserType"].ToString();
-                                }
-                                else
-                                {
-                                    lblResult.Text = "User not found in main table.";
-                                    return;
-                                }
-                            }
+                            cmd.ExecuteNonQuery();
                         }
                     }
 
-                    Session["UserId"] = userId;
-                    Session["Username"] = loginEmail;
-                    Session["Role"] = userType;
-
-                    Response.Redirect("UserPage.aspx");
+                    // Redirect to PROFILE page instead of UserPage
+                    Response.Redirect("Profile.aspx");
                 }
                 else
                 {
@@ -107,7 +105,6 @@ namespace badpjProject
                 lblResult.Text = "Error: " + ex.Message;
             }
         }
-
 
         private static float EuclideanDistance(float[] a, float[] b)
         {
@@ -122,5 +119,3 @@ namespace badpjProject
         }
     }
 }
-
-

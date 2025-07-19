@@ -579,6 +579,24 @@
     <Content Include="Voucher.Master" />
     <Content Include="UploadHandler.ashx" />
     <Content Include="App_Data\google-service-account.json" />
+    <Content Include="Facialmodels\age_gender_model-shard1" />
+    <Content Include="Facialmodels\age_gender_model-weights_manifest.json" />
+    <Content Include="Facialmodels\face_expression_model-shard1" />
+    <Content Include="Facialmodels\face_expression_model-weights_manifest.json" />
+    <Content Include="Facialmodels\face_landmark_68_model-shard1" />
+    <Content Include="Facialmodels\face_landmark_68_model-weights_manifest.json" />
+    <Content Include="Facialmodels\face_landmark_68_tiny_model-shard1" />
+    <Content Include="Facialmodels\face_landmark_68_tiny_model-weights_manifest.json" />
+    <Content Include="Facialmodels\face_recognition_model-shard1" />
+    <Content Include="Facialmodels\face_recognition_model-shard2" />
+    <Content Include="Facialmodels\face_recognition_model-weights_manifest.json" />
+    <Content Include="Facialmodels\mtcnn_model-shard1" />
+    <Content Include="Facialmodels\mtcnn_model-weights_manifest.json" />
+    <Content Include="Facialmodels\ssd_mobilenetv1_model-shard1" />
+    <Content Include="Facialmodels\ssd_mobilenetv1_model-shard2" />
+    <Content Include="Facialmodels\ssd_mobilenetv1_model-weights_manifest.json" />
+    <Content Include="Facialmodels\tiny_face_detector_model-shard1" />
+    <Content Include="Facialmodels\tiny_face_detector_model-weights_manifest.json" />
     <None Include="packages.config" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>

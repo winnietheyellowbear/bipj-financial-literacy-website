@@ -15,6 +15,15 @@ namespace bipj
     {
 
         /// <summary>
+        /// imgQrCode control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Image imgQrCode;
+
+        /// <summary>
         /// imgProfile control.
         /// </summary>
         /// <remarks>
@@ -67,6 +76,15 @@ namespace bipj
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Button btnEnableFacialAuth;
+
+        /// <summary>
+        /// btnGenerateQR control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnGenerateQR;
 
         /// <summary>
         /// ltBio control.

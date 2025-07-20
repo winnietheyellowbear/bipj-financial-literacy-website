@@ -142,6 +142,7 @@
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     <div class="profile-container">
+        <asp:Image ID="imgQrCode" runat="server" Width="200px" Visible="true" />
 
 
 
@@ -160,6 +161,9 @@
         <asp:Button ID="btnEnableFacialAuth" runat="server" Text="Enable Facial Authentication"
             CssClass="btn-facial-auth"
             OnClick="btnEnableFacialAuth_Click" />
+        <asp:Button ID="btnGenerateQR" runat="server" Text="Generate QR Code"
+    CssClass="btn-facial-auth"
+    OnClick="btnGenerateQR_Click" />
     </div>
 </div>
 

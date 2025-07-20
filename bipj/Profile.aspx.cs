@@ -1,7 +1,9 @@
-﻿using System;
+﻿using QRCoder;
+using System;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
+using System.IO;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using System.Xml.Linq;
@@ -163,6 +165,29 @@ namespace bipj
             // Pass userId as query if necessary
             Response.Redirect("EnableFacialAuthentication.aspx?userId=" + CurrentUserId);
         }
+
+        protected void btnGenerateQR_Click(object sender, EventArgs e)
+        {
+            int userId = CurrentUserId; // ID of the currently logged-in user
+            string qrUrl = $"http://localhost:44369/ProfileQR.aspx?userId={userId}";
+
+            // Generate QR code
+            QRCodeGenerator qrGenerator = new QRCodeGenerator();
+            QRCodeData qrCodeData = qrGenerator.CreateQrCode(qrUrl, QRCodeGenerator.ECCLevel.Q);
+            QRCode qrCode = new QRCode(qrCodeData);
+            System.Drawing.Bitmap qrCodeImage = qrCode.GetGraphic(20);
+
+            // Convert to base64 for embedding into Image control
+            using (MemoryStream ms = new MemoryStream())
+            {
+                qrCodeImage.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+                byte[] byteImage = ms.ToArray();
+                string base64Image = Convert.ToBase64String(byteImage);
+                imgQrCode.ImageUrl = "data:image/png;base64," + base64Image;
+            }
+        }
+
+
 
     }
 }

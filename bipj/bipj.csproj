@@ -210,8 +210,12 @@
     <Content Include="Forum_Nav.css" />
     <Content Include="Forum_Post.css" />
     <Content Include="Home.aspx" />
+    <Content Include="Images\avatar_idle.png" />
     <Content Include="Images\hello kitty.png" />
     <Content Include="Images\logo.png" />
+    <Content Include="Images\avatar_talk1.png" />
+    <Content Include="Images\avatar_talk2.png" />
+    <Content Include="Images\avatar_talk3.png" />
     <Content Include="Images\usagi.jpg" />
     <Content Include="Loginpage.aspx" />
     <Content Include="ManageEducation.aspx" />
@@ -226,6 +230,7 @@
     <Content Include="RegisterPage.aspx" />
     <Content Include="ReminderPage.aspx" />
     <Content Include="SmartSearch.aspx" />
+    <Content Include="StudyAssistant.aspx" />
     <Content Include="ViewAdvisor.aspx" />
     <Content Include="ViewEducationPage.aspx" />
     <Content Include="ViewSpecificEdu.aspx" />
@@ -500,6 +505,13 @@
     </Compile>
     <Compile Include="SmartSearch.aspx.designer.cs">
       <DependentUpon>SmartSearch.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="StudyAssistant.aspx.cs">
+      <DependentUpon>StudyAssistant.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="StudyAssistant.aspx.designer.cs">
+      <DependentUpon>StudyAssistant.aspx</DependentUpon>
     </Compile>
     <Compile Include="User.cs" />
     <Compile Include="ViewAdvisor.aspx.cs">

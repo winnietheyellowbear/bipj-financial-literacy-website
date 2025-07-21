@@ -62,7 +62,7 @@ namespace bipj
             user_like.LikeInsert();
 
             like_list = user_like.GetLikesByPostID(post_id);
-            if (user_like.IsPostLiked(post_id, user_id) == 1)
+            if (user_like.IsPostLiked(post_id, user_id) == true)
             {
                 btn.CssClass = "btn-red";
                 btn.Text = "Liked (" + like_list.Count.ToString() + ")";

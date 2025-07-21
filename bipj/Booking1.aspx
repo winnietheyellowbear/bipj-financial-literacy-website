@@ -1,11 +1,5 @@
-﻿<%@ Page 
-    Title="Book a Session – Step 1" 
-    Language="C#" 
-    MasterPageFile="~/Customer_Nav.Master" 
-    AutoEventWireup="true" 
-    CodeBehind="Booking1.aspx.cs" 
-    Inherits="bipj.Booking1" 
-%>
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Customer_Nav_loggedin.Master" AutoEventWireup="true" CodeBehind="Booking1.aspx.cs" Inherits="bipj.Booking1" %>
+
 
 <asp:Content ID="ContentHead" ContentPlaceHolderID="head" runat="server">
   <style>
@@ -141,3 +135,4 @@
     </div>
   </div>
 </asp:Content>
+

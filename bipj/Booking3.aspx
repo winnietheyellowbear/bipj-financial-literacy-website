@@ -1,7 +1,6 @@
-﻿<%@ Page Title="Book a Session – Step 3" 
-    UnobtrusiveValidationMode="None"
-    Language="C#" 
-    MasterPageFile="~/Customer_Nav.Master" 
+﻿<%@ Page Title="" 
+    
+    Language="C#" MasterPageFile="~/Customer_Nav_loggedin.Master" 
     AutoEventWireup="true" 
     CodeBehind="Booking3.aspx.cs" 
     Inherits="bipj.Booking3" %>

@@ -1,10 +1,5 @@
-﻿<%@ Page Title="Book a Session – Step 4" 
-    Language="C#" 
-    MasterPageFile="~/Customer_Nav.Master" 
-    AutoEventWireup="true" 
-    CodeBehind="Booking4.aspx.cs" 
-    Inherits="bipj.Booking4"
-     UnobtrusiveValidationMode="None" %>
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Customer_Nav_loggedin.Master" AutoEventWireup="true" CodeBehind="Booking4.aspx.cs" Inherits="bipj.Booking4" %>
+
 
 <asp:Content ID="HeadContent" ContentPlaceHolderID="head" runat="server">
   <style>
@@ -84,4 +79,3 @@
         Text="Next" OnClick="btnNext_Click" />
   </div>
 </asp:Content>
-

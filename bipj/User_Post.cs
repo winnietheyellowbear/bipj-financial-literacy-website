@@ -521,7 +521,7 @@ namespace bipj
             using (var client = new HttpClient())
             {
                 // Set Authorization header with the OpenAI API key
-                client.DefaultRequestHeaders.Add("Authorization", "Bearer ");  // Replace with your OpenAI API key
+                client.DefaultRequestHeaders.Add("Authorization", "Bearer ");  
 
                 // Prepare the request body for the Chat Completion API
                 var requestBody = new

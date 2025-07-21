@@ -6,7 +6,8 @@ namespace bipj
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-            // nothing to pre-load
+            // ✅ Disable unobtrusive validation to avoid jQuery error
+            Page.UnobtrusiveValidationMode = System.Web.UI.UnobtrusiveValidationMode.None;
         }
 
         protected void btnBack_Click(object sender, EventArgs e)

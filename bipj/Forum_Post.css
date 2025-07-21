@@ -233,3 +233,47 @@
     color: white; /* Optional: To ensure text remains visible */
 }
 
+
+
+/* AI Suggestion */
+.ai-suggestion-section {
+    color: #3B387E;
+}
+
+.ai-suggestion-button {
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+
+/* Search & Filter */
+.search-filter-container {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.search-bar {
+    padding: 10px;
+    font-size: 14px;
+    width: 250px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    outline: none;
+    transition: 0.3s;
+}
+
+.search-bar:focus {
+    border-color: #3B387E;
+}
+
+.filter-dropdown {
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    cursor: pointer;
+}

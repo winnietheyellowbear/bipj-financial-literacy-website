@@ -20,7 +20,6 @@ namespace bipj
         List<User_Like> like_list = new List<User_Like>();
         User_Like user_like = new User_Like();
 
-        List<User_Comment> comment_list = new List<User_Comment>();
         User_Comment user_comment = new User_Comment();
 
         protected void Page_Load(object sender, EventArgs e)
@@ -34,14 +33,13 @@ namespace bipj
             }
         }
 
-        
 
         protected void btn_like_Click(object sender, EventArgs e)
         {
             LinkButton btn = (LinkButton)sender;
             string post_id = btn.CommandArgument;
 
-            User_Like user_like = new User_Like(post_id, user_id);
+            user_like = new User_Like(post_id, user_id);
             user_like.LikeInsert();
 
             Update_Panel();
@@ -63,7 +61,6 @@ namespace bipj
             Update_Panel();
         }
 
-   
 
         protected async void btn_comment_AI_suggestion_Click(object sender, EventArgs e)
         {
@@ -127,7 +124,5 @@ namespace bipj
             like_list = user_like.GetLikesByPostID(post_id);
             return like_list.Count;
         }
-
-
     }
 }

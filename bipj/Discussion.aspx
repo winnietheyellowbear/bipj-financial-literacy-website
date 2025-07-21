@@ -14,6 +14,7 @@
         <asp:ScriptManager ID="ScriptManager" runat="server" />
     </head>
 
+    <!-- Main Styles -->
     <style>
         .content-wrapper {
             display: flex;
@@ -29,57 +30,9 @@
             margin-left: 20px;
             max-width: 1000px;
         }
-
-        
-
-        .search-filter-container {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            
-        }
-
-        .search-bar {
-            padding: 10px;
-            font-size: 14px;
-            width: 250px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            outline: none;
-            transition: 0.3s;
-        }
-
-        .search-bar:focus {
-            border-color: #3B387E;
-        }
-
-        .filter-dropdown {
-            padding: 10px;
-            font-size: 14px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            background-color: #fff;
-            cursor: pointer;
-        }
-
     </style>
 
-    <style>
-    .ai-suggestion-section {
-        
-        color: #3B387E;
-    }
-
-    .ai-suggestion-button {
-        padding: 10px 12px;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        font-size: 14px;
-    }
-    
-</style>
-
-
+    <!-- Main Content Structure -->
     <div class="content-wrapper">
         
         <!-- Sidebar -->
@@ -89,45 +42,42 @@
                 <br />
                 <li class="active">
                     <a href="Discussion.aspx">
-                        <img src='<%= ResolveUrl("~/Forum/Icon/Discussion_Icon.png") %>' alt="Discussion Icon"/>
+                        <img src='<%= ResolveUrl("~/Forum/Icon/Discussion_Icon.png") %>'/>
                         <span>Discussion</span>
                     </a>
                 </li>
                 <li>
                     <a href="SmartSearch.aspx">
-                        <img src='<%= ResolveUrl("~/Forum/Icon/Magnifying_Glass_Icon.png") %>' alt="Notification Icon"/>
+                        <img src='<%= ResolveUrl("~/Forum/Icon/Magnifying_Glass_Icon.png") %>'/>
                         <span>Smart Search</span>
                     </a>
                 </li>
                 <li>
                     <a href="MyNotification.aspx">
-                        <img src='<%= ResolveUrl("~/Forum/Icon/Notification_Icon.png") %>' alt="Notification Icon"/>
+                        <img src='<%= ResolveUrl("~/Forum/Icon/Notification_Icon.png") %>'/>
                         <span>Notification</span>
                     </a>
                 </li>
                 <li>
                     <a href="MyPost.aspx">
-                        <img src='<%= ResolveUrl("~/Forum/Icon/MyPost_Icon.png") %>' alt="My Post Icon"/>
+                        <img src='<%= ResolveUrl("~/Forum/Icon/MyPost_Icon.png") %>'/>
                         <span>My Post</span>
                     </a>
                 </li>
                 <li>
                     <a href="Post.aspx">
-                        <img src='<%= ResolveUrl("~/Forum/Icon/Post_Icon.png") %>' alt="Post Icon"/>
+                        <img src='<%= ResolveUrl("~/Forum/Icon/Post_Icon.png") %>'/>
                         <span>Post</span>
                     </a>
                 </li>
             </ul>
         </div>
 
-        <!-- Main content -->
+        <!-- Main Content -->
         <div class="main-content">
-
-
             <h1>Welcome to the forum</h1>
 
-            
-        <!-- Search and Filter Section -->
+            <!-- Search and Filter Section -->
             <div class="search-filter-container">
                 <asp:TextBox ID="searchInput" runat="server" CssClass="search-bar" 
                              placeholder="Search by username or text..." OnTextChanged="Search" AutoPostBack="true" />
@@ -138,14 +88,14 @@
                     <asp:ListItem>share my journey</asp:ListItem>
                     <asp:ListItem>share tips and tools</asp:ListItem>
                 </asp:DropDownList>
-                
             </div>
 
+            <!-- Posts Section -->
             <asp:UpdatePanel ID="UpdatePanel_Post" runat="server" UpdateMode="Conditional">
                 <ContentTemplate>
                     <asp:Repeater ID="Post" runat="server">
                         <ItemTemplate>
-                            <!-- Forum Post Section -->
+                            <!-- Post Details -->
                             <div class="forum-post">
                                 
                                 <!-- Profile Section -->
@@ -178,7 +128,7 @@
                                     <asp:Repeater ID="Video" runat="server" DataSource='<%# Eval("Videos_List") %>'>
                                         <ItemTemplate>
                                             <asp:Panel runat="server" Visible='<%# !string.IsNullOrEmpty((string)Container.DataItem) %>'>
-                                                <video controls class="post-video" style="width:100px">
+                                                <video controls style="width:100px">
                                                     <source src='<%# ResolveUrl((string)Container.DataItem) %>' type="video/mp4" />
                                                 </video>
                                             </asp:Panel>
@@ -186,59 +136,46 @@
                                     </asp:Repeater>
                                 </div>
 
-                                <!-- Like & Comment Buttons -->
+                                <!-- Like Button -->
                                 <div class="forum-actions">
-                                    <asp:UpdatePanel ID="UpdatePanel_Like" runat="server" UpdateMode="Conditional">
-                                        <ContentTemplate>     
                                             <asp:LinkButton ID="btn_like" runat="server" CommandArgument='<%# Eval("Post_ID") %>' 
                                                 CssClass='<%# (bool)Eval("Like_Status") ? "btn-red" : "btn-blue" %>' OnClick="btn_like_Click">
                                                 <%# (bool)Eval("Like_Status") ? "Liked" : "Like" %>
                                                 (<%# GetLikeCount(Eval("Post_ID").ToString()) %>)
                                             </asp:LinkButton>
-                                        </ContentTemplate>
-                                    </asp:UpdatePanel>
                                 </div>
 
                                 <!-- Comments Section -->
-                               
-                                    <div class="comments-section">
-                                        <asp:UpdatePanel ID="UpdatePanel_Comment" runat="server" UpdateMode="Conditional">
-                                            <ContentTemplate>
-                                                
-
-                                                <asp:Repeater ID="Comment" runat="server" DataSource='<%# Eval("Comments_List") %>'>
-                                                    <ItemTemplate>
-                                                        <div class="comment">
-                                                            <img src='<%# ResolveUrl("~/Images/" + Eval("User_Profile")) %>' 
-                                                                 class="profile-pic" />
-                                                            <div class="comment-content">
-                                                                <div class="comment-author"><%# Eval("User_Name") %></div>
-                                                                <div class="comment-time"><%# Eval("Comment_DateTime", "{0:dd MMM yyyy, hh:mmtt}") %></div>
-                                                                <div class="comment-text">
-                                                                    <%# Eval("Text") %>
-                                                                </div>
-        
-                                                                <asp:LinkButton ID="btn_delete" runat="server" CssClass="btn-delete"
-                                                                            OnClientClick="return confirm('Are you sure you want to delete this comment?')"
-                                                                            Visible='<%# Eval("User_ID").ToString() == user_id %>' 
-                                                                            CommandArgument='<%# Eval("Comment_ID") %>' OnClick="btn_delete_comment_Click">Delete</asp:LinkButton>
+                                <div class="comments-section">
+                                            <asp:Repeater ID="Comment" runat="server" DataSource='<%# Eval("Comments_List") %>'>
+                                                <ItemTemplate>
+                                                    <div class="comment">
+                                                        <img src='<%# ResolveUrl("~/Images/" + Eval("User_Profile")) %>' 
+                                                             class="profile-pic" />
+                                                        <div class="comment-content">
+                                                            <div class="comment-author"><%# Eval("User_Name") %></div>
+                                                            <div class="comment-time"><%# Eval("Comment_DateTime", "{0:dd MMM yyyy, hh:mmtt}") %></div>
+                                                            <div class="comment-text">
+                                                                <%# Eval("Text") %>
                                                             </div>
+            
+                                                            <asp:LinkButton ID="btn_delete" runat="server" CssClass="btn-delete"
+                                                                OnClientClick="return confirm('Are you sure you want to delete this comment?')"
+                                                                Visible='<%# Eval("User_ID").ToString() == user_id %>' 
+                                                                CommandArgument='<%# Eval("Comment_ID") %>' OnClick="btn_delete_comment_Click">Delete</asp:LinkButton>
                                                         </div>
-                                                    </ItemTemplate>
-                                                </asp:Repeater>
-                                            </ContentTemplate>
-                                        </asp:UpdatePanel>
-                                    </div>
-                                
-                                                                                                                                                <div class="ai-suggestion-section">
-<asp:Label ID="lbl_AISuggestion" runat="server" CssClass="ai-suggestion-label"/>
-                                                                          
-</div>
-     
+                                                    </div>
+                                                </ItemTemplate>
+                                            </asp:Repeater>
+                                </div>
+
+                                <!-- AI Suggestion Section -->
+                                <div class="ai-suggestion-section">
+                                    <asp:Label ID="lbl_AISuggestion" runat="server" CssClass="ai-suggestion-label"/>
+                                </div>
+
                                 <!-- Comment Input Section -->
                                 <div class="comment-input">
-
-                                                                                                                
                                     <asp:TextBox ID="tb_text" runat="server" class="comment-textbox" placeholder="Write a comment..."
                                         onchange="validateComment(this)" oninput="validateComment(this)"></asp:TextBox>
                                     <asp:Button ID="btn_AI_suggestion" runat="server" Text="AI Suggestion" CssClass="ai-suggestion-button"
@@ -255,7 +192,7 @@
         </div>
     </div>
 
-    <!-- Validation script for comment input -->
+    <!-- Validation script for comment -->
     <script>
         function validateComment(textbox) {
             const text = textbox.value.trim();

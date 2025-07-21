@@ -13,7 +13,7 @@ namespace bipj
         public string user_id = "2";
         protected void Page_Load(object sender, EventArgs e)
         {
-            string post_id = Session["Post_ID"].ToString();
+            string post_id = Request.QueryString["post_id"];
 
             if (!IsPostBack)
             {
@@ -87,8 +87,8 @@ namespace bipj
 
             string text = tb_text.Text;
             string category = radiobtn_category.SelectedValue;
-            
-            string post_id = Session["Post_ID"].ToString();
+
+            string post_id = Request.QueryString["post_id"];
 
             HttpFileCollection uploadedFiles = Request.Files;
 

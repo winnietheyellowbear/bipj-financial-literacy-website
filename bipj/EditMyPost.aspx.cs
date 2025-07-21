@@ -10,14 +10,15 @@ namespace bipj
 {
     public partial class EditMyPost : System.Web.UI.Page
     {
+        public string user_id = "2";
         protected void Page_Load(object sender, EventArgs e)
         {
-            string post_id = Session["Post_ID"].ToString();
+            string post_id = Request.QueryString["post_id"];
 
             if (!IsPostBack)
             {
                 User_Post user_post = new User_Post();
-                user_post = user_post.GetPostByPostID(post_id);
+                user_post = user_post.GetPostByPostID(post_id, user_id);
 
                 // Filter out invalid or empty entries from the Images_List
                 var validImages = user_post.Images_List?.Where(img => !string.IsNullOrEmpty(img)).ToList() ?? new List<string>();
@@ -86,8 +87,8 @@ namespace bipj
 
             string text = tb_text.Text;
             string category = radiobtn_category.SelectedValue;
-            string user_id = "2";
-            string post_id = Session["Post_ID"].ToString();
+
+            string post_id = Request.QueryString["post_id"];
 
             HttpFileCollection uploadedFiles = Request.Files;
 

@@ -1,13 +1,16 @@
-﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Customer_Nav.Master" AutoEventWireup="true" MaintainScrollPositionOnPostBack="true" CodeBehind="SmartSearch.aspx.cs" Inherits="bipj.SmartSearch" Async="true" %>
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Customer_Nav.Master" AutoEventWireup="true" 
+    MaintainScrollPositionOnPostBack="true" CodeBehind="SmartSearch.aspx.cs" Inherits="bipj.SmartSearch" Async="true" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+    
     <head>
         <link rel="stylesheet" href="Forum_Nav.css">
         <link rel="stylesheet" href="Forum_Post.css">
-
+        
+        <!-- Include ScriptManager for AJAX functionality -->
         <asp:ScriptManager ID="ScriptManager" runat="server" />
     </head>
 
@@ -70,7 +73,7 @@
         .search-button {
             padding: 12px 30px;
             font-size: 16px;
-            background-color: #007BFF;
+            background-color: #3B387E;
             color: white;
             border: none;
             border-radius: 8px;
@@ -79,7 +82,7 @@
         }
 
         .search-button:hover {
-            background-color: #0056b3;
+            background-color: #5652AD;
         }
 
         @media (max-width: 768px) {
@@ -89,63 +92,37 @@
         }
     </style>
 
-    <!-- Sidebar and main content wrapper -->
     <div class="content-wrapper">
-        <!-- Sidebar -->
+
         <div class="sidebar">
             <ul>
                 <br />
                 <br />
-                <li>
-                    <a href="Discussion.aspx">
-                        <img src='<%= ResolveUrl("~/Forum/Icon/Discussion_Icon.png") %>' alt="Discussion Icon" />
-                        <span>Discussion</span>
-                    </a>
-                </li>
-                <li class="active">
-                    <a href="SmartSearch.aspx">
-                        <img src='<%= ResolveUrl("~/Forum/Icon/Magnifying_Glass_Icon.png") %>' alt="Notification Icon" />
-                        <span>Smart Search</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="MyNotification.aspx">
-                        <img src='<%= ResolveUrl("~/Forum/Icon/Notification_Icon.png") %>' alt="Notification Icon" />
-                        <span>Notification</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="MyPost.aspx">
-                        <img src='<%= ResolveUrl("~/Forum/Icon/MyPost_Icon.png") %>' alt="My Post Icon" />
-                        <span>My Post</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="Post.aspx">
-                        <img src='<%= ResolveUrl("~/Forum/Icon/Post_Icon.png") %>' alt="Post Icon" />
-                        <span>Post</span>
-                    </a>
-                </li>
+                <li><a href="Discussion.aspx"><img src='<%= ResolveUrl("~/Forum/Icon/Discussion_Icon.png") %>' /><span>Discussion</span></a></li>
+                <li class="active"><a href="SmartSearch.aspx"><img src='<%= ResolveUrl("~/Forum/Icon/Magnifying_Glass_Icon.png") %>' /><span>Smart Search</span></a></li>
+                <li><a href="MyNotification.aspx"><img src='<%= ResolveUrl("~/Forum/Icon/Notification_Icon.png") %>' /><span>Notification</span></a></li>
+                <li><a href="MyPost.aspx"><img src='<%= ResolveUrl("~/Forum/Icon/MyPost_Icon.png") %>' /><span>My Post</span></a></li>
+                <li><a href="Post.aspx"><img src='<%= ResolveUrl("~/Forum/Icon/Post_Icon.png") %>' /><span>Post</span></a></li>
             </ul>
         </div>
 
-        <!-- Main Content Area -->
         <div class="main-content">
+            
+            <!-- Search Section -->
             <div class="search-container">
                 <h2 class="search-header">Tell us what you're interested in.</h2>
                 <p class="search-subheader">We'll find the best discussions for you based on your interests.</p>
-                <asp:TextBox ID="txtSearch" runat="server" CssClass="search-bar" placeholder="e.g., I want to..."></asp:TextBox>
-                <br />
+                <asp:TextBox ID="txtSearch" runat="server" CssClass="search-bar" placeholder="I want to..."></asp:TextBox>
                 <asp:Button ID="btnSearch" runat="server" Text="Search" CssClass="search-button" OnClick="btnSearch_Click" />
             </div>
 
-            <!-- UpdatePanel for Smart Search Results -->
             <asp:UpdatePanel ID="UpdatePanel_Post" runat="server" UpdateMode="Conditional">
                 <ContentTemplate>
-                    <asp:Repeater ID="Post" runat="server" OnItemDataBound="post_ItemDataBound">
+                    <asp:Repeater ID="Post" runat="server">
                         <ItemTemplate>
-                            <!-- Forum Post Section -->
+                            <!-- Post Details -->
                             <div class="forum-post">
+                                
                                 <!-- Profile Section -->
                                 <div class="post-header">
                                     <div class="profile-image">
@@ -174,7 +151,7 @@
                                     <asp:Repeater ID="Video" runat="server" DataSource='<%# Eval("Videos_List") %>'>
                                         <ItemTemplate>
                                             <asp:Panel runat="server" Visible='<%# !string.IsNullOrEmpty((string)Container.DataItem) %>'>
-                                                <video controls class="post-video" style="width:100px">
+                                                <video controls style="width:100px">
                                                     <source src='<%# ResolveUrl((string)Container.DataItem) %>' type="video/mp4" />
                                                 </video>
                                             </asp:Panel>
@@ -182,43 +159,34 @@
                                     </asp:Repeater>
                                 </div>
 
-                                <!-- Like & Comment Buttons -->
+                                <!-- Like Button -->
                                 <div class="forum-actions">
-                                    <asp:UpdatePanel ID="UpdatePanel_Like" runat="server" UpdateMode="Conditional">
-                                        <ContentTemplate>
-                                            <asp:LinkButton ID="btn_like" runat="server" CommandArgument='<%# Eval("Post_ID") %>' 
-                                                CssClass='<%# (bool)Eval("Like_Status") ? "btn-red" : "btn-blue" %>' OnClick="btn_like_Click">
-                                                <%# (bool)Eval("Like_Status") ? "Liked" : "Like" %>
-                                                (<asp:Label ID="lbl_Like_Count" runat="server" Text=""></asp:Label>)
-                                            </asp:LinkButton>
-                                        </ContentTemplate>
-                                    </asp:UpdatePanel>
+                                    <asp:LinkButton ID="btn_like" runat="server" CommandArgument='<%# Eval("Post_ID") %>' 
+                                        CssClass='<%# (bool)Eval("Like_Status") ? "btn-red" : "btn-blue" %>' OnClick="btn_like_Click">
+                                        <%# (bool)Eval("Like_Status") ? "Liked" : "Like" %> 
+                                        (<%# GetLikeCount(Eval("Post_ID").ToString()) %>)
+                                    </asp:LinkButton>
                                 </div>
 
                                 <!-- Comments Section -->
                                 <div class="comments-section">
-                                    <asp:UpdatePanel ID="UpdatePanel_Comment" runat="server" UpdateMode="Conditional">
-                                        <ContentTemplate>
-                                            <asp:Repeater ID="Comment" runat="server">
-                                                <ItemTemplate>
-                                                    <div class="comment">
-                                                        <img src='<%# ResolveUrl("~/Images/" + Eval("User_Profile")) %>' class="profile-pic" />
-                                                        <div class="comment-content">
-                                                            <div class="comment-author"><%# Eval("User_Name") %></div>
-                                                            <div class="comment-time"><%# Eval("Comment_DateTime", "{0:dd MMM yyyy, hh:mmtt}") %></div>
-                                                            <div class="comment-text">
-                                                                <%# Eval("Text") %>
-                                                            </div>
-                                                            <asp:LinkButton ID="btn_delete" runat="server" CssClass="btn-delete"
-                                                                OnClientClick="return confirm('Are you sure you want to delete this comment?')"
-                                                                Visible='<%# Eval("User_ID").ToString() == user_id %>' 
-                                                                CommandArgument='<%# Eval("Comment_ID") %>' OnClick="btn_delete_comment_Click">Delete</asp:LinkButton>
-                                                        </div>
-                                                    </div>
-                                                </ItemTemplate>
-                                            </asp:Repeater>
-                                        </ContentTemplate>
-                                    </asp:UpdatePanel>
+                                    <asp:Repeater ID="Comment" runat="server" DataSource='<%# Eval("Comments_List") %>'>
+                                        <ItemTemplate>
+                                            <div class="comment">
+                                                <img src='<%# ResolveUrl("~/Images/" + Eval("User_Profile")) %>' class="profile-pic" />
+                                                <div class="comment-content">
+                                                    <div class="comment-author"><%# Eval("User_Name") %></div>
+                                                    <div class="comment-time"><%# Eval("Comment_DateTime", "{0:dd MMM yyyy, hh:mmtt}") %></div>
+                                                    <div class="comment-text"><%# Eval("Text") %></div>
+
+                                                    <asp:LinkButton ID="btn_delete" runat="server" CssClass="btn-delete"
+                                                        OnClientClick="return confirm('Are you sure you want to delete this comment?')"
+                                                        Visible='<%# Eval("User_ID").ToString() == user_id %>' 
+                                                        CommandArgument='<%# Eval("Comment_ID") %>' OnClick="btn_delete_comment_Click">Delete</asp:LinkButton>
+                                                </div>
+                                            </div>
+                                        </ItemTemplate>
+                                    </asp:Repeater>
                                 </div>
 
                                 <!-- Comment Input Section -->
@@ -237,6 +205,7 @@
         </div>
     </div>
 
+    <!-- Comment Validation -->
     <script>
         function validateComment(textbox) {
             const text = textbox.value.trim();
@@ -256,4 +225,5 @@
             }
         }
     </script>
+
 </asp:Content>

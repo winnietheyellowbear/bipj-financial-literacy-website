@@ -224,6 +224,8 @@
     <Content Include="QRCodeScanner.aspx" />
     <Content Include="RegisterAdvisor.aspx" />
     <Content Include="RegisterPage.aspx" />
+    <Content Include="ReminderPage.aspx" />
+    <Content Include="ReviewAdvisor.aspx" />
     <Content Include="SmartSearch.aspx" />
     <Content Include="ViewAdvisor.aspx" />
     <Content Include="ViewEducationPage.aspx" />
@@ -485,6 +487,20 @@
     </Compile>
     <Compile Include="RegisterPage.aspx.designer.cs">
       <DependentUpon>RegisterPage.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="ReminderPage.aspx.cs">
+      <DependentUpon>ReminderPage.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ReminderPage.aspx.designer.cs">
+      <DependentUpon>ReminderPage.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="ReviewAdvisor.aspx.cs">
+      <DependentUpon>ReviewAdvisor.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ReviewAdvisor.aspx.designer.cs">
+      <DependentUpon>ReviewAdvisor.aspx</DependentUpon>
     </Compile>
     <Compile Include="SmartSearch.aspx.cs">
       <DependentUpon>SmartSearch.aspx</DependentUpon>

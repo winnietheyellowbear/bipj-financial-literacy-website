@@ -47,13 +47,15 @@ namespace bipj
         [NotMapped]
         public HttpPostedFileBase PhotoFile { get; set; }
 
+        // These will now be calculated dynamically from AdvisorReview table
         public decimal Rating { get; set; } = 0;
-        public decimal RatingSum { get; set; } = 0;
         public int RatingCount { get; set; } = 0;
-        
+
         public byte Status { get; set; } = 0; // 0=Pending, 1=Approved, 2=Rejected
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
+
+        // Removed RatingSum as it's now calculated dynamically
 
         public Advisor() { }
 
@@ -61,7 +63,7 @@ namespace bipj
                       string spec1, string spec2, string spec3,
                       string bio, string photoPath, byte status,
                       DateTime createdAt, DateTime updatedAt,
-                      decimal rating, decimal ratingSum, int ratingCount)
+                      decimal rating, int ratingCount)
         {
             AdvisorId = advisorId;
             Name = name;
@@ -76,7 +78,6 @@ namespace bipj
             CreatedAt = createdAt;
             UpdatedAt = updatedAt;
             Rating = rating;
-            RatingSum = ratingSum;
             RatingCount = ratingCount;
         }
 
@@ -96,13 +97,11 @@ namespace bipj
                 INSERT INTO Advisor
                  (Name, Email, Category,
                   Specialty1, Specialty2, Specialty3,
-                  Bio, PhotoPath, Status, CreatedAt, UpdatedAt,
-                  Rating, RatingSum, RatingCount)
+                  Bio, PhotoPath, Status, CreatedAt, UpdatedAt)
                  VALUES
                  (@Name, @Email, @Category,
                   @S1, @S2, @S3,
-                  @Bio, @Photo, @Status, @Created, @Updated,
-                  @Rating, @RatingSum, @RatingCount);
+                  @Bio, @Photo, @Status, @Created, @Updated);
                 SELECT SCOPE_IDENTITY();";
 
                 using (var conn = new SqlConnection(ConnStr))
@@ -119,9 +118,6 @@ namespace bipj
                     cmd.Parameters.AddWithValue("@Status", Status);
                     cmd.Parameters.AddWithValue("@Created", CreatedAt);
                     cmd.Parameters.AddWithValue("@Updated", UpdatedAt);
-                    cmd.Parameters.AddWithValue("@Rating", Rating);
-                    cmd.Parameters.AddWithValue("@RatingSum", RatingSum);
-                    cmd.Parameters.AddWithValue("@RatingCount", RatingCount);
 
                     conn.Open();
                     var result = cmd.ExecuteScalar();
@@ -162,10 +158,7 @@ namespace bipj
                        Bio = @Bio,
                        PhotoPath = @Photo,
                        Status = @Status,
-                       UpdatedAt = @Updated,
-                       Rating = @Rating,
-                       RatingSum = @RatingSum,
-                       RatingCount = @RatingCount
+                       UpdatedAt = @Updated
                  WHERE AdvisorId = @Id";
 
                 using (var conn = new SqlConnection(ConnStr))
@@ -182,9 +175,6 @@ namespace bipj
                     cmd.Parameters.AddWithValue("@Photo", (object)PhotoPath ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@Status", Status);
                     cmd.Parameters.AddWithValue("@Updated", DateTime.Now);
-                    cmd.Parameters.AddWithValue("@Rating", Rating);
-                    cmd.Parameters.AddWithValue("@RatingSum", RatingSum);
-                    cmd.Parameters.AddWithValue("@RatingCount", RatingCount);
 
                     conn.Open();
                     return cmd.ExecuteNonQuery();
@@ -198,32 +188,18 @@ namespace bipj
         }
 
         /// <summary>
-        /// Updates advisor's rating with a new user rating
+        /// DEPRECATED: Use AdvisorReview.cs to add reviews instead
+        /// This method is kept for backward compatibility but should not be used
         /// </summary>
+        [Obsolete("Use AdvisorReview.AddReview() instead")]
         public static bool AddRating(int advisorId, int stars)
         {
-            const string sql = @"
-                UPDATE Advisor
-                SET RatingSum = RatingSum + @Stars,
-                    RatingCount = RatingCount + 1,
-                    Rating = CAST(RatingSum + @Stars AS DECIMAL(5,2)) / (RatingCount + 1),
-                    UpdatedAt = @Updated
-                WHERE AdvisorId = @Id";
-
-            using (var conn = new SqlConnection(ConnStr))
-            using (var cmd = new SqlCommand(sql, conn))
-            {
-                cmd.Parameters.AddWithValue("@Stars", stars);
-                cmd.Parameters.AddWithValue("@Id", advisorId);
-                cmd.Parameters.AddWithValue("@Updated", DateTime.UtcNow);
-
-                conn.Open();
-                return cmd.ExecuteNonQuery() > 0;
-            }
+            // This method should no longer be used - redirect to AdvisorReview
+            throw new NotSupportedException("Use AdvisorReview.AddReview() method instead");
         }
 
         /// <summary>
-        /// Deletes an advisor record.
+        /// Deletes an advisor record and all associated reviews.
         /// </summary>
         public int Delete()
         {
@@ -234,15 +210,44 @@ namespace bipj
                     DeletePhoto(PhotoPath);
                 }
 
-                const string sql = "DELETE FROM Advisor WHERE AdvisorId = @Id";
+                // Delete associated reviews first (if you want to cascade delete)
+                const string deleteReviewsSql = @"
+                    DELETE FROM AdvisorReview 
+                    WHERE BookingId IN (
+                        SELECT BookingId FROM Booking WHERE AdvisorId = @Id
+                    )";
+
+                const string deleteAdvisorSql = "DELETE FROM Advisor WHERE AdvisorId = @Id";
 
                 using (var conn = new SqlConnection(ConnStr))
-                using (var cmd = new SqlCommand(sql, conn))
                 {
-                    cmd.Parameters.AddWithValue("@Id", AdvisorId);
-
                     conn.Open();
-                    return cmd.ExecuteNonQuery();
+                    using (var transaction = conn.BeginTransaction())
+                    {
+                        try
+                        {
+                            // Delete reviews first
+                            using (var cmd1 = new SqlCommand(deleteReviewsSql, conn, transaction))
+                            {
+                                cmd1.Parameters.AddWithValue("@Id", AdvisorId);
+                                cmd1.ExecuteNonQuery();
+                            }
+
+                            // Delete advisor
+                            using (var cmd2 = new SqlCommand(deleteAdvisorSql, conn, transaction))
+                            {
+                                cmd2.Parameters.AddWithValue("@Id", AdvisorId);
+                                var result = cmd2.ExecuteNonQuery();
+                                transaction.Commit();
+                                return result;
+                            }
+                        }
+                        catch
+                        {
+                            transaction.Rollback();
+                            throw;
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -253,19 +258,26 @@ namespace bipj
         }
 
         /// <summary>
-        /// Retrieves all advisors with the given status.
+        /// Retrieves all advisors with the given status, including calculated ratings from AdvisorReview.
         /// </summary>
         public static List<Advisor> GetByStatus(byte status)
         {
             var list = new List<Advisor>();
             const string sql = @"
-            SELECT AdvisorId, Name, Email, Category,
-                   Specialty1, Specialty2, Specialty3,
-                   Bio, PhotoPath, Status, CreatedAt, UpdatedAt,
-                   Rating, RatingSum, RatingCount
-              FROM Advisor
-             WHERE Status = @Status
-            ORDER BY CreatedAt DESC;";
+            SELECT 
+                a.AdvisorId, a.Name, a.Email, a.Category,
+                a.Specialty1, a.Specialty2, a.Specialty3,
+                a.Bio, a.PhotoPath, a.Status, a.CreatedAt, a.UpdatedAt,
+                COALESCE(AVG(CAST(r.Rating AS DECIMAL(5,2))), 0) AS AvgRating,
+                COUNT(r.Rating) AS ReviewCount
+            FROM Advisor a
+            LEFT JOIN Booking b ON a.AdvisorId = b.AdvisorId
+            LEFT JOIN AdvisorReview r ON b.BookingId = r.BookingId
+            WHERE a.Status = @Status
+            GROUP BY a.AdvisorId, a.Name, a.Email, a.Category,
+                     a.Specialty1, a.Specialty2, a.Specialty3,
+                     a.Bio, a.PhotoPath, a.Status, a.CreatedAt, a.UpdatedAt
+            ORDER BY a.CreatedAt DESC;";
 
             using (var conn = new SqlConnection(ConnStr))
             using (var cmd = new SqlCommand(sql, conn))
@@ -278,21 +290,20 @@ namespace bipj
                     while (dr.Read())
                     {
                         list.Add(new Advisor(
-                            dr.GetInt32(0),
-                            dr.GetString(1),
-                            dr.GetString(2),
-                            dr.GetString(3),
-                            dr.IsDBNull(4) ? null : dr.GetString(4),
-                            dr.IsDBNull(5) ? null : dr.GetString(5),
-                            dr.IsDBNull(6) ? null : dr.GetString(6),
-                            dr.GetString(7),
-                            dr.IsDBNull(8) ? null : dr.GetString(8),
-                            dr.GetByte(9),
-                            dr.GetDateTime(10),
-                            dr.GetDateTime(11),
-                            dr.GetDecimal(12),
-                            dr.GetDecimal(13),
-                            dr.GetInt32(14)
+                            dr.GetInt32(0),  // AdvisorId
+                            dr.GetString(1), // Name
+                            dr.GetString(2), // Email
+                            dr.GetString(3), // Category
+                            dr.IsDBNull(4) ? null : dr.GetString(4), // Specialty1
+                            dr.IsDBNull(5) ? null : dr.GetString(5), // Specialty2
+                            dr.IsDBNull(6) ? null : dr.GetString(6), // Specialty3
+                            dr.GetString(7), // Bio
+                            dr.IsDBNull(8) ? null : dr.GetString(8), // PhotoPath
+                            dr.GetByte(9),   // Status
+                            dr.GetDateTime(10), // CreatedAt
+                            dr.GetDateTime(11), // UpdatedAt
+                            dr.GetDecimal(12),  // AvgRating (calculated)
+                            dr.GetInt32(13)     // ReviewCount (calculated)
                         ));
                     }
                 }
@@ -302,18 +313,25 @@ namespace bipj
         }
 
         /// <summary>
-        /// Retrieves all advisors.
+        /// Retrieves all advisors with calculated ratings from AdvisorReview.
         /// </summary>
         public static List<Advisor> GetAll()
         {
             var list = new List<Advisor>();
             const string sql = @"
-            SELECT AdvisorId, Name, Email, Category,
-                   Specialty1, Specialty2, Specialty3,
-                   Bio, PhotoPath, Status, CreatedAt, UpdatedAt,
-                   Rating, RatingSum, RatingCount
-              FROM Advisor
-            ORDER BY CreatedAt DESC;";
+            SELECT 
+                a.AdvisorId, a.Name, a.Email, a.Category,
+                a.Specialty1, a.Specialty2, a.Specialty3,
+                a.Bio, a.PhotoPath, a.Status, a.CreatedAt, a.UpdatedAt,
+                COALESCE(AVG(CAST(r.Rating AS DECIMAL(5,2))), 0) AS AvgRating,
+                COUNT(r.Rating) AS ReviewCount
+            FROM Advisor a
+            LEFT JOIN Booking b ON a.AdvisorId = b.AdvisorId
+            LEFT JOIN AdvisorReview r ON b.BookingId = r.BookingId
+            GROUP BY a.AdvisorId, a.Name, a.Email, a.Category,
+                     a.Specialty1, a.Specialty2, a.Specialty3,
+                     a.Bio, a.PhotoPath, a.Status, a.CreatedAt, a.UpdatedAt
+            ORDER BY a.CreatedAt DESC;";
 
             using (var conn = new SqlConnection(ConnStr))
             using (var cmd = new SqlCommand(sql, conn))
@@ -325,21 +343,20 @@ namespace bipj
                     while (dr.Read())
                     {
                         list.Add(new Advisor(
-                            dr.GetInt32(0),
-                            dr.GetString(1),
-                            dr.GetString(2),
-                            dr.GetString(3),
-                            dr.IsDBNull(4) ? null : dr.GetString(4),
-                            dr.IsDBNull(5) ? null : dr.GetString(5),
-                            dr.IsDBNull(6) ? null : dr.GetString(6),
-                            dr.GetString(7),
-                            dr.IsDBNull(8) ? null : dr.GetString(8),
-                            dr.GetByte(9),
-                            dr.GetDateTime(10),
-                            dr.GetDateTime(11),
-                            dr.GetDecimal(12),
-                            dr.GetDecimal(13),
-                            dr.GetInt32(14)
+                            dr.GetInt32(0),  // AdvisorId
+                            dr.GetString(1), // Name
+                            dr.GetString(2), // Email
+                            dr.GetString(3), // Category
+                            dr.IsDBNull(4) ? null : dr.GetString(4), // Specialty1
+                            dr.IsDBNull(5) ? null : dr.GetString(5), // Specialty2
+                            dr.IsDBNull(6) ? null : dr.GetString(6), // Specialty3
+                            dr.GetString(7), // Bio
+                            dr.IsDBNull(8) ? null : dr.GetString(8), // PhotoPath
+                            dr.GetByte(9),   // Status
+                            dr.GetDateTime(10), // CreatedAt
+                            dr.GetDateTime(11), // UpdatedAt
+                            dr.GetDecimal(12),  // AvgRating (calculated)
+                            dr.GetInt32(13)     // ReviewCount (calculated)
                         ));
                     }
                 }
@@ -372,17 +389,24 @@ namespace bipj
         }
 
         /// <summary>
-        /// Fetches a single advisor by its ID.
+        /// Fetches a single advisor by its ID with calculated rating from AdvisorReview.
         /// </summary>
         public static Advisor GetById(int advisorId)
         {
             const string sql = @"
-            SELECT AdvisorId, Name, Email, Category,
-                   Specialty1, Specialty2, Specialty3,
-                   Bio, PhotoPath, Status, CreatedAt, UpdatedAt,
-                   Rating, RatingSum, RatingCount
-              FROM Advisor
-             WHERE AdvisorId = @Id;";
+            SELECT 
+                a.AdvisorId, a.Name, a.Email, a.Category,
+                a.Specialty1, a.Specialty2, a.Specialty3,
+                a.Bio, a.PhotoPath, a.Status, a.CreatedAt, a.UpdatedAt,
+                COALESCE(AVG(CAST(r.Rating AS DECIMAL(5,2))), 0) AS AvgRating,
+                COUNT(r.Rating) AS ReviewCount
+            FROM Advisor a
+            LEFT JOIN Booking b ON a.AdvisorId = b.AdvisorId
+            LEFT JOIN AdvisorReview r ON b.BookingId = r.BookingId
+            WHERE a.AdvisorId = @Id
+            GROUP BY a.AdvisorId, a.Name, a.Email, a.Category,
+                     a.Specialty1, a.Specialty2, a.Specialty3,
+                     a.Bio, a.PhotoPath, a.Status, a.CreatedAt, a.UpdatedAt;";
 
             using (var conn = new SqlConnection(ConnStr))
             using (var cmd = new SqlCommand(sql, conn))
@@ -394,24 +418,79 @@ namespace bipj
                 {
                     if (!dr.Read()) return null;
                     return new Advisor(
-                        dr.GetInt32(0),
-                        dr.GetString(1),
-                        dr.GetString(2),
-                        dr.GetString(3),
-                        dr.IsDBNull(4) ? null : dr.GetString(4),
-                        dr.IsDBNull(5) ? null : dr.GetString(5),
-                        dr.IsDBNull(6) ? null : dr.GetString(6),
-                        dr.GetString(7),
-                        dr.IsDBNull(8) ? null : dr.GetString(8),
-                        dr.GetByte(9),
-                        dr.GetDateTime(10),
-                        dr.GetDateTime(11),
-                        dr.GetDecimal(12),
-                        dr.GetDecimal(13),
-                        dr.GetInt32(14)
+                        dr.GetInt32(0),  // AdvisorId
+                        dr.GetString(1), // Name
+                        dr.GetString(2), // Email
+                        dr.GetString(3), // Category
+                        dr.IsDBNull(4) ? null : dr.GetString(4), // Specialty1
+                        dr.IsDBNull(5) ? null : dr.GetString(5), // Specialty2
+                        dr.IsDBNull(6) ? null : dr.GetString(6), // Specialty3
+                        dr.GetString(7), // Bio
+                        dr.IsDBNull(8) ? null : dr.GetString(8), // PhotoPath
+                        dr.GetByte(9),   // Status
+                        dr.GetDateTime(10), // CreatedAt
+                        dr.GetDateTime(11), // UpdatedAt
+                        dr.GetDecimal(12),  // AvgRating (calculated)
+                        dr.GetInt32(13)     // ReviewCount (calculated)
                     );
                 }
             }
+        }
+
+        /// <summary>
+        /// Get advisors with highest ratings (for featured/top advisors)
+        /// </summary>
+        public static List<Advisor> GetTopRated(int count = 5)
+        {
+            var list = new List<Advisor>();
+            const string sql = @"
+            SELECT TOP (@Count)
+                a.AdvisorId, a.Name, a.Email, a.Category,
+                a.Specialty1, a.Specialty2, a.Specialty3,
+                a.Bio, a.PhotoPath, a.Status, a.CreatedAt, a.UpdatedAt,
+                COALESCE(AVG(CAST(r.Rating AS DECIMAL(5,2))), 0) AS AvgRating,
+                COUNT(r.Rating) AS ReviewCount
+            FROM Advisor a
+            LEFT JOIN Booking b ON a.AdvisorId = b.AdvisorId
+            LEFT JOIN AdvisorReview r ON b.BookingId = r.BookingId
+            WHERE a.Status = 1 -- Only approved advisors
+            GROUP BY a.AdvisorId, a.Name, a.Email, a.Category,
+                     a.Specialty1, a.Specialty2, a.Specialty3,
+                     a.Bio, a.PhotoPath, a.Status, a.CreatedAt, a.UpdatedAt
+            HAVING COUNT(r.Rating) > 0 -- Only advisors with reviews
+            ORDER BY AVG(CAST(r.Rating AS DECIMAL(5,2))) DESC, COUNT(r.Rating) DESC;";
+
+            using (var conn = new SqlConnection(ConnStr))
+            using (var cmd = new SqlCommand(sql, conn))
+            {
+                cmd.Parameters.AddWithValue("@Count", count);
+                conn.Open();
+
+                using (var dr = cmd.ExecuteReader())
+                {
+                    while (dr.Read())
+                    {
+                        list.Add(new Advisor(
+                            dr.GetInt32(0),  // AdvisorId
+                            dr.GetString(1), // Name
+                            dr.GetString(2), // Email
+                            dr.GetString(3), // Category
+                            dr.IsDBNull(4) ? null : dr.GetString(4), // Specialty1
+                            dr.IsDBNull(5) ? null : dr.GetString(5), // Specialty2
+                            dr.IsDBNull(6) ? null : dr.GetString(6), // Specialty3
+                            dr.GetString(7), // Bio
+                            dr.IsDBNull(8) ? null : dr.GetString(8), // PhotoPath
+                            dr.GetByte(9),   // Status
+                            dr.GetDateTime(10), // CreatedAt
+                            dr.GetDateTime(11), // UpdatedAt
+                            dr.GetDecimal(12),  // AvgRating (calculated)
+                            dr.GetInt32(13)     // ReviewCount (calculated)
+                        ));
+                    }
+                }
+            }
+
+            return list;
         }
 
         /// <summary>

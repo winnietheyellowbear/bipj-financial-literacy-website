@@ -1,11 +1,4 @@
-﻿<%@ Page 
-    Title="Apply as Advisor" 
-    Language="C#" 
-    MasterPageFile="~/Customer_Nav.Master" 
-    AutoEventWireup="true" 
-    CodeBehind="RegisterAdvisor.aspx.cs" 
-    Inherits="bipj.RegisterAdvisor" 
-%>
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Customer_Nav_loggedin.Master" AutoEventWireup="true" CodeBehind="RegisterAdvisor.aspx.cs" Inherits="bipj.RegisterAdvisor" %>
 
 <asp:Content ID="HeadContent" ContentPlaceHolderID="head" runat="server">
   <style>

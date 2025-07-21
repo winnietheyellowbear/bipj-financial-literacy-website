@@ -1,9 +1,5 @@
-﻿<%@ Page Title="Book a Session – Step 5" 
-    Language="C#" 
-    MasterPageFile="~/Customer_Nav.Master" 
-    AutoEventWireup="true" 
-    CodeBehind="Booking5.aspx.cs" 
-    Inherits="bipj.Booking5" %>
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Customer_Nav_loggedin.Master" AutoEventWireup="true" CodeBehind="Booking5.aspx.cs" Inherits="bipj.Booking5" %>
+
 
 <asp:Content ID="HeadContent" ContentPlaceHolderID="head" runat="server">
   <style>

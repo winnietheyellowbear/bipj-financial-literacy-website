@@ -1,12 +1,4 @@
-﻿<%@ Page 
-    Title="Workshop" 
-    Language="C#" 
-    MasterPageFile="~/Customer_Nav.Master" 
-    AutoEventWireup="true" 
-    CodeBehind="BookingForum.aspx.cs" 
-    Inherits="bipj.BookingForum" 
-%>
-
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Customer_Nav_loggedin.Master" AutoEventWireup="true" CodeBehind="BookingForum.aspx.cs" Inherits="bipj.BookingForum" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
   <style>
     .booking-container {

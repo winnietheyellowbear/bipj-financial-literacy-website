@@ -27,10 +27,8 @@ namespace bipj
         {
             Button btn = (Button)sender;
             string email_id = btn.CommandArgument;
-            Session["Email_ID"] = email_id;
 
-            Response.Redirect("CreateVoucherAuto.aspx");
-
+            Response.Redirect("CreateVoucher.aspx?Email_ID=" + email_id);
         }
     }
 }

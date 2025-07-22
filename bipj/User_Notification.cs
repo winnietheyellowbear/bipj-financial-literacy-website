@@ -22,7 +22,6 @@ namespace bipj
         private string _User_Profile;
         private string _Text;
         private string _DateTime;
-
         public User_Notification()
         {
         }
@@ -101,7 +100,6 @@ namespace bipj
             set { _DateTime = value; }
         }
 
-
         public int NotificationInsert()
         {
             int result = 0;
@@ -127,10 +125,8 @@ namespace bipj
         public List<User_Notification> GetNotificationsByUserID(string user_id)
         {
             string notification_id, action, action_id, post_id, status, name, profile, text, datetime;
-
             List<User_Notification> notification_list = new List<User_Notification>();
 
-            // filter only the post belongs to user
             string queryStr = "SELECT * FROM Notification n " +
                             "LEFT OUTER JOIN Post p ON n.Post_ID = p.Post_ID " +
                             "WHERE p.User_ID = @User_ID " +
@@ -207,7 +203,6 @@ namespace bipj
                     conn2.Close();
                     dr2.Close();
                     dr2.Dispose();
-
                 }
             }
 

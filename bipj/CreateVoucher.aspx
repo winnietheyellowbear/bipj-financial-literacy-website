@@ -1,4 +1,4 @@
-﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Staff_Nav.Master" AutoEventWireup="true" Async="true" CodeBehind="CreateVoucherAuto.aspx.cs" Inherits="bipj.CreateVoucherAuto" %>
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Staff_Nav.Master" AutoEventWireup="true" Async="true" CodeBehind="CreateVoucher.aspx.cs" Inherits="bipj.CreateVoucherAuto" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
      <style>
      .form-container {

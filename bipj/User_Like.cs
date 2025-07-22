@@ -19,7 +19,6 @@ namespace bipj
         private string _User_ID;
         private string _User_Name;
         private string _User_Profile;
-
         public User_Like()
         {
         }
@@ -30,6 +29,8 @@ namespace bipj
             _Post_ID = post_id;
             _User_ID = user_id;
         }
+
+        // retrieve like
         public User_Like(string like_id, string post_id, string user_id, string profile, string name)
         {
             _Like_ID = like_id;
@@ -68,7 +69,6 @@ namespace bipj
             get { return _User_Profile; }
             set { _User_Profile = value; }
         }
-
 
         public void LikeInsert()
         {

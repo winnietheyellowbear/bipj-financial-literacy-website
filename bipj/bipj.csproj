@@ -199,7 +199,7 @@
     <Content Include="Booking4.aspx" />
     <Content Include="Booking5.aspx" />
     <Content Include="BookingForum.aspx" />
-    <Content Include="CreateVoucherAuto.aspx" />
+    <Content Include="CreateVoucher.aspx" />
     <Content Include="Discussion.aspx" />
     <Content Include="EditEducationPage.aspx" />
     <Content Include="EditMyPost.aspx" />
@@ -338,12 +338,12 @@
     <Compile Include="BookingForum.aspx.designer.cs">
       <DependentUpon>BookingForum.aspx</DependentUpon>
     </Compile>
-    <Compile Include="CreateVoucherAuto.aspx.cs">
-      <DependentUpon>CreateVoucherAuto.aspx</DependentUpon>
+    <Compile Include="CreateVoucher.aspx.cs">
+      <DependentUpon>CreateVoucher.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="CreateVoucherAuto.aspx.designer.cs">
-      <DependentUpon>CreateVoucherAuto.aspx</DependentUpon>
+    <Compile Include="CreateVoucher.aspx.designer.cs">
+      <DependentUpon>CreateVoucher.aspx</DependentUpon>
     </Compile>
     <Compile Include="Customer_Nav.Master.cs">
       <DependentUpon>Customer_Nav.Master</DependentUpon>

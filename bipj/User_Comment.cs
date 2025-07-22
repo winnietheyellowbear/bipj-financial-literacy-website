@@ -90,9 +90,8 @@ namespace bipj
 
         public void CommentInsert()
         {
-
             string queryStr = "INSERT INTO Comment(Text, User_ID, Post_ID, Comment_DateTime) " +
-                  "OUTPUT INSERTED.Comment_ID " +  // return the new Comment_ID
+                  "OUTPUT INSERTED.Comment_ID " +  
                   "VALUES (@Text, @User_ID, @Post_ID, @Comment_DateTime)";
 
             SqlConnection conn = new SqlConnection(_connStr);
@@ -102,8 +101,9 @@ namespace bipj
             cmd.Parameters.AddWithValue("@User_ID", this.User_ID);
             cmd.Parameters.AddWithValue("@Post_ID", this.Post_ID);
 
-            DateTime currentDateTime = new DateTime(2025, 6, 15, 13, 45, 0);
-            cmd.Parameters.AddWithValue("@Comment_DateTime", currentDateTime);
+            DateTime currentDateTime = DateTime.Now;
+            string formattedDateTime = currentDateTime.ToString("dd MMM yyyy hh:mm tt");
+            cmd.Parameters.AddWithValue("@Comment_DateTime", formattedDateTime);
 
             conn.Open();
             string comment_id = cmd.ExecuteScalar().ToString();
@@ -118,9 +118,7 @@ namespace bipj
                 User_Notification user_notification = new User_Notification("Comment", comment_id, this.Post_ID);
                 user_notification.NotificationInsert();
             }
-
         }
-
 
         public List<User_Comment> GetCommentsByPostID(string post_id)
         {

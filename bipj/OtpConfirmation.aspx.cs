@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data.SqlClient;
 using System.Configuration;
+using bipj.Models;
 
 namespace bipj
 {
@@ -66,6 +67,10 @@ namespace bipj
                         int rows = cmd.ExecuteNonQuery();
                         if (rows > 0)
                         {
+                            // Auto-create default jars after successful registration
+                            Jar jarManager = new Jar(); // from bipj.Models
+                            jarManager.CreateDefaultJars(nextId); // 🔥 create 6 jars
+
                             // Clear session data
                             Session.Remove("OTP");
                             Session.Remove("Register_Name");

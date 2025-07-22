@@ -359,6 +359,8 @@
     <Compile Include="Customer_Nav_loggedin.Master.designer.cs">
       <DependentUpon>Customer_Nav_loggedin.Master</DependentUpon>
     </Compile>
+    <Compile Include="Data\Db.cs" />
+    <Compile Include="Data\SqlDate.cs" />
     <Compile Include="Discussion.aspx.cs">
       <DependentUpon>Discussion.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -429,6 +431,10 @@
     <Compile Include="ManageEducation.aspx.designer.cs">
       <DependentUpon>ManageEducation.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Models\Goal.cs" />
+    <Compile Include="Models\GoalTransaction.cs" />
+    <Compile Include="Models\Jar.cs" />
+    <Compile Include="Models\JarTransaction.cs" />
     <Compile Include="MyNotification.aspx.cs">
       <DependentUpon>MyNotification.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>

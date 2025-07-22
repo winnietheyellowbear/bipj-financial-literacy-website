@@ -156,7 +156,6 @@ namespace bipj
             Staff_Voucher staff_voucher = new Staff_Voucher();
             staff_voucher = staff_voucher.GetVoucherByVoucherID(voucher_id);
 
-            // retrieve user details
             User_Voucher user_voucher = new User_Voucher();
             user_points = user_voucher.GetUserPoint(user_id);
 
@@ -170,12 +169,10 @@ namespace bipj
             }
         }
 
-
         public Staff_Voucher GetVoucherByVoucherID(string voucher_id)
         {
             string company_name, description, validity, status, token;
             int points_required;
-
             Staff_Voucher staff_voucher = new Staff_Voucher();   
 
             string queryStr = "SELECT * FROM Staff_Voucher WHERE Voucher_ID = @Voucher_ID";
@@ -210,7 +207,6 @@ namespace bipj
         {
             string voucher_id, company_name, description, validity, status;
             int points_required;
-
             Staff_Voucher staff_voucher = new Staff_Voucher();
 
             string queryStr = "SELECT * FROM Staff_Voucher WHERE Token = @Token";
@@ -269,28 +265,24 @@ namespace bipj
 
             string queryStr = "SELECT * FROM Staff_Voucher WHERE Status = 'Active'";
 
-            // Constructing dynamic WHERE clause and ORDER BY
             if (!string.IsNullOrEmpty(searchInput))
             {
                 queryStr += " AND (Company_Name LIKE @searchInput OR Description LIKE @searchInput)";
             }
 
-            // Appending ORDER BY clause based on filterInput
             if (!string.IsNullOrEmpty(filterInput) && filterInput != "order")
             {
                 queryStr += " " + filterInput;
             }
             else if (string.IsNullOrEmpty(searchInput) && string.IsNullOrEmpty(filterInput))
             {
-                // If no searchInput and no filterInput, just order by Voucher_ID ascending by default
-                queryStr += " ORDER BY Voucher_ID ASC";
+                queryStr += " ORDER BY Voucher_ID DESC";
             }
 
             SqlConnection conn = new SqlConnection(_connStr);
             SqlCommand cmd = new SqlCommand(queryStr, conn);
 
-            // Adding parameters for search input if necessary
-            if (!string.IsNullOrEmpty(searchInput))
+            if (!string.IsNullOrEmpty(searchInput) && filterInput != "order")
             {
                 cmd.Parameters.AddWithValue("@searchInput", "%" + searchInput + "%");
             }
@@ -316,7 +308,6 @@ namespace bipj
             dr.Close();
             dr.Dispose();
 
-            // Handling case where only filter is passed without search
             if (string.IsNullOrEmpty(searchInput) && (filterInput == "order"))
             {
                 voucher_list = staff_voucher.GetAllVouchers();
@@ -325,7 +316,6 @@ namespace bipj
             return voucher_list;
         }
 
-        // Method to send a WhatsApp message
 
         public async Task SendMessageAsync(string toPhoneNumber)
         {

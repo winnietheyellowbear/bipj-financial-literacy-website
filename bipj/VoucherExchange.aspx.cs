@@ -11,6 +11,8 @@ namespace bipj
 {
     public partial class VoucherExchange : System.Web.UI.Page
     {
+        string user_id = "2";
+        User_Voucher user_voucher = new User_Voucher();
         Staff_Voucher staff_voucher = new Staff_Voucher();
         public List<Staff_Voucher> voucher_list = new List<Staff_Voucher>();
 
@@ -23,21 +25,22 @@ namespace bipj
                 Voucher.DataSource = voucher_list;
                 Voucher.DataBind();
 
-                User_Voucher user_voucher = new User_Voucher();
-                string user_id = "2";
                 int user_point = user_voucher.GetUserPoint(user_id);
-
-                lbl_Point.Text = user_point.ToString() + " point";
+                if (user_point > 1) 
+                {
+                    lbl_Point.Text = user_point.ToString() + " points";
+                }
+                else if (user_point == 0 || user_point == 1)
+                {
+                    lbl_Point.Text = user_point.ToString() + " point";
+                }
             }
-
         }
 
         protected void btn_redeem_Click(object sender, EventArgs e)
         {
             LinkButton btn = (LinkButton)sender;
             string voucher_id = btn.CommandArgument;
-
-            string user_id = "2";
 
             var variables = staff_voucher.IsPointEnough(voucher_id, user_id);
             bool isPointEnough = variables.isPointEnough;
@@ -67,8 +70,7 @@ namespace bipj
                 string expiry_date = expiryDate.ToString("yyyy-MM-dd");
 
                 string token = GenerateToken();
-
-                User_Voucher user_voucher = new User_Voucher(staff_voucher.Company_Name, staff_voucher.Description, expiry_date, user_id, token);
+                user_voucher = new User_Voucher(staff_voucher.Company_Name, staff_voucher.Description, expiry_date, user_id, token);
 
                 int user_point = userPoints - pointsRequired;
                 user_voucher.PointUpdate(user_id, user_point);
@@ -95,7 +97,6 @@ namespace bipj
         {
             byte[] randomBytes = new byte[32];
 
-            // Works in all .NET versions
             using (var rng = RandomNumberGenerator.Create())
             {
                 rng.GetBytes(randomBytes);
@@ -109,23 +110,19 @@ namespace bipj
             }
 
             return sb.ToString();
-
         }
 
 
         protected void Search(object sender, EventArgs e)
         {
-            // Get search text and filter category
             string searchInput = this.searchInput.Text.Trim();
             string order = statusFilter.SelectedValue;
 
-            // Call method to get filtered posts
             voucher_list = staff_voucher.GetSearchVouchers(searchInput, order);
 
             Voucher.DataSource = voucher_list;
             Voucher.DataBind();
 
-            // Update the UpdatePanel (to avoid full page reload)
             UpdatePanel.Update();
         }
 

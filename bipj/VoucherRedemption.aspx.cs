@@ -13,10 +13,8 @@ namespace bipj
         User_Voucher user_voucher = new User_Voucher();
         protected void Page_Load(object sender, EventArgs e)
         {
-
             if (!IsPostBack)
             {
-                // Retrieve the token from the query string
                 string token = Request.QueryString["token"];
                 user_voucher = user_voucher.GetVoucherByToken(token);
 
@@ -45,7 +43,6 @@ namespace bipj
 
             if (result > 0)
             {
-                Session["token"] = token;
                 ScriptManager.RegisterStartupScript(
                     this,
                     this.GetType(),

@@ -15,15 +15,6 @@ namespace bipj
     {
 
         /// <summary>
-        /// ScriptManager control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.ScriptManager ScriptManager;
-
-        /// <summary>
         /// UpdatePanel control.
         /// </summary>
         /// <remarks>
@@ -67,14 +58,5 @@ namespace bipj
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.TextBox voucherToken;
-
-        /// <summary>
-        /// statusCheckTimer control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.Timer statusCheckTimer;
     }
 }

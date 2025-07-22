@@ -13,7 +13,6 @@ namespace bipj
         {
             if (!IsPostBack)
             {
-                // Retrieve the token from the query string
                 string token = Request.QueryString["token"];
                 Staff_Voucher staff_voucher = new Staff_Voucher();
                 staff_voucher = staff_voucher.GetVoucherByToken(token);
@@ -69,10 +68,8 @@ namespace bipj
 
         private async void WhatsApp()
         {
-            // Example: Send a message when voucher is used
             Staff_Voucher staff_voucher = new Staff_Voucher();
-            string phoneNumber = "6582581110"; // Replace with the actual recipient's phone number
-
+            string phoneNumber = "6582581110"; 
             await staff_voucher.SendMessageAsync(phoneNumber);
         }
     }

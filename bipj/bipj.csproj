@@ -200,6 +200,7 @@
     <Content Include="Booking5.aspx" />
     <Content Include="BookingForum.aspx" />
     <Content Include="CreateVoucher.aspx" />
+    <Content Include="Dashboard.aspx" />
     <Content Include="Discussion.aspx" />
     <Content Include="EditEducationPage.aspx" />
     <Content Include="EditMyPost.aspx" />
@@ -209,6 +210,8 @@
     <Content Include="FacialLogin.aspx" />
     <Content Include="Forum_Nav.css" />
     <Content Include="Forum_Post.css" />
+    <Content Include="GoalDetails.aspx" />
+    <Content Include="Goals.aspx" />
     <Content Include="Home.aspx" />
     <Content Include="Images\avatar_idle.png" />
     <Content Include="Images\hello kitty.png" />
@@ -217,6 +220,8 @@
     <Content Include="Images\avatar_talk2.png" />
     <Content Include="Images\avatar_talk3.png" />
     <Content Include="Images\usagi.jpg" />
+    <Content Include="JarDetails.aspx" />
+    <Content Include="Jars.aspx" />
     <Content Include="Loginpage.aspx" />
     <Content Include="ManageEducation.aspx" />
     <Content Include="MyNotification.aspx" />
@@ -359,6 +364,13 @@
     <Compile Include="Customer_Nav_loggedin.Master.designer.cs">
       <DependentUpon>Customer_Nav_loggedin.Master</DependentUpon>
     </Compile>
+    <Compile Include="Dashboard.aspx.cs">
+      <DependentUpon>Dashboard.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Dashboard.aspx.designer.cs">
+      <DependentUpon>Dashboard.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Data\Db.cs" />
     <Compile Include="Data\SqlDate.cs" />
     <Compile Include="Discussion.aspx.cs">
@@ -410,12 +422,40 @@
     <Compile Include="FacialLogin.aspx.designer.cs">
       <DependentUpon>FacialLogin.aspx</DependentUpon>
     </Compile>
+    <Compile Include="GoalDetails.aspx.cs">
+      <DependentUpon>GoalDetails.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="GoalDetails.aspx.designer.cs">
+      <DependentUpon>GoalDetails.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Goals.aspx.cs">
+      <DependentUpon>Goals.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Goals.aspx.designer.cs">
+      <DependentUpon>Goals.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Home.aspx.cs">
       <DependentUpon>Home.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Home.aspx.designer.cs">
       <DependentUpon>Home.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="JarDetails.aspx.cs">
+      <DependentUpon>JarDetails.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="JarDetails.aspx.designer.cs">
+      <DependentUpon>JarDetails.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Jars.aspx.cs">
+      <DependentUpon>Jars.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Jars.aspx.designer.cs">
+      <DependentUpon>Jars.aspx</DependentUpon>
     </Compile>
     <Compile Include="Loginpage.aspx.cs">
       <DependentUpon>Loginpage.aspx</DependentUpon>

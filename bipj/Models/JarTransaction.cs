@@ -49,7 +49,7 @@ namespace bipj.Models
         public int InsertTransaction()
         {
             const string sql = @"
-INSERT INTO Transactions
+INSERT INTO JarTransactions
 (UserID, JarID, Name, Amount, Date, TransactionType, Category)
 VALUES (@UserID, @JarID, @Name, @Amount, @Date, @TransactionType, @Category)";
             return Db.Exec(sql, p =>
@@ -73,7 +73,7 @@ VALUES (@UserID, @JarID, @Name, @Amount, @Date, @TransactionType, @Category)";
         public int UpdateTransaction()
         {
             const string sql = @"
-UPDATE Transactions
+UPDATE JarTransactions
 SET Name=@Name, Amount=@Amount, Date=@Date
 WHERE TransactionID=@TransactionID AND UserID=@UserID";
             return Db.Exec(sql, p =>
@@ -88,7 +88,7 @@ WHERE TransactionID=@TransactionID AND UserID=@UserID";
 
         public int DeleteTransaction()
         {
-            const string sql = "DELETE FROM Transactions WHERE TransactionID=@TransactionID AND UserID=@UserID";
+            const string sql = "DELETE FROM JarTransactions WHERE TransactionID=@TransactionID AND UserID=@UserID";
             return Db.Exec(sql, p =>
             {
                 p.AddWithValue("@TransactionID", TransactionId);
@@ -99,7 +99,7 @@ WHERE TransactionID=@TransactionID AND UserID=@UserID";
         public List<JarTransaction> GetTransactionsByJar(int userID, int jarID)
         {
             const string sql = @"
-SELECT * FROM Transactions
+SELECT * FROM JarTransactions
 WHERE UserID=@UserID AND JarID=@JarID
 ORDER BY Date DESC, TransactionID DESC";
             return Db.Query(sql,
@@ -114,7 +114,7 @@ ORDER BY Date DESC, TransactionID DESC";
         public JarTransaction GetTransactionById(int txnId, int userId)
         {
             const string sql = @"
-SELECT TOP 1 * FROM Transactions
+SELECT TOP 1 * FROM JarTransactions
 WHERE TransactionID=@TxnID AND UserID=@UserID";
             var list = Db.Query(sql,
                 p =>
@@ -151,7 +151,7 @@ SELECT SUM(
         WHEN 'Expense' THEN -Amount
         WHEN 'Transfer' THEN Amount
     END)
-FROM Transactions
+FROM JarTransactions
 WHERE UserID=@UserID AND JarID=@JarID
   AND (@incl = 1 OR TransactionType <> 'Transfer')");
 
@@ -180,7 +180,7 @@ SELECT SUM(
         WHEN 'Income'  THEN Amount
         WHEN 'Expense' THEN -Amount
     END)
-FROM Transactions
+FROM JarTransactions
 WHERE UserID=@UserID AND JarID=@JarID
   AND TransactionType=@TxnType
   AND (@incl = 1 OR TransactionType <> 'Transfer')");

@@ -200,19 +200,30 @@ WHERE JarId=@JarId AND UserId=@UserId";
         private decimal GetCurrentAmount(SqlConnection conn, SqlTransaction tran)
         {
             const string sql = @"
-SELECT J.InitialAmount
-       + ISNULL(SUM(CASE WHEN T.TransactionType='Income'  THEN T.Amount ELSE 0 END), 0)
-       - ISNULL(SUM(CASE WHEN T.TransactionType='Expense' THEN T.Amount ELSE 0 END), 0)
-FROM Jars AS J
-LEFT JOIN Transactions AS T ON J.JarId = T.JarId AND J.UserId = T.UserId
-WHERE J.JarId = @JarId AND J.UserId = @UserId
-GROUP BY J.InitialAmount";
+            SELECT J.InitialAmount
+                   + ISNULL(SUM(CASE WHEN T.TransactionType='Income'  THEN T.Amount ELSE 0 END), 0)
+                   - ISNULL(SUM(CASE WHEN T.TransactionType='Expense' THEN T.Amount ELSE 0 END), 0)
+            FROM Jars AS J
+            LEFT JOIN JarTransactions AS T ON J.JarId = T.JarId AND J.UserId = T.UserId
+            WHERE J.JarId = @JarId AND J.UserId = @UserId
+            GROUP BY J.InitialAmount";
             using (var cmd = new SqlCommand(sql, conn, tran))
             {
                 cmd.Parameters.AddWithValue("@JarId", JarId);
                 cmd.Parameters.AddWithValue("@UserId", UserId);
                 var res = cmd.ExecuteScalar();
                 return (res != null && res != DBNull.Value) ? Convert.ToDecimal(res) : 0m;
+            }
+        }
+
+        public decimal GetCurrentBalance(int userId, int jarId)
+        {
+            using (var conn = new SqlConnection(_connStr))
+            {
+                conn.Open();
+                this.UserId = userId;
+                this.JarId = jarId;
+                return GetCurrentAmount(conn, null);
             }
         }
 

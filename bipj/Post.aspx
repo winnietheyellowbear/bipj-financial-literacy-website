@@ -4,29 +4,12 @@
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
-
-    <!-- External CSS Links -->
     <head>
         <link rel="stylesheet" href="Forum_Nav.css">
         <link rel="stylesheet" href="Forum_Post.css">
-
-        <asp:ScriptManager ID="ScriptManager" runat="server" />
     </head>
 
-    <!-- Inline CSS Styling -->
     <style>
-        /* Main Content Styling */
-        .form {
-            padding: 30px;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
-            max-width: 500px;
-            margin: 20px auto;
-            padding: 20px;
-            flex: 1;
-        }
-
         .main-content {
             flex: 1;
             background-color: #f8f9fa;
@@ -35,7 +18,22 @@
             max-width: 1000px;
         }
 
+        .content-wrapper {
+            display: flex;
+            margin-top: 10px;
+        }
+
         /* Form Styling */
+        .form {
+            padding: 30px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            margin: 20px auto;
+            flex: 1;
+        }
+
         .form-group {
             margin-bottom: 15px;
         }
@@ -92,14 +90,6 @@
             font-weight: bold;
         }
 
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .main-content {
-                width: 90%;
-                padding: 20px;
-            }
-        }
-
         /* Button and Layout Styling */
         .btn-post {
             background-color: green;
@@ -117,11 +107,6 @@
 
         .btn-post:hover {
             background-color: #575757;
-        }
-
-        .content-wrapper {
-            display: flex;
-            margin-top: 10px;
         }
 
         .btn-disabled {
@@ -191,47 +176,44 @@
         }
     </style>
 
-    <!-- Sidebar and Main Content Wrapper -->
     <div class="content-wrapper">
-        <!-- Sidebar -->
         <div class="sidebar">
             <ul>
                 <br />
                 <br />
                 <li>
                     <a href="Discussion.aspx">
-                        <img src='<%= ResolveUrl("~/Forum/Icon/Discussion_Icon.png") %>' alt="Discussion Icon" />
+                        <img src='<%= ResolveUrl("~/Forum/Icon/Discussion_Icon.png") %>'/>
                         <span>Discussion</span>
                     </a>
                 </li>
-                  <li>
-                      <a href="SmartSearch.aspx">
-                          <img src='<%= ResolveUrl("~/Forum/Icon/Magnifying_Glass_Icon.png") %>' alt="Notification Icon"/>
-                          <span>Smart Search</span>
-                      </a>
-                  </li>
+                <li>
+                    <a href="SmartSearch.aspx">
+                        <img src='<%= ResolveUrl("~/Forum/Icon/Magnifying_Glass_Icon.png") %>'/>
+                        <span>Smart Search</span>
+                    </a>
+                </li>
                 <li>
                     <a href="MyNotification.aspx">
-                        <img src='<%= ResolveUrl("~/Forum/Icon/Notification_Icon.png") %>' alt="Notification Icon" />
+                        <img src='<%= ResolveUrl("~/Forum/Icon/Notification_Icon.png") %>'/>
                         <span>Notification</span>
                     </a>
                 </li>
                 <li>
                     <a href="MyPost.aspx">
-                        <img src='<%= ResolveUrl("~/Forum/Icon/MyPost_Icon.png") %>' alt="My Post Icon" />
+                        <img src='<%= ResolveUrl("~/Forum/Icon/MyPost_Icon.png") %>'/>
                         <span>My Post</span>
                     </a>
                 </li>
                 <li class="active">
                     <a href="Post.aspx">
-                        <img src='<%= ResolveUrl("~/Forum/Icon/Post_Icon.png") %>' alt="Post Icon" />
+                        <img src='<%= ResolveUrl("~/Forum/Icon/Post_Icon.png") %>'/>
                         <span>Post</span>
                     </a>
                 </li>
             </ul>
         </div>
 
-        <!-- Main Content -->
         <div class="main-content">
             <h1>Create post</h1>
 
@@ -276,17 +258,17 @@
 
                 <!-- Publish Button -->
                 <asp:UpdatePanel ID="UpdatePanel" runat="server" UpdateMode="Conditional">
-                <ContentTemplate>
-                <asp:Label ID="lbl_error_msg" runat="server" Text="" CssClass="error_msg"></asp:Label>
-                </ContentTemplate>
+                    <ContentTemplate>
+                        <asp:Label ID="lbl_error_msg" runat="server" Text="" CssClass="error_msg"></asp:Label>
+                    </ContentTemplate>
                 </asp:UpdatePanel>
                 <asp:Button ID="btn_publish" runat="server" Text="Publish" CssClass="btn-submit btn-disabled" Disabled="true" ToolTip="You cannot submit a blank post." OnClick="btn_publish_Click" />
             </div>
         </div>
     </div>
 
-    <!-- JavaScript -->
     <script>
+        // Validate Post before enabling the Submit Button
         function validatePost() {
             const text = document.getElementById("<%= tb_text.ClientID %>").value.trim();
             const imageUpload = document.getElementById("img_post").files.length;
@@ -306,11 +288,13 @@
             }
         }
 
+        // Handle Drag Over for File Uploads
         function handleDragOver(evt) {
             evt.preventDefault();
             evt.stopPropagation();
         }
 
+        // Handle Image Drop
         function handleDrop(evt) {
             evt.preventDefault();
             evt.stopPropagation();
@@ -330,6 +314,7 @@
             validatePost();
         }
 
+        // Handle Image Files and Preview
         function handleFiles(files) {
             const preview = document.getElementById("preview");
             preview.innerHTML = ""; // clear previous preview
@@ -347,6 +332,7 @@
             }
         }
 
+        // Handle Video Drop
         function handleVideoDrop(evt) {
             evt.preventDefault();
             evt.stopPropagation();
@@ -366,6 +352,7 @@
             validatePost();
         }
 
+        // Handle Video Files and Preview
         function handleVideoFiles(files) {
             const preview = document.getElementById("video_preview");
             preview.innerHTML = "";
@@ -384,5 +371,4 @@
             }
         }
     </script>
-
 </asp:Content>

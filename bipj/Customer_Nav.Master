@@ -137,7 +137,7 @@
 </head>
 <body>
     <form id="form2" runat="server" enctype="multipart/form-data">
-          <asp:ScriptManager ID="ScriptManager1" runat="server" EnablePageMethods="true" />
+        <asp:ScriptManager ID="ScriptManager1" runat="server" EnablePageMethods="true" />
         <!-- ✅ NAVBAR -->
         <nav class="navbar navbar-expand-lg navbar-custom">
             <div class="d-flex align-items-center">

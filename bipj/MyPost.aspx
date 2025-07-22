@@ -7,7 +7,6 @@
     <head>
          <link rel="stylesheet" href="Forum_Nav.css">
          <link rel="stylesheet" href="Forum_Post.css">
-         <asp:ScriptManager ID="ScriptManager" runat="server" />
     </head>
   
     <style>

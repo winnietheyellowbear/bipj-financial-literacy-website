@@ -212,7 +212,9 @@
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
                         <li><a class="dropdown-item" href="Profile.aspx">Profile</a></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" href="Loginpage.aspx">Sign Out</a></li>
+                        <li>
+                            <asp:LinkButton class="dropdown-item text-danger" runat="server" OnClick="btn_sign_out_Click">Sign Out</asp:LinkButton>
+                        </li>
                     </ul>
                 </div>
             </div>

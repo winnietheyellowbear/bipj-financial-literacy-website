@@ -63,17 +63,6 @@
                 font-weight: 600;
             }
 
-            .stat-pill {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                background: #cccafa;
-                color: #3B387E;
-                padding: 6px 14px;
-                border-radius: 10px;
-                font-size: 14px;
-                font-weight: 600;
-            }
         </style>
     </head>
 </asp:Content>
@@ -88,9 +77,7 @@
                 <h1>Exchange Voucher</h1>
 
                 <div>
-                    <div class="stat-pill">
-                        <asp:Label ID="lbl_Point" runat="server" Text='<%# Eval("UserPoints") %>'></asp:Label>
-                    </div>
+                    <asp:Label ID="lbl_Point" runat="server" Text='<%# Eval("UserPoints") %>'></asp:Label>
                 </div>
 
                 <!-- Search and Filter Section -->

@@ -9,9 +9,6 @@
     <head>
         <link rel="stylesheet" href="Forum_Nav.css">
         <link rel="stylesheet" href="Forum_Post.css">
-        
-        <!-- Include ScriptManager for AJAX functionality -->
-        <asp:ScriptManager ID="ScriptManager" runat="server" />
     </head>
 
     <style>

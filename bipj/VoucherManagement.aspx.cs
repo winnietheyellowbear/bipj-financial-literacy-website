@@ -55,13 +55,13 @@ namespace bipj
                     this,
                     this.GetType(),
                     "alert",
-                    "alert('Voucher is used successfully. 😊'); window.location='VoucherManagement.aspx?token=" + token + "';",
+                    "alert('Voucher status is updated. 😊'); window.location='VoucherManagement.aspx?token=" + token + "';",
                     true
                 );
             }
             else
             {
-                ScriptManager.RegisterStartupScript(this, this.GetType(), "alert", "alert('Failed to use voucher. 😞');", true);
+                ScriptManager.RegisterStartupScript(this, this.GetType(), "alert", "alert('Failed to update voucher status. 😞');", true);
             }
 
         }

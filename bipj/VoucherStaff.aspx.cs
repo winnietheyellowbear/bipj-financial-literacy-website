@@ -24,5 +24,12 @@ namespace bipj
             }
         }
 
+        protected void btn_update_Click(object sender, EventArgs e)
+        {
+            Button btn = (Button)sender;
+            string voucher_id = btn.CommandArgument;
+
+            Response.Redirect("UpdateVoucher.aspx?Voucher_ID=" + voucher_id);
+        }
     }
 }

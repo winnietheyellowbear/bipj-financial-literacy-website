@@ -163,11 +163,11 @@
                             <td>
                                 <%# Eval("Points_Required") %>
                             </td>
+                            <%--<td>
+                                 <%# Eval("Number_Of_Exchange") %> 
+                            </td>--%>
                             <td>
-                                <%-- <%# Eval("Number_Of_Exchange") %> --%>
-                            </td>
-                            <td>
-                                <asp:Button runat="server" Text="Update" CommandArgument='<%# Eval("Voucher_ID") %>' CssClass="btn btn-update"/>
+                                <asp:Button runat="server" Text="Update" CommandArgument='<%# Eval("Voucher_ID") %>' CssClass="btn btn-update" OnClick="btn_update_Click"/>
                             </td>
                         </tr>
                     </ItemTemplate>

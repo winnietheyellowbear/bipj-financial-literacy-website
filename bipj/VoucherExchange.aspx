@@ -1,4 +1,4 @@
-﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Customer_Nav.Master" AutoEventWireup="true" CodeBehind="VoucherExchange.aspx.cs" Inherits="bipj.VoucherExchange" %>
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Customer_Nav_loggedin.Master" AutoEventWireup="true" CodeBehind="VoucherExchange.aspx.cs" Inherits="bipj.VoucherExchange" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <head>
@@ -68,9 +68,7 @@
 </asp:Content>
 
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
-    <br />
-    <br />
-
+   
     <asp:UpdatePanel ID="UpdatePanel" runat="server" UpdateMode="Conditional">
         <ContentTemplate>
             <div class="container">

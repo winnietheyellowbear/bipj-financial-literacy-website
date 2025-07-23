@@ -1,4 +1,4 @@
-﻿<%@ Page Async="true" Title="" Language="C#" MasterPageFile="~/Customer_Nav.Master" AutoEventWireup="true" CodeBehind="Post.aspx.cs" Inherits="bipj.Post" MaintainScrollPositionOnPostBack="true" %>
+﻿<%@ Page Async="true" Title="" Language="C#" MasterPageFile="~/Customer_Nav_loggedin.Master" AutoEventWireup="true" CodeBehind="Post.aspx.cs" Inherits="bipj.Post" MaintainScrollPositionOnPostBack="true" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
 </asp:Content>

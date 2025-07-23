@@ -178,13 +178,17 @@
                         </ul>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Forum</a>
+                        <a class="nav-link" href="Discussion.aspx">Forum</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="BookingForum.aspx">Workshop</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Voucher</a>
+                     <li class="nav-item dropdown">
+                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Voucher</a>
+                         <ul class="dropdown-menu">
+                             <li><a class="dropdown-item" href="VoucherExchange.aspx">Exchange Voucher</a></li>
+                             <li><a class="dropdown-item" href="VoucherActive.aspx">Active Voucher</a></li>
+                         </ul>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link position-relative" href="ReminderPage.aspx">

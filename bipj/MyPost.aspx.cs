@@ -9,7 +9,7 @@ namespace bipj
 {
     public partial class MyPost : System.Web.UI.Page
     {
-        public string user_id = "2";
+        public string user_id;
 
         public List<User_Post> post_list = new List<User_Post>();
         User_Post user_post = new User_Post();
@@ -21,6 +21,15 @@ namespace bipj
 
         protected void Page_Load(object sender, EventArgs e)
         {
+            if (Session["UserId"] == null)
+            {
+                Response.Redirect("Loginpage.aspx");
+            }
+            else
+            {
+                user_id = Session["UserId"].ToString();
+            }
+
             if (!IsPostBack)
             {
                 Update_Panel();

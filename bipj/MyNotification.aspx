@@ -169,11 +169,13 @@
     <div class="main-content">
         <h1>Notification</h1>
 
+        <asp:UpdatePanel ID="UpdatePanel" runat="server" UpdateMode="Conditional">
+        <ContentTemplate>
         <!-- Filter Buttons -->
         <div class="filters">
-            <button class="filter-btn active" data-filter="all">All</button>
-            <button class="filter-btn" data-filter="like">Likes</button>
-            <button class="filter-btn" data-filter="comment">Comments</button>
+            <asp:Button ID="Button1" runat="server" Text="All" class="filter-btn active" CommandArgument="" OnClick="Filter"/>
+            <asp:Button ID="Button2" runat="server" Text="Likes" class="filter-btn active" CommandArgument="Like" OnClick="Filter"/>
+            <asp:Button ID="Button3" runat="server" Text="Comments" class="filter-btn active" CommandArgument="Comment" OnClick="Filter"/>
         </div>
 
         <asp:Repeater ID="Notification" runat="server">
@@ -186,7 +188,7 @@
                                      src='<%# ResolveUrl("~/Images/" + Eval("User_Profile")) %>' 
                                      alt="Profile Picture" />
                             <div class="notification-content">
-                                <div class="notification-header">@<%# Eval("User_Name") %> liked your post</div>
+                                <div class="notification-header">@<%# Eval("User_Name") %> <asp:Label runat="server" style="color: red; font-weight: bold" Visible='<%# Eval("User_Type").ToString() == "Staff" %>'><%# Eval("User_Type") %></asp:Label> liked your post</div>
                                 <div class="notification-footer"><%# Eval("DateTime") %></div>
                             </div>
                         </div>
@@ -198,7 +200,7 @@
                                      src='<%# ResolveUrl("~/Images/" + Eval("User_Profile")) %>' 
                                      alt="Profile Picture"/>
                             <div class="notification-content">
-                                <div class="notification-header">@<%# Eval("User_Name") %> commented on your post</div>
+                                <div class="notification-header">@<%# Eval("User_Name") %> <asp:Label runat="server" style="color: red; font-weight: bold" Visible='<%# Eval("User_Type").ToString() == "Staff" %>'><%# Eval("User_Type") %></asp:Label> commented on your post</div>
                                 <div class="notification-comment"><%# Eval("Text") %></div>
                                 <div class="notification-footer"><%# Eval("DateTime") %></div>
                             </div>
@@ -208,7 +210,8 @@
 
             </ItemTemplate>
         </asp:Repeater>
-
+        </ContentTemplate>
+        </asp:UpdatePanel>
     </div>
 </div>
 

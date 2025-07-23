@@ -97,7 +97,6 @@
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     <br />
-    <br />
   <asp:LinkButton class="back-button" OnClick="btn_back_Click" runat="server">
     <img src="<%= ResolveUrl("~/Images/back_icon.png") %>" alt="Back" style="width: 20px; height: 20px"/> voucher
 </asp:LinkButton>

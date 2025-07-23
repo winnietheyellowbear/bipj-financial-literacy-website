@@ -156,7 +156,7 @@
             font-weight: 600;
         }
 
-        .close-button {
+        .refresh-button {
             background-color: #3B387E;
             color: #fff;
             border: none;
@@ -167,8 +167,23 @@
             transition: 0.3s ease;
         }
 
-        .close-button:hover {
+        .refresh-button:hover {
             background-color: #59569E;
+        }
+
+        .close-button {
+            background-color: #fff;
+            color: #3B387E;
+            border: 1px solid #3B387E;
+            padding: 12px 20px;
+            font-size: 14px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: 0.3s ease;
+        }
+
+        .close-button:hover {
+            background-color: #f7f7f7;
         }
 
         /* QR Code and Button styles */
@@ -255,8 +270,11 @@
                 Scan this at the counter to redeem the discount!🥳
                 <canvas id="qrcode"></canvas>
             </div>
-            <asp:Button runat="server" Text="Refresh" CssClass="close-button" OnClick="Refresh" />
-            <button class="close-button" onclick="closeModal()">Use another time</button>
+            <div style="display: flex; justify-content: center; align-items: center; gap: 10px;">
+                <button class="close-button" onclick="closeModal()" style="width: 180px;">Use another time</button>
+                <asp:Button runat="server" Text="Refresh" CssClass="refresh-button" OnClick="Refresh" style="width: 100px;" />
+            </div>
+
         </div>
     </div>
 

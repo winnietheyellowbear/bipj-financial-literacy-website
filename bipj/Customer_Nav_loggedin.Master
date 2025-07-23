@@ -203,6 +203,10 @@
                     <li class="nav-item">
                         <a class="nav-link" href="AllProfile.aspx">Profiles</a>
                     </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="AdminPage.aspx" Visible='<%# user_type == "Staff" %>'>Staff</a>
+                    </li>
                 </ul>
 
                 <div class="dropdown ms-lg-3">

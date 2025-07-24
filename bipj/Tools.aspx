@@ -178,7 +178,7 @@
         </ul>
     </div>
 
-    <div class="container-fluid mainpage-content d-flex flex-column" style="height: calc(100vh - 66px); overflow: hidden;">
+    <div class="container-fluid mainpage-content d-flex flex-column">
         <div class="d-flex justify-content-between align-items-center px-4 py-1 mb-2">
             <h1 class="fw-bold">TOOLS</h1>
         </div>

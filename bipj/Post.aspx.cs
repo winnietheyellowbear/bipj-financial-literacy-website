@@ -16,9 +16,17 @@ namespace bipj
 {
     public partial class Post : System.Web.UI.Page
     {
-        public string user_id = "2";
+        public string user_id;
         protected void Page_Load(object sender, EventArgs e)
         {
+            if (Session["UserId"] == null)
+            {
+                Response.Redirect("Loginpage.aspx");
+            }
+            else
+            {
+                user_id = Session["UserId"].ToString(); 
+            }
         }
 
         protected async void btn_publish_Click(object sender, EventArgs e)
@@ -83,9 +91,5 @@ namespace bipj
                 }
             }
         }
-
-
-
-
     }
 }

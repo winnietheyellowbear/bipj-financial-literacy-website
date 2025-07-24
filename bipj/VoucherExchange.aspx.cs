@@ -18,6 +18,11 @@ namespace bipj
 
         protected void Page_Load(object sender, EventArgs e)
         {
+            if (Session["UserId"] != null)
+            {
+                user_id = Session["UserId"].ToString();
+            }
+
             voucher_list = staff_voucher.GetAllVouchers();
 
             if (!IsPostBack)
@@ -26,19 +31,28 @@ namespace bipj
                 Voucher.DataBind();
 
                 int user_point = user_voucher.GetUserPoint(user_id);
-                if (user_point > 1) 
+                if (Session["UserId"] == null)
                 {
-                    lbl_Point.Text = user_point.ToString() + " points";
+                    lbl_Point.Text = "";
+                }
+                else if (user_point > 1) 
+                {
+                    lbl_Point.Text = "You have " + user_point.ToString() + " points";
                 }
                 else if (user_point == 0 || user_point == 1)
                 {
-                    lbl_Point.Text = user_point.ToString() + " point";
+                    lbl_Point.Text = "You have " + user_point.ToString() + " point";
                 }
             }
         }
 
         protected void btn_redeem_Click(object sender, EventArgs e)
         {
+            if (Session["UserId"] == null)
+            {
+                Response.Redirect("Loginpage.aspx");
+            }
+
             LinkButton btn = (LinkButton)sender;
             string voucher_id = btn.CommandArgument;
 

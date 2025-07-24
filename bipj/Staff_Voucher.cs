@@ -1,15 +1,15 @@
-﻿using System;
+﻿using Microsoft.Azure.CognitiveServices.ContentModerator.Models;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-
+using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
-using System.Configuration;
-
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
+using Twilio.Jwt.AccessToken;
 
 namespace bipj
 {
@@ -48,6 +48,15 @@ namespace bipj
             Points_Required = points_required;
             _Status = status;
             _Token = token;
+        }
+
+        // update voucher
+        public Staff_Voucher(string company_name, string description, string validity, int points_required)
+        {
+            Company_Name = company_name;
+            Description = description;
+            Validity = validity;
+            Points_Required = points_required;
         }
 
         public string Voucher_ID
@@ -349,7 +358,31 @@ namespace bipj
                 }
             }
         }
-        
+
+        public int VoucherUpdate(string voucher_id)
+        {
+            string queryStr = "UPDATE Staff_Voucher SET" +
+                  " Company_Name = @Company_Name," +
+                  " Description = @Description," +
+                  " Validity = @Validity," +
+                  " Points_Required = @Points_Required" +
+                  " WHERE Voucher_ID = @Voucher_ID";
+
+            SqlConnection conn = new SqlConnection(_connStr);
+            SqlCommand cmd = new SqlCommand(queryStr, conn);
+            cmd.Parameters.AddWithValue("@Company_Name", this.Company_Name);
+            cmd.Parameters.AddWithValue("@Description", this.Description);
+            cmd.Parameters.AddWithValue("@Validity", this.Validity);
+            cmd.Parameters.AddWithValue("@Points_Required", this.Points_Required);
+            cmd.Parameters.AddWithValue("@Voucher_ID", voucher_id);
+
+            conn.Open();
+            int nofRow = 0;
+            nofRow = cmd.ExecuteNonQuery();
+            conn.Close();
+
+            return nofRow;
+        }
 
     }
 }

@@ -244,7 +244,15 @@ namespace bipj
                 images_list = images.Split(',').ToList();
                 videos_list = videos.Split(',').ToList();
 
-                like_status = user_like.IsPostLiked(post_id, user_id);
+                if (user_id == null)
+                {
+                    like_status = false;
+                }
+                else
+                {
+                    like_status = user_like.IsPostLiked(post_id, user_id);
+                }
+
                 comments_list = user_Comment.GetCommentsByPostID(post_id);
 
                 User_Post user_post = new User_Post(post_id, images_list, videos_list, text, category, user_id, post_datetime, last_update_datetime, name, profile, type, like_status, comments_list);
@@ -344,8 +352,16 @@ namespace bipj
 
                 images_list = images.Split(',').ToList();
                 videos_list = videos.Split(',').ToList();
-                
-                like_status = user_like.IsPostLiked(post_id, user_id);
+
+                if (user_id == null)
+                {
+                    like_status = false;
+                }
+                else
+                {
+                    like_status = user_like.IsPostLiked(post_id, user_id);
+                }
+
                 comments_list = user_Comment.GetCommentsByPostID(post_id);
 
                 user_post = new User_Post(post_id, images_list, videos_list, text, category, user_id, post_datetime, last_update_datetime, name, profile, type, like_status, comments_list);

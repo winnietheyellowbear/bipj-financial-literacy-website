@@ -11,52 +11,61 @@ namespace bipj
 {
 
 
-    public partial class MyNotification
+    public partial class UpdateVoucher
     {
 
         /// <summary>
-        /// UpdatePanel control.
+        /// tb_Sponsor_Name control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.UpdatePanel UpdatePanel;
+        protected global::System.Web.UI.WebControls.TextBox tb_Sponsor_Name;
 
         /// <summary>
-        /// Button1 control.
+        /// tb_Desc control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button Button1;
+        protected global::System.Web.UI.WebControls.TextBox tb_Desc;
 
         /// <summary>
-        /// Button2 control.
+        /// tb_Validity control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button Button2;
+        protected global::System.Web.UI.WebControls.TextBox tb_Validity;
 
         /// <summary>
-        /// Button3 control.
+        /// ddl_Validity control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button Button3;
+        protected global::System.Web.UI.WebControls.DropDownList ddl_Validity;
 
         /// <summary>
-        /// Notification control.
+        /// tb_Points_Required control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Repeater Notification;
+        protected global::System.Web.UI.WebControls.TextBox tb_Points_Required;
+
+        /// <summary>
+        /// btn_Submit control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btn_Submit;
     }
 }

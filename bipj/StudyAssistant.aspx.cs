@@ -16,12 +16,12 @@ namespace bipj
 {
     public partial class StudyAssistant : System.Web.UI.Page
     {
-        private static readonly string openaiApiKey = "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"; // Replace with secure storage in production
+        private static readonly string openaiApiKey = "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"; // Replace with secure storage in production
 
         [WebMethod]
         public static string GetAIResponse(string question, string topic)
         {
-            string apiKey = "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";
+            string apiKey = "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";
 
             string prompt = $"You are assisting a learner in the topic of \"{topic}\". " +
                             $"Only answer questions that are related to this topic. " +

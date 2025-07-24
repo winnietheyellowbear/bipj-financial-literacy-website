@@ -36,97 +36,26 @@
             <h2><asp:Literal ID="ltPageTitle" runat="server" /></h2>
             <hr />
             <div class="content-container mt-4">
-    <div id="editorjs-content"></div>
-    <asp:HiddenField ID="hfPageContent" runat="server" />
+    <asp:Literal ID="ltPageContent" runat="server" />
 </div>
         </asp:Panel>
     </div>
 </div>
-        <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Get the JSON content from the hidden field
-    const contentJson = document.getElementById('<%= hfPageContent.ClientID %>').value;
-    
-    if (contentJson) {
-        try {
-            const contentData = JSON.parse(contentJson);
-            renderEditorJsContent(contentData);
-        } catch (e) {
-            console.error("Error parsing content JSON:", e);
-            document.getElementById('editorjs-content').innerHTML = 
-                "<div class='alert alert-danger'>Error loading content</div>";
-        }
-    }
-});
-
-function renderEditorJsContent(data) {
-    const holder = document.getElementById('editorjs-content');
-    
-    // Simple renderer for common block types
-    data.blocks.forEach(block => {
-        switch(block.type) {
-            case 'paragraph':
-                const p = document.createElement('p');
-                p.innerHTML = block.data.text;
-                holder.appendChild(p);
-                break;
-                
-            case 'header':
-                const header = document.createElement(`h${block.data.level}`);
-                header.textContent = block.data.text;
-                holder.appendChild(header);
-                break;
-                
-            case 'list':
-                const list = document.createElement(block.data.style === 'ordered' ? 'ol' : 'ul');
-                block.data.items.forEach(item => {
-                    const li = document.createElement('li');
-                    li.textContent = item;
-                    list.appendChild(li);
-                });
-                holder.appendChild(list);
-                break;
-                
-            case 'image':
-                const imgDiv = document.createElement('div');
-                imgDiv.className = 'text-center my-3';
-                const img = document.createElement('img');
-                img.src = block.data.url;
-                img.alt = block.data.caption || '';
-                img.className = 'img-fluid';
-                img.style.maxHeight = '500px';
-                imgDiv.appendChild(img);
-                if (block.data.caption) {
-                    const caption = document.createElement('div');
-                    caption.className = 'text-muted mt-2';
-                    caption.textContent = block.data.caption;
-                    imgDiv.appendChild(caption);
-                }
-                holder.appendChild(imgDiv);
-                break;
-                
-            case 'embed':
-                const embedDiv = document.createElement('div');
-                embedDiv.className = 'embed-responsive embed-responsive-16by9 my-3';
-                const iframe = document.createElement('iframe');
-                iframe.className = 'embed-responsive-item';
-                iframe.src = block.data.embed || block.data.source;
-                iframe.allowFullscreen = true;
-                embedDiv.appendChild(iframe);
-                holder.appendChild(embedDiv);
-                break;
-                
-            default:
-                const unknown = document.createElement('div');
-                unknown.className = 'alert alert-warning';
-                unknown.textContent = `Unsupported block type: ${block.type}`;
-                holder.appendChild(unknown);
-        }
-    });
-}
-        </script>
+        
 
 <style>
+    figure.media {
+    max-width: 800px;
+    margin: 20px auto; /* Center the video */
+}
+
+figure.media iframe {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 16 / 9;
+    border-radius: 8px; /* Optional rounded corners */
+    box-shadow: 0 0 10px rgba(0,0,0,0.1); /* Optional soft shadow */
+}
     #editorjs-content {
         line-height: 1.6;
         font-size: 1.1rem;
@@ -152,6 +81,245 @@ function renderEditorJsContent(data) {
         margin-bottom: 1rem;
         padding-left: 2rem;
     }
-</style>
+      .content-container {
+        font-size: 1.1rem;
+        line-height: 1.6;
+    }
 
+    .content-container img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+        margin: 1rem 0;
+    }
+
+    .content-container iframe {
+        width: 100%;
+        height: 400px;
+        border: none;
+        border-radius: 8px;
+        margin: 1rem 0;
+    }
+
+    .content-container p {
+        margin-bottom: 1rem;
+    }
+    .chat-bubble {
+    background: #ffffff;
+    border: 2px solid #433e8e;
+    color: #333;
+    padding: 10px 15px;
+    border-radius: 12px;
+    max-width: 260px;
+    font-size: 0.95rem;
+    position: absolute;
+    bottom: 140px;
+    right: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    display: none;
+    .ai-chat-wrapper {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.ai-dialogue-box {
+    background-color: #fff;
+    border: 2px solid #433e8e;
+    color: #333;
+    padding: 10px 15px;
+    border-radius: 12px;
+    max-width: 200px;
+    font-size: 0.95rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+</style>
+    <script>
+        const avatar = document.getElementById("aiAvatar");
+        const dialogueBox = document.getElementById("aiDialogueBox");
+        const responseBox = document.getElementById("ai-response");
+        const textBox = document.getElementById("txtQuestion");
+
+        const talkingFrames = ["Images/avatar_talk1.png", "Images/avatar_talk2.png", "Images/avatar_talk3.png"];
+        const idleFrames = ["Images/avatar_idle.png"];
+        let talkInterval, idleInterval;
+
+        window.onload = function () {
+            startIdleAnimation();
+        };
+
+        function startIdleAnimation() {
+            let index = 0;
+            idleInterval = setInterval(() => {
+                avatar.src = idleFrames[index % idleFrames.length];
+                index++;
+            }, 800);
+        }
+
+        function stopIdleAnimation() {
+            clearInterval(idleInterval);
+        }
+
+        function startTalkingAnimation() {
+            let index = 0;
+            stopIdleAnimation();
+            talkInterval = setInterval(() => {
+                avatar.src = talkingFrames[index % talkingFrames.length];
+                index++;
+            }, 150);
+        }
+
+        function stopTalkingAnimation() {
+            clearInterval(talkInterval);
+            avatar.src = "Images/avatar_idle.png";
+        }
+
+        function speakText(text) {
+            dialogueBox.innerText = text;
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.onstart = () => startTalkingAnimation();
+            utterance.onend = () => {
+                stopTalkingAnimation();
+                startIdleAnimation();
+            };
+            speechSynthesis.speak(utterance);
+        }
+
+        function askAI() {
+            const question = textBox.value.trim();
+            const topic = "<%= ltModuleTitle.Text %>";
+
+            if (question === "") return;
+
+            responseBox.innerText = "Thinking...";
+            dialogueBox.innerText = "Thinking...";
+
+            fetch('ViewSpecificEdu.aspx/GetAIResponse', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question: question, topic: topic })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    const response = data.d;
+                    responseBox.innerText = response;
+                    speakText(response);
+                })
+                .catch(err => {
+                    responseBox.innerText = "Sorry, something went wrong.";
+                    dialogueBox.innerText = "Something went wrong.";
+                    console.error(err);
+                });
+        }
+    </script>
+
+    <div id="ai-chatbot-container" style="position: fixed; bottom: 20px; right: 20px; width: 300px; z-index: 1000;">
+    <div style="background: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 15px; text-align: center;">
+        <div class="ai-chat-wrapper">
+    <div class="ai-dialogue-box" id="aiDialogueBox">Hi! I'm your assistant. Ask me anything about this topic.</div>
+    <img src="Images/avatar_idle.png" id="aiAvatar" class="ai-avatar" />
+</div>
+        <div class="chat-bubble" id="chatBubble">Hi! Ask me something.</div>
+
+        <input type="text" id="txtQuestion" placeholder="Ask a question..." style="width: 100%; margin-top: 10px;" class="form-control" />
+        <button class="btn btn-primary mt-2" onclick="askAI()">Ask</button>
+        <div id="ai-response" style="margin-top: 10px; font-size: 0.9rem;"></div>
+    </div>
+</div>
+</asp:Content>
+
+<asp:Content ID="ScriptSection" ContentPlaceHolderID="scripts" runat="server">
+<script>
+    const avatar = document.getElementById("aiAvatar");
+    const dialogueBox = document.getElementById("aiDialogueBox");
+    const talkingFrames = ["Images/avatar_talk1.png", "Images/avatar_talk2.png", "Images/avatar_talk3.png"];
+    const idleFrames = ["Images/avatar_idle.png"]; // Only 1 for now
+    let talkInterval, idleInterval;
+    window.onload = function () {
+        const avatar = document.getElementById("aiAvatar");
+        if (avatar) {
+            startIdleAnimation();
+        }
+    };
+
+    const responseBox = document.getElementById("ai-response");
+    const textBox = document.getElementById("txtQuestion");
+
+    const idleFrames = ["Images/avatar_idle.png"];
+    const talkingFrames = ["Images/avatar_talk1.png", "Images/avatar_talk2.png", "Images/avatar_talk3.png"];
+    let idleInterval, talkInterval;
+
+    function startTalkingAnimation() {
+        let index = 0;
+        stopIdleAnimation();
+        talkInterval = setInterval(() => {
+            avatar.src = talkingFrames[index % talkingFrames.length];
+            index++;
+        }, 150);
+    }
+
+    function stopTalkingAnimation() {
+        clearInterval(talkInterval);
+        avatar.src = "Images/avatar_idle.png";
+    }
+
+    function startIdleAnimation() {
+        let index = 0;
+        idleInterval = setInterval(() => {
+            avatar.src = idleFrames[index % idleFrames.length];
+            index++;
+        }, 800);
+    }
+
+    function stopIdleAnimation() {
+        clearInterval(idleInterval);
+    }
+
+    function speakText(text) {
+        dialogueBox.innerText = text;
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.onstart = () => {
+            startTalkingAnimation();
+        };
+        utterance.onend = () => {
+            stopTalkingAnimation();
+            startIdleAnimation();
+        };
+        speechSynthesis.speak(utterance);
+    }
+
+    function askAI() {
+        const question = textBox.value.trim();
+        const topic = "<%= ltModuleTitle.Text %>";
+
+        if (question === "") return;
+
+        responseBox.innerText = "Thinking...";
+        fetch('ViewSpecificEdu.aspx/GetAIResponse', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question: question, topic: topic })
+        })
+            .then(res => res.json())
+            .then(data => {
+                const response = data.d;
+                responseBox.innerText = response;
+                speakText(response);
+            })
+            .catch(err => {
+                responseBox.innerText = "Sorry, something went wrong.";
+                console.error(err);
+            });
+    }
+
+    window.onload = startIdleAnimation;
+</script>
 </asp:Content>

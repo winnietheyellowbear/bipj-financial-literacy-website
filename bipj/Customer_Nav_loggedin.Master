@@ -173,7 +173,7 @@
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Educational Content</a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#">Learning Materials</a></li>
+                            <li><a class="dropdown-item" href="Education.aspx">Learning Materials</a></li>
                             <li><a class="dropdown-item" href="#">Quiz</a></li>
                         </ul>
                     </li>

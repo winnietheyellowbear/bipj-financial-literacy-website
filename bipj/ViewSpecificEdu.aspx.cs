@@ -1,6 +1,10 @@
-﻿using System;
+﻿
+
+using System;
 using System.Data;
 using System.Data.SqlClient;
+using System.Text;
+using System.Web.Services;
 using System.Web.UI.WebControls;
 
 namespace bipj
@@ -24,6 +28,41 @@ namespace bipj
                         LoadPageContent();
                     }
                 }
+            }
+
+        }
+        [System.Web.Services.WebMethod]
+        public static string GetAIResponse(string question, string topic)
+        {
+            string apiKey = "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";
+
+            string prompt = $"You are assisting a learner in the topic of \"{topic}\". " +
+                            $"Only answer questions that are related to this topic. " +
+                            $"If the question is not related to this topic, remind the student it's out of scope — but still give a brief answer. " +
+                            $"Here is the student's question: \"{question}\"";
+
+            var requestBody = new
+            {
+                model = "gpt-3.5-turbo",
+                messages = new[]
+                {
+            new { role = "system", content = $"You are a helpful tutor restricted to the topic: {topic}" },
+            new { role = "user", content = prompt }
+        },
+                temperature = 0.7
+            };
+
+            using (var client = new System.Net.Http.HttpClient())
+            {
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+                var json = Newtonsoft.Json.JsonConvert.SerializeObject(requestBody);
+                var content = new System.Net.Http.StringContent(json, Encoding.UTF8, "application/json");
+                var response = client.PostAsync("https://api.openai.com/v1/chat/completions", content).Result;
+
+                var responseString = response.Content.ReadAsStringAsync().Result;
+                dynamic result = Newtonsoft.Json.JsonConvert.DeserializeObject(responseString);
+
+                return result.choices[0].message.content.ToString();
             }
         }
 
@@ -102,10 +141,76 @@ namespace bipj
                         pnlPageContent.Visible = true;
 
                         ltPageTitle.Text = reader["Title"].ToString();
-                        hfPageContent.Value = reader["Content"].ToString(); // Store JSON in hidden field
+                        ltPageContent.Text = reader["Content"].ToString(); 
+
                     }
                 }
+                int userId = Convert.ToInt32(Session["UserId"]);
+
+                // Step 1: Mark this page as viewed
+                using (SqlCommand markViewedCmd = new SqlCommand(@"
+    IF NOT EXISTS (
+        SELECT 1 FROM UserViewedPages WHERE UserId = @UserId AND PageId = @PageId
+    )
+    BEGIN
+        INSERT INTO UserViewedPages (UserId, PageId) VALUES (@UserId, @PageId)
+    END", conn))
+                {
+                    markViewedCmd.Parameters.AddWithValue("@UserId", userId);
+                    markViewedCmd.Parameters.AddWithValue("@PageId", PageId);
+                    markViewedCmd.ExecuteNonQuery();
+                }
+
+                // Step 2: Recalculate progress
+                int totalPages = 0, viewedPages = 0;
+
+                // Total pages in module
+                using (SqlCommand totalPagesCmd = new SqlCommand(@"
+    SELECT COUNT(*) FROM EducationPages 
+    WHERE SubTopicId IN (
+        SELECT Id FROM EducationSubTopics WHERE ModuleId = @ModuleId
+    )", conn))
+                {
+                    totalPagesCmd.Parameters.AddWithValue("@ModuleId", ModuleId);
+                    totalPages = (int)totalPagesCmd.ExecuteScalar();
+                }
+
+                // Viewed pages by user for module
+                using (SqlCommand viewedPagesCmd = new SqlCommand(@"
+    SELECT COUNT(*) FROM UserViewedPages 
+    WHERE UserId = @UserId AND PageId IN (
+        SELECT Id FROM EducationPages 
+        WHERE SubTopicId IN (
+            SELECT Id FROM EducationSubTopics WHERE ModuleId = @ModuleId
+        )
+    )", conn))
+                {
+                    viewedPagesCmd.Parameters.AddWithValue("@UserId", userId);
+                    viewedPagesCmd.Parameters.AddWithValue("@ModuleId", ModuleId);
+                    viewedPages = (int)viewedPagesCmd.ExecuteScalar();
+                }
+
+                int progress = totalPages > 0 ? (viewedPages * 100) / totalPages : 0;
+
+                // Step 3: Update UserEducationProgress
+                using (SqlCommand updateProgressCmd = new SqlCommand(@"
+    IF EXISTS (SELECT 1 FROM UserEducationProgress WHERE UserId = @UserId AND ModuleId = @ModuleId)
+        UPDATE UserEducationProgress 
+        SET CompletionPercentage = @Progress, LastAccessed = GETDATE() 
+        WHERE UserId = @UserId AND ModuleId = @ModuleId
+    ELSE
+        INSERT INTO UserEducationProgress (UserId, ModuleId, CompletionPercentage, LastAccessed)
+        VALUES (@UserId, @ModuleId, @Progress, GETDATE())", conn))
+                {
+                    updateProgressCmd.Parameters.AddWithValue("@UserId", userId);
+                    updateProgressCmd.Parameters.AddWithValue("@ModuleId", ModuleId);
+                    updateProgressCmd.Parameters.AddWithValue("@Progress", progress);
+                    updateProgressCmd.ExecuteNonQuery();
+                }
+
+
             }
+
         }
 
         protected void rptTopics_ItemDataBound(object sender, System.Web.UI.WebControls.RepeaterItemEventArgs e)

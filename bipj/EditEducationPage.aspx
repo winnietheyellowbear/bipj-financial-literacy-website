@@ -1,13 +1,11 @@
-﻿<%@ Page Title="Edit Education Page" Language="C#" MasterPageFile="~/Staff_Nav.Master" AutoEventWireup="true" CodeBehind="EditEducationPage.aspx.cs" Inherits="bipj.EditEducationPage" %>
+﻿<%@ Page Title="Edit Education Page" Language="C#" MasterPageFile="~/Staff_Nav.Master"
+    AutoEventWireup="true" CodeBehind="EditEducationPage.aspx.cs"
+    Inherits="bipj.EditEducationPage" ValidateRequest="false" %>
+
 <asp:Content ID="mainContent" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
 
-<!-- Load EditorJS and all required tools -->
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.26.5"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/header@2.6.2"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/paragraph@2.8.0"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/list@1.7.0"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/simple-image@1.4.1"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/embed@2.5.3"></script>
+<!-- ✅ Load CKEditor 5 Classic Build -->
+<script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/decoupled-document/ckeditor.js"></script>
 
 
 <div class="edu-admin-container" style="display:flex;min-height:600px;">
@@ -36,152 +34,89 @@
         </asp:Repeater>
     </div>
 
-  
-
     <!-- Main Editor Panel -->
     <div style="flex:1;padding:40px;">
         <!-- Page Title -->
         <asp:TextBox ID="txtPageTitle" runat="server" CssClass="form-control mb-3" placeholder="Page Title" />
-        
-        <!-- Toolbar -->
-        <div class="mb-3">
-            <button type="button" class="btn btn-primary" onclick="insertParagraph()">
-                <i class="bi bi-text-paragraph"></i> Add Text
-            </button>
-            <button type="button" class="btn btn-primary" onclick="insertImage()">
-                <i class="bi bi-image"></i> Add Image
-            </button>
-            <button type="button" class="btn btn-primary" onclick="insertVideo()">
-                <i class="bi bi-film"></i> Add Video
-            </button>
-            <button type="button" class="btn btn-primary" onclick="insertList()">
-                <i class="bi bi-list-ul"></i> Add List
-            </button>
-            <asp:Button ID="btnSave" runat="server" CssClass="btn btn-success" Text="Save Page" OnClick="btnSave_Click" />
-        </div>
 
-        <!-- Editor Container -->
-        <div id="editorjs" style="border:1px solid #ddd; min-height:500px;"></div>
-        
-        <!-- Hidden field to store editor content -->
-        <asp:HiddenField ID="hfEditorContent" runat="server" />
-        
-        <asp:Label ID="lblMessage" runat="server" CssClass="text-success mt-2" />
+     <!-- Editor Toolbar + CKEditor Container -->
+<div class="document-toolbar" style="margin-bottom: 10px;"></div>
+<div id="editorjs" style="min-height:500px; border:1px solid #ccc;"></div>
+
+<!-- Hidden field to store editor content -->
+<asp:HiddenField ID="hfEditorContent" runat="server" />
+        <iframe width="560" height="315" src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+        title="YouTube video player" frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen>
+</iframe>
+<!-- Save Button -->
+<asp:Button ID="btnSave" runat="server" CssClass="btn btn-success" Text="Save Page" OnClick="btnSave_Click" />
+<asp:Label ID="lblMessage" runat="server" CssClass="text-success mt-2" />
     </div>
 </div>
 
+<!-- ✅ CKEditor Init Script -->
 <script>
-    // Global editor reference
-    let editor;
+    let editorData = document.getElementById('<%= hfEditorContent.ClientID %>');
 
-    // Initialize EditorJS when DOM is loaded
-    document.addEventListener('DOMContentLoaded', function () {
-        // Load saved data if exists
-        let savedData = {};
-        try {
-            const savedJson = document.getElementById('<%= hfEditorContent.ClientID %>').value;
-            if (savedJson) {
-                savedData = JSON.parse(savedJson);
-            }
-        } catch (e) {
-            console.error("Error parsing saved content:", e);
-        }
-
-        // Initialize the editor
-        editor = new EditorJS({
-            holder: 'editorjs',
-            tools: {
-                header: {
-                    class: window.Header,
-                    config: {
-                        placeholder: 'Enter a header...',
-                        levels: [2, 3, 4],
-                        defaultLevel: 2
-                    }
-                },
-                paragraph: {
-                    class: window.Paragraph,
-                    inlineToolbar: true
-                },
-                list: {
-                    class: window.List,
-                    inlineToolbar: true
-                },
-                image: window.SimpleImage,
-                embed: window.Embed
+    DecoupledEditor
+        .create(document.querySelector('#editorjs'), {
+            mediaEmbed: {
+                previewsInData: true
             },
-            data: savedData,
-            onChange: function() {
-                editor.save().then(output => {
-                    document.getElementById('<%= hfEditorContent.ClientID %>').value = JSON.stringify(output);
-                });
-            }
-        });
-    });
-
-    // Block insertion functions
-    function insertParagraph() {
-        if (editor) {
-            editor.blocks.insert('paragraph', {
-                text: 'Start typing your text here...'
-            });
-        }
-    }
-
-    function insertImage() {
-        if (editor) {
-            editor.blocks.insert('image', {
-                url: '',
-                caption: '',
-                withBorder: false,
-                stretched: false
-            });
-        }
-    }
-
-    function insertVideo() {
-        if (editor) {
-            editor.blocks.insert('embed', {
-                service: 'youtube',
-                source: '',
-                width: 640,
-                height: 360
-            });
-        }
-    }
-
-    function insertList() {
-        if (editor) {
-            editor.blocks.insert('list', {
-                style: 'unordered',
+            image: {
+                resizeUnit: '%',
+                toolbar: [
+                    'imageStyle:alignLeft', 'imageStyle:alignCenter', 'imageStyle:alignRight',
+                    '|', 'imageResize', '|', 'linkImage'
+                ],
+                styles: ['alignLeft', 'alignCenter', 'alignRight']
+            },
+            toolbar: {
                 items: [
-                    'First list item',
-                    'Second list item'
+                    'heading', '|',
+                    'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|',
+                    'insertTable', 'mediaEmbed', 'imageUpload', '|',
+                    'undo', 'redo'
                 ]
+            }
+        })
+        .then(editor => {
+            // Bind the editor instance globally
+            window.editor = editor;
+
+            // Load existing data
+            if (editorData.value) {
+                editor.setData(editorData.value);
+            }
+
+            // Sync data on change
+            editor.model.document.on('change:data', () => {
+                editorData.value = editor.getData();
             });
-        }
-    }
+
+            // Move the toolbar to a separate area (optional)
+            document.querySelector('.document-toolbar').appendChild(editor.ui.view.toolbar.element);
+        })
+        .catch(error => {
+            console.error('CKEditor error:', error);
+        });
 </script>
 
-<style>
-    /* Editor styling */
-    #editorjs {
-        background: white;
-        padding: 20px;
-        border-radius: 5px;
-    }
-    
-    .ce-block--selected .ce-block__content {
-        background: rgba(43, 227, 195, 0.1);
-    }
-    
-    .ce-toolbar__plus {
-        color: #8576b1;
-    }
-    
-    .ce-toolbar__plus:hover {
-        color: #6a5a9a;
-    }
+    <style>
+figure.media {
+    max-width: 800px;
+    margin: 20px auto; /* Center the video */
+}
+
+figure.media iframe {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 16 / 9;
+    border-radius: 8px; /* Optional rounded corners */
+    box-shadow: 0 0 10px rgba(0,0,0,0.1); /* Optional soft shadow */
+}
 </style>
 
 </asp:Content>

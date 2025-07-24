@@ -1,6 +1,7 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Customer_Nav_loggedin.Master" AutoEventWireup="true" CodeBehind="Goals.aspx.cs" Inherits="bipj.Goals" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
     <style>
         .sidebar {
             width: 220px;
@@ -196,7 +197,7 @@
                                         CommandName="Edit"
                                         CommandArgument='<%# Eval("GoalId") %>'
                                         OnClientClick="event.stopPropagation();">
-                                    <i class="bi bi-pencil"></i>
+                                        <i class="bi bi-pencil"></i>
                                     </asp:LinkButton>
                                 </div>
                             </div>

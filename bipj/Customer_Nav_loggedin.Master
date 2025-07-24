@@ -11,7 +11,7 @@
     <asp:ContentPlaceHolder ID="head" runat="server" />
 
     <style>
-                body {
+        body {
             font-family: 'Roboto', sans-serif;
             background: #FAFAFA;
         }
@@ -21,7 +21,11 @@
             font-family: inherit;
             padding: 0.5rem 2rem;
             justify-content: center;
-            
+            width: 100%;
+            top: 0;
+            left: 0;
+            position: fixed;
+            z-index: 3;
         }
 
         .nav-link, .dropdown-item {
@@ -138,12 +142,16 @@
             .navbar .dropdown .dropdown-menu {
                 margin-top: 0;
             }
-        }        
+        }
+
+        .main-content {
+            margin-top: 66px; /* same as navbar height */
+        }
     </style>
 </head>
 <body>
     <form id="form2" runat="server" enctype="multipart/form-data">
-          <asp:ScriptManager ID="ScriptManager1" runat="server" EnablePageMethods="true" />
+        <asp:ScriptManager ID="ScriptManager1" runat="server" EnablePageMethods="true" />
         <!-- ✅ NAVBAR -->
         <nav class="navbar navbar-expand-lg navbar-custom">
             <div class="d-flex align-items-center">
@@ -193,8 +201,7 @@
                     <li class="nav-item">
                         <a class="nav-link position-relative" href="ReminderPage.aspx">
                             <i class="fa fa-bell" style="font-size: 22px; color: #433e8e;"></i>
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 10px;">
-                                3
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 10px;">3
                                 <span class="visually-hidden">unread notifications</span>
                             </span>
                         </a>
@@ -235,8 +242,11 @@
 
         <!-- ✅ MAIN CONTENT -->
         <div>
-            <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server" />
-            <asp:ContentPlaceHolder ID="scripts" runat="server" /> <!-- ✅ This was missing -->
+            <div class="main-content" runat="server">
+                <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server" />
+            </div>
+            <asp:ContentPlaceHolder ID="scripts" runat="server" />
+            <!-- ✅ This was missing -->
         </div>
     </form>
 </body>

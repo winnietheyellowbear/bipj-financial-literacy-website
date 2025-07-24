@@ -409,13 +409,6 @@
     <Compile Include="CreateVoucher.aspx.designer.cs">
       <DependentUpon>CreateVoucher.aspx</DependentUpon>
     </Compile>
-    <Compile Include="Customer_Nav.Master.cs">
-      <DependentUpon>Customer_Nav.Master</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="Customer_Nav.Master.designer.cs">
-      <DependentUpon>Customer_Nav.Master</DependentUpon>
-    </Compile>
     <Compile Include="Customer_Nav_loggedin.Master.cs">
       <DependentUpon>Customer_Nav_loggedin.Master</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -734,7 +727,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Customer_Nav.Master" />
     <Content Include="Customer_Nav_loggedin.Master" />
     <Content Include="Staff_Nav.Master" />
     <Content Include="Voucher.Master" />

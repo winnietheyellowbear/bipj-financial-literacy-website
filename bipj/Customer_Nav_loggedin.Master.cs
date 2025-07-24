@@ -17,7 +17,19 @@ namespace bipj
             if (Session["UserType"] != null)
             {
                 user_type = Session["UserType"].ToString();
+
+                if (user_type == "Staff")
+                {
+                    Panel1.Visible = true;
+                }
+                
+                Panel2.Visible = true;
             }
+            else
+            {
+                Panel3.Visible = true;
+            }
+
         }
         protected void btn_sign_out_Click(object sender, EventArgs e)
         {

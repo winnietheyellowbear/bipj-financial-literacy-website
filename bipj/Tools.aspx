@@ -187,7 +187,7 @@
             <asp:Panel runat="server" CssClass="mb-4">
                 <div class="dropdown">
                     <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="downloadDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-download"></i>Download Template
+                        <i class="bi bi-download me-2"></i>Download Template
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="downloadDropdown">
                         <li>

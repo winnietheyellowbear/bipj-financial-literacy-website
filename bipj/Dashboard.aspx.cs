@@ -1,9 +1,10 @@
-﻿using System;
+﻿using bipj.Models;
+using Microsoft.VisualBasic;
+using System;
 using System.Globalization;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using bipj.Models;
 
 namespace bipj
 {
@@ -98,6 +99,7 @@ namespace bipj
 
             var txnMgr = new JarTransaction();
             var jars = new Jar().GetJarsByUser(_userId, includeDeleted: true);
+            var goals = new Goal().GetGoalsByUser(_userId, from, to);
 
             foreach (var jar in jars)
             {
@@ -111,8 +113,9 @@ namespace bipj
                         income += jar.InitialAmount;
                 }
             }
+            decimal totalSavedGoals = goals.Sum(g => g.SavedAmount);
 
-            decimal balance = income + expense;
+            decimal balance = income + expense + totalSavedGoals;
 
             lblIncome.Text = income.ToString("C2");
             lblExpense.Text = Math.Abs(expense).ToString("C2");

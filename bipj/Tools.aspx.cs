@@ -455,5 +455,29 @@ namespace bipj
             public int JarId { get; set; }
             public bool Import { get; set; }
         }
+
+        protected void btnRestartAllJars_Click(object sender, EventArgs e)
+        {
+            if (Session["UserId"] == null) return;
+            int userId = Convert.ToInt32(Session["UserId"]);
+
+            try
+            {
+                Jar.ResetAllJarsForUserSimple_HardDelete(userId);
+
+                pnlDone.Visible = true;
+                pnlDone.CssClass = "alert alert-warning mt-4";
+                litDoneMessage.Text = "All jars have been hard-deleted and default jars recreated.";
+            }
+            catch (Exception ex)
+            {
+                // log ex as appropriate
+                pnlDone.Visible = true;
+                pnlDone.CssClass = "alert alert-danger mt-4";
+                litDoneMessage.Text = "Failed to restart jars.";
+            }
+        }
+
+
     }
 }

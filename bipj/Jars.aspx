@@ -156,9 +156,9 @@
         <!-- Header Row -->
         <div class="d-flex justify-content-between align-items-center px-4 py-1 mb-2">
             <h1 class="fw-bold mb-0">MY JARS
-        <a href="#" data-bs-toggle="modal" data-bs-target="#info-popup" title="Learn more about Jars">
-            <img src="images/info-icon.png" alt="Info" class="info-icon-img" />
-        </a>
+            <a href="#" data-bs-toggle="modal" data-bs-target="#info-popup" title="Learn more about Jars">
+                <img src="images/info-icon.png" alt="Info" class="info-icon-img" />
+            </a>
             </h1>
             <button type="button" class="settings-btn" data-bs-toggle="modal" data-bs-target="#settingsModal">
                 <i class="bi bi-gear"></i>

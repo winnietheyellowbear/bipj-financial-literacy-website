@@ -183,7 +183,7 @@
     <!-- Main Content -->
     <div class="mainpage-content" style="height: calc(100vh - 66px); overflow: hidden">
         <!-- Header Row -->
-        <header class="d-flex justify-content-between align-items-center px-4 py-2 mb-2" style="position: sticky; top: 0; z-index: 10;">
+        <header class="d-flex justify-content-between align-items-center px-4 py-2 mb-2" style="position: sticky; top: 0;">
             <h1 class="fw-bold mb-0">OVERALL DASHBOARD</h1>
             <div class="d-flex align-items-center gap-3 col-auto">
                 <div class="custom-dropdown" id="customDropdown">
@@ -233,7 +233,7 @@
             </div>
         </header>
 
-        <div class="content" style="height: calc(100vh - 155px); overflow-y: auto; overflow-x:hidden; position: relative;">
+        <div class="content" style="height: calc(100vh - 155px); overflow-y: auto; overflow-x: hidden; position: relative;">
             <!-- TOTAL BALANCE Section -->
             <section class="p-4 mb-3 d-flex flex-column" style="background: linear-gradient(90deg, #dfe4ff, #f4f2fd); border-radius: 16px; min-height: 200px;">
                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -273,8 +273,8 @@
             <div class="d-flex gap-4">
                 <!-- JARS -->
                 <div class="flex-1 border p-4 rounded shadow-sm bg-white">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <h3 class="fw-bold mb-0">MY JARS</h3>
+                    <div class="d-flex align-items-center mb-3 gap-1">
+                        <h3 class="fw-bold mb-0 me-1">MY JARS</h3>
                         <a href="#" data-bs-toggle="modal" data-bs-target="#info-popup" title="Learn more about Jars">
                             <img src="images/info-icon.png" alt="Info" class="info-icon-img" />
                         </a>

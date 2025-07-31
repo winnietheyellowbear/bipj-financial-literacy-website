@@ -371,5 +371,133 @@ namespace bipj.Models
                 cmd.ExecuteNonQuery();
             }
         }
+
+        // new internal helper that can use an existing connection+transaction
+        public void CreateDefaultJars(int userId, SqlConnection conn, SqlTransaction tx)
+        {
+            if (conn == null) throw new ArgumentNullException(nameof(conn));
+            if (tx == null) throw new ArgumentNullException(nameof(tx));
+            CreateDefaultJarsInternal(userId, conn, tx);
+        }
+
+        private void CreateDefaultJarsInternal(int userId, SqlConnection conn, SqlTransaction tx)
+        {
+            // Example: create six default jars. Adjust names/logic to match your original.
+            var defaultJarNames = new List<string> { "Jar 1", "Jar 2", "Jar 3", "Jar 4", "Jar 5", "Jar 6" };
+            foreach (var name in defaultJarNames)
+            {
+                using (var cmd = new SqlCommand(
+                    @"INSERT INTO Jars (UserId, JarName, Balance, CreatedAt)
+                      VALUES (@UserId, @Name, 0, GETDATE())", conn, tx))
+                {
+                    cmd.Parameters.AddWithValue("@UserId", userId);
+                    cmd.Parameters.AddWithValue("@Name", name);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+        public static void ResetAllJarsForUserSimple_HardDelete(int userId)
+        {
+            if (userId <= 0) throw new ArgumentException(nameof(userId));
+
+            string connStr = ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString;
+            using (var conn = new SqlConnection(connStr))
+            {
+                conn.Open();
+                using (var tx = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        // --- before counts (for debugging) ---
+                        int beforeJars = Count("Jars", userId, conn, tx);
+                        int beforeTxns = CountJoinedTransactions(userId, conn, tx);
+                        int beforeSnapshots = Count("JarSnapshots", userId, conn, tx);
+                        System.Diagnostics.Trace.TraceInformation($"[Reset] before: jars={beforeJars}, txns={beforeTxns}, snaps={beforeSnapshots}");
+
+                        // 1. Delete transactions
+                        using (var cmd = new SqlCommand(
+                            @"DELETE T
+                      FROM JarTransactions T
+                      INNER JOIN Jars J ON T.JarId = J.JarId
+                      WHERE J.UserId = @UserId", conn, tx))
+                        {
+                            cmd.Parameters.AddWithValue("@UserId", userId);
+                            int deletedTx = cmd.ExecuteNonQuery();
+                            System.Diagnostics.Trace.TraceInformation($"[Reset] deleted transactions rows: {deletedTx}");
+                        }
+
+                        // 2. Delete snapshots
+                        using (var cmd = new SqlCommand(
+                            "DELETE FROM JarSnapshots WHERE UserId = @UserId", conn, tx))
+                        {
+                            cmd.Parameters.AddWithValue("@UserId", userId);
+                            int deletedSnap = cmd.ExecuteNonQuery();
+                            System.Diagnostics.Trace.TraceInformation($"[Reset] deleted snapshots rows: {deletedSnap}");
+                        }
+
+                        // 3. Delete jars
+                        using (var cmd = new SqlCommand(
+                            "DELETE FROM Jars WHERE UserId = @UserId", conn, tx))
+                        {
+                            cmd.Parameters.AddWithValue("@UserId", userId);
+                            int deletedJars = cmd.ExecuteNonQuery();
+                            System.Diagnostics.Trace.TraceInformation($"[Reset] deleted jars rows: {deletedJars}");
+                        }
+
+                        // --- after deletion counts ---
+                        int midJars = Count("Jars", userId, conn, tx);
+                        System.Diagnostics.Trace.TraceInformation($"[Reset] after delete: jars={midJars}");
+
+                        // 4. Recreate default jars
+                        var jarManager = new Jar();
+                        jarManager.CreateDefaultJars(userId, conn, tx); // same tx
+
+                        tx.Commit();
+                        System.Diagnostics.Trace.TraceInformation($"[Reset] committed transaction");
+                    }
+                    catch (Exception ex)
+                    {
+                        try { tx.Rollback(); } catch { }
+                        System.Diagnostics.Trace.TraceError($"Reset failed for user {userId}: {ex}");
+                        throw;
+                    }
+                }
+            }
+
+            // regen snapshots (non-critical)
+            try
+            {
+                var snapshot = new JarSnapshot();
+                snapshot.GenerateSnapshots(userId, "daily");
+                snapshot.GenerateSnapshots(userId, "monthly");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.TraceWarning($"Snapshot regen failed: {ex.Message}");
+            }
+        }
+
+        // helpers for debug counts
+        private static int Count(string table, int userId, SqlConnection conn, SqlTransaction tx)
+        {
+            using (var cmd = new SqlCommand($"SELECT COUNT(1) FROM {table} WHERE UserId = @UserId", conn, tx))
+            {
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                return Convert.ToInt32(cmd.ExecuteScalar());
+            }
+        }
+
+        private static int CountJoinedTransactions(int userId, SqlConnection conn, SqlTransaction tx)
+        {
+            using (var cmd = new SqlCommand(
+                @"SELECT COUNT(1)
+          FROM JarTransactions T
+          INNER JOIN Jars J ON T.JarId = J.JarId
+          WHERE J.UserId = @UserId", conn, tx))
+            {
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                return Convert.ToInt32(cmd.ExecuteScalar());
+            }
+        }
     }
 }

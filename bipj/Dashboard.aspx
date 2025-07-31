@@ -183,66 +183,59 @@
     <!-- Main Content -->
     <div class="mainpage-content" style="height: calc(100vh - 66px); overflow: hidden">
         <!-- Header Row -->
-        <div class="d-flex justify-content-between align-items-center px-4 py-2 mb-2"
-            style="position: sticky; top: 0; z-index: 10;">
+        <header class="d-flex justify-content-between align-items-center px-4 py-2 mb-2" style="position: sticky; top: 0; z-index: 10;">
             <h1 class="fw-bold mb-0">OVERALL DASHBOARD</h1>
-            <div class="col-auto">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="custom-dropdown" id="customDropdown">
+            <div class="d-flex align-items-center gap-3 col-auto">
+                <div class="custom-dropdown" id="customDropdown">
+                    <!-- hidden trigger -->
+                    <asp:LinkButton ID="btnPeriodChange" runat="server" OnClick="btnPeriodChange_Click" Style="display: none"></asp:LinkButton>
 
-                        <!-- closed LinkButton -->
-                        <asp:LinkButton
-                            ID="btnPeriodChange"
-                            runat="server"
-                            OnClick="btnPeriodChange_Click"
-                            Style="display: none">
-                        </asp:LinkButton>
-
-                        <div class="selected" id="selectedOption">
-                            <asp:Literal ID="litPeriodIcon" runat="server" />
-                            <span class="selected-label">
-                                <asp:Literal ID="litPeriodLabel" runat="server" />
-                            </span>
-                            <span class="dropdown-arrow"><i class="bi bi-caret-down-fill"></i></span>
-                        </div>
-                        <div class="options" style="display: none;">
-                            <div class="option" data-value="day">
-                                <img src="images/calendar/calendar-day.png" width="20" height="20" />
-                                <span>Day</span>
-                            </div>
-                            <div class="option" data-value="week">
-                                <img src="images/calendar/calendar-week.png" width="20" height="20" />
-                                <span>Week</span>
-                            </div>
-                            <div class="option" data-value="month">
-                                <img src="images/calendar/calendar-month.png" width="20" height="20" />
-                                <span>Month</span>
-                            </div>
-                            <div class="option" data-value="year">
-                                <img src="images/calendar/calendar-year.png" width="20" height="20" />
-                                <span>Year</span>
-                            </div>
-                            <div class="option" data-value="all">
-                                <span style="font-size: 1.1rem;">∞ All Time</span>
-                            </div>
-                        </div>
+                    <div class="selected d-flex align-items-center" id="selectedOption">
+                        <asp:Literal ID="litPeriodIcon" runat="server" />
+                        <span class="selected-label">
+                            <asp:Literal ID="litPeriodLabel" runat="server" />
+                        </span>
+                        <span class="dropdown-arrow"><i class="bi bi-caret-down-fill"></i></span>
                     </div>
 
-                    <asp:HiddenField ID="hdnSelectedPeriod" runat="server" />
-                    <asp:HiddenField ID="hdnSelectedDate" runat="server" />
+                    <div class="options" style="display: none;">
+                        <div class="option" data-value="day">
+                            <img src="images/calendar/calendar-day.png" width="20" height="20" />
+                            <span>Day</span>
+                        </div>
+                        <div class="option" data-value="week">
+                            <img src="images/calendar/calendar-week.png" width="20" height="20" />
+                            <span>Week</span>
+                        </div>
+                        <div class="option" data-value="month">
+                            <img src="images/calendar/calendar-month.png" width="20" height="20" />
+                            <span>Month</span>
+                        </div>
+                        <div class="option" data-value="year">
+                            <img src="images/calendar/calendar-year.png" width="20" height="20" />
+                            <span>Year</span>
+                        </div>
+                        <div class="option" data-value="all">
+                            <span style="font-size: 1.1rem;">∞ All Time</span>
+                        </div>
+                    </div>
+                </div>
 
+                <asp:HiddenField ID="hdnSelectedPeriod" runat="server" />
+                <asp:HiddenField ID="hdnSelectedDate" runat="server" />
+
+                <div class="d-flex gap-2">
                     <input type="date" id="inputDay" class="form-control" style="min-width: 160px;" onchange="handleDateChange(this)" />
                     <input type="week" id="inputWeek" class="form-control" style="min-width: 160px; display: none;" onchange="handleDateChange(this)" />
                     <input type="month" id="inputMonth" class="form-control" style="min-width: 160px; display: none;" onchange="handleDateChange(this)" />
                     <input type="number" id="inputYear" class="form-control" style="min-width: 100px; display: none;" min="2000" max="2100" placeholder="Year" onchange="handleDateChange(this)" />
                 </div>
             </div>
-        </div>
+        </header>
 
-        <div class="content" style="height: calc(100vh - 155px); overflow-y: auto; position: relative;">
+        <div class="content" style="height: calc(100vh - 155px); overflow-y: auto; overflow-x:hidden; position: relative;">
             <!-- TOTAL BALANCE Section -->
-            <div class="p-4 mb-3 d-flex flex-column"
-                style="background: linear-gradient(90deg, #dfe4ff, #f4f2fd); border-radius: 16px; min-height: 200px;">
+            <section class="p-4 mb-3 d-flex flex-column" style="background: linear-gradient(90deg, #dfe4ff, #f4f2fd); border-radius: 16px; min-height: 200px;">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h3 class="fw-bold mb-0">TOTAL BALANCE</h3>
                 </div>
@@ -265,7 +258,6 @@
                         </div>
                     </div>
 
-
                     <!-- Balance Card -->
                     <div class="bg-white text-center shadow-sm rounded p-3 flex-grow-1 d-flex flex-column justify-content-center">
                         <div class="fw-semibold fs-6 text-dark">Balance</div>
@@ -275,24 +267,23 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </section>
 
             <!-- JARS + GOALS row -->
             <div class="d-flex gap-4">
                 <!-- JARS -->
                 <div class="flex-1 border p-4 rounded shadow-sm bg-white">
-                    <h3 class="fw-bold mb-3">MY JARS
-                 <a href="#" data-bs-toggle="modal" data-bs-target="#info-popup" title="Learn more about Jars">
-                     <img src="images/info-icon.png" alt="Info" class="info-icon-img" />
-                 </a>
-                    </h3>
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h3 class="fw-bold mb-0">MY JARS</h3>
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#info-popup" title="Learn more about Jars">
+                            <img src="images/info-icon.png" alt="Info" class="info-icon-img" />
+                        </a>
+                    </div>
                     <div class="d-flex align-items-center">
                         <img src="images/piggy-icon.png" alt="Jars" style="height: 60px;" class="me-3" />
                         <div>
                             <h6 class="mb-1">Total Money (All Jars)</h6>
-                            <asp:Label ID="lblJarTotal" runat="server"
-                                CssClass="fw-bold fs-5 text-dark"
-                                Text="$0" />
+                            <asp:Label ID="lblJarTotal" runat="server" CssClass="fw-bold fs-5 text-dark" Text="$0" />
                         </div>
                     </div>
                 </div>
@@ -304,8 +295,8 @@
                         <p class="mb-2">
                             <strong>
                                 <asp:Label ID="lblOngoingCount" runat="server" /></strong> Ongoing,
-                    <strong>
-                        <asp:Label ID="lblCompletedCount" runat="server" /></strong> Completed
+            <strong>
+                <asp:Label ID="lblCompletedCount" runat="server" /></strong> Completed
                         </p>
                         <div class="d-flex align-items-center gap-3">
                             <div class="d-flex align-items-center gap-2">
@@ -322,14 +313,13 @@
                                     <asp:Label ID="lblSavedVsTarget" runat="server" />
                                 </span>
                             </div>
+                        </div>
                     </asp:Panel>
-                    <asp:Label ID="lblNoOngoingGoals"
-                        runat="server"
-                        CssClass="text-muted"
-                        Visible="false"
-                        Text="No ongoing goals…" />
+                    <asp:Label ID="lblNoOngoingGoals" runat="server" CssClass="text-muted" Visible="false" Text="No ongoing goals…" />
                 </div>
             </div>
+
+            <!-- Chart Section -->
             <div class="row mt-4">
                 <div class="col-12">
                     <div class="card">
@@ -342,13 +332,16 @@
                     </div>
                 </div>
             </div>
-            <div class="action-button-wrapper">
+
+            <!-- Action Button -->
+            <div class="action-button-wrapper mt-3">
                 <button type="button" class="btn add-btn" data-bs-toggle="modal" data-bs-target="#addEntryModal">
                     + New Entry
                 </button>
             </div>
         </div>
     </div>
+
 
     <!-- Add New Entry Modal -->
     <div class="modal fade"

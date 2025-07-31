@@ -168,9 +168,7 @@ namespace bipj
             {
                 decimal net = txnSvc.GetTransactionSum(_userId, jarId);
                 var jar = jarSvc.GetJarById(jarId, _userId);
-                if (jar == null) continue;
-                jar.Amount = jar.InitialAmount + net;
-                jar.UpdateJarAmount();
+                if (jar == null) continue;                
             }
 
             Session.Remove("importRows");

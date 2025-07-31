@@ -96,15 +96,6 @@ namespace bipj
         protected global::System.Web.UI.WebControls.TextBox txtNewJarDesc;
 
         /// <summary>
-        /// txtNewJarAmount control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox txtNewJarAmount;
-
-        /// <summary>
         /// btnAddJar control.
         /// </summary>
         /// <remarks>
@@ -148,15 +139,6 @@ namespace bipj
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.TextBox txtEditDesc;
-
-        /// <summary>
-        /// txtEditAmount control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox txtEditAmount;
 
         /// <summary>
         /// txtEditPercent control.

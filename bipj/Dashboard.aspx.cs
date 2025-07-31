@@ -41,6 +41,8 @@ namespace bipj
 
         protected void btnPeriodChange_Click(object sender, EventArgs e)
         {
+            new JarSnapshot().BackfillSnapshots(_userId);
+
             UpdatePeriodLabel();
             LoadTotals();
             LoadJarTotal();
@@ -106,29 +108,42 @@ namespace bipj
             decimal expense = 0m;
 
             var txnMgr = new JarTransaction();
+            // includeDeleted: true so we pick up transactions from soft–deleted jars
             var jars = new Jar().GetJarsByUser(_userId, includeDeleted: true);
             var goals = new Goal().GetGoalsByUser(_userId, from, to);
 
             foreach (var jar in jars)
             {
-                income += txnMgr.GetTransactionSumByType(_userId, jar.JarId, "Income", from, to, includeTransfers: false);
-                expense += txnMgr.GetTransactionSumByType(_userId, jar.JarId, "Expense", from, to, includeTransfers: false);
+                // only count real Income transactions, skip transfers
+                income += txnMgr.GetTransactionSumByType(
+                               _userId,
+                               jar.JarId,
+                               "Income",
+                               from,
+                               to,
+                               includeTransfers: false);
 
-                if (jar.InitialAmount > 0)
-                {
-                    if (hdnSelectedPeriod.Value == "all" ||
-                        (jar.CreatedAt >= from && jar.CreatedAt < to))
-                        income += jar.InitialAmount;
-                }
+                // only count real Expense transactions, skip transfers
+                expense += txnMgr.GetTransactionSumByType(
+                               _userId,
+                               jar.JarId,
+                               "Expense",
+                               from,
+                               to,
+                               includeTransfers: false);
             }
+
+            // total saved toward goals in this period
             decimal totalSavedGoals = goals.Sum(g => g.SavedAmount);
 
-            decimal balance = income + expense + totalSavedGoals;
+            // net balance = income minus expense, plus goal savings
+            decimal balance = income - expense + totalSavedGoals;
 
             lblIncome.Text = income.ToString("C2");
-            lblExpense.Text = Math.Abs(expense).ToString("C2");
+            lblExpense.Text = expense.ToString("C2");
             lblBalance.Text = balance.ToString("C2");
         }
+
 
         private void LoadJarTotal()
         {
@@ -141,7 +156,8 @@ namespace bipj
             foreach (var jar in jars)
             {
                 decimal net = txnMgr.GetTransactionSum(_userId, jar.JarId, null, to);
-                total += jar.InitialAmount + net;
+                decimal currentBalance = new Jar().GetCurrentBalance(_userId, jar.JarId);
+                total += currentBalance;
             }
 
             lblJarTotal.Text = total.ToString("C2");
@@ -150,7 +166,6 @@ namespace bipj
         private void LoadGoals()
         {
             var (from, to) = GetRange();
-
             var goals = new Goal().GetGoalsByUser(_userId, from, to);
 
             int completed = goals.Count(g => g.SavedAmount >= g.TargetAmount);
@@ -214,8 +229,7 @@ namespace bipj
                 int jarId = int.Parse(ddlJars.SelectedValue);
 
                 // ---- balance guard ----
-                var jar = new Jar().GetJarById(jarId, _userId);
-                decimal liveBal = jar.InitialAmount + new JarTransaction().GetTransactionSum(_userId, jarId);
+                decimal liveBal = jarSvc.GetCurrentBalance(_userId, jarId);
                 if (amount > liveBal)
                 {
                     ScriptManager.RegisterStartupScript(
@@ -229,8 +243,6 @@ namespace bipj
                 txnMgr.JarId = jarId;
                 txnMgr.TransactionType = TxnType.Expense;
                 txnMgr.InsertTransaction();
-
-                jarSvc.DeductAmount(jarId, amount);
             }
             else
             {
@@ -242,17 +254,12 @@ namespace bipj
                     txnMgr.JarId = jarId;
                     txnMgr.TransactionType = TxnType.Income;
                     txnMgr.InsertTransaction();
-
-                    jarSvc.JarId = jarId;
-                    jarSvc.UserId = _userId;
-                    jarSvc.Amount = amount;
-                    jarSvc.UpdateJarAmount();
                 }
-                else // auto distribute
+                else 
                 {
                     foreach (var (jarId, pct) in jarSvc.GetJarsWithPercentages(_userId))
                     {
-                        decimal share = Math.Floor(amount * pct / 100m * 100m) / 100m; // 2dp floor
+                        decimal share = Math.Floor(amount * pct / 100m * 100m) / 100m; 
                         if (share <= 0) continue;
 
                         new JarTransaction
@@ -264,11 +271,6 @@ namespace bipj
                             Date = date,
                             TransactionType = TxnType.Income
                         }.InsertTransaction();
-
-                        jarSvc.JarId = jarId;
-                        jarSvc.UserId = _userId;
-                        jarSvc.Amount = share;
-                        jarSvc.UpdateJarAmount();
                     }
                 }
             }
@@ -279,11 +281,12 @@ namespace bipj
             LoadJarTotal();
             LoadGoals();
         }
+
         protected string snapshotLabelsJson;
         protected string snapshotDatasetsJson;
         private void LoadJarSnapshotChart()
         {
-            var snapshot = new JarSnapshot();
+            var snapshotSvc = new JarSnapshot();
 
             string periodType;
 
@@ -311,16 +314,29 @@ namespace bipj
 
             var (fromValue, toValue) = GetRange();
 
+            // cap the end to today so nothing after today appears
+            DateTime effectiveEnd;
+            if (periodType == "daily")
+            {
+                effectiveEnd = toValue.Date > DateTime.Today ? DateTime.Today : toValue.Date;
+            }
+            else // monthly
+            {
+                var requestedEndMonth = new DateTime(toValue.Year, toValue.Month, 1);
+                var todayMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+                effectiveEnd = requestedEndMonth > todayMonth ? todayMonth : requestedEndMonth;
+            }
+
+            // clamp and normalize
             DateTime? from = fromValue;
             DateTime? to = toValue;
-
             bipj.Data.SqlDate.Clamp(ref from, ref to);
+            var actualFrom = from ?? DateTime.MinValue;
+            // use effectiveEnd for the upper bound of labels/generation
+            var actualTo = effectiveEnd;
 
-            fromValue = from ?? DateTime.MinValue;
-            toValue = to ?? DateTime.MaxValue;
-
-            var snapshots = snapshot.GetSnapshots(_userId, periodType, fromValue, toValue);
-
+            // fetch snapshots in the original full range so we can forward-fill up to today
+            var snapshots = snapshotSvc.GetSnapshots(_userId, periodType, actualFrom, toValue);
             if (snapshots == null || !snapshots.Any())
             {
                 snapshotLabelsJson = "[]";
@@ -328,23 +344,17 @@ namespace bipj
                 return;
             }
 
-            var jars = new Jar().GetJarsByUser(_userId);
-
-            // Generate a full date range list depending on period type
-            List<DateTime> allDates;
-
+            // build the full date series from period start to effectiveEnd (today capped)
+            List<DateTime> allDates = new List<DateTime>();
             if (periodType == "daily")
             {
-                allDates = new List<DateTime>();
-                for (var dt = fromValue.Date; dt <= toValue.Date; dt = dt.AddDays(1))
+                for (var dt = actualFrom.Date; dt <= actualTo.Date; dt = dt.AddDays(1))
                     allDates.Add(dt);
             }
             else // monthly
             {
-                allDates = new List<DateTime>();
-                DateTime currentMonth = new DateTime(fromValue.Year, fromValue.Month, 1);
-                DateTime endMonth = new DateTime(toValue.Year, toValue.Month, 1);
-
+                DateTime currentMonth = new DateTime(actualFrom.Year, actualFrom.Month, 1);
+                DateTime endMonth = new DateTime(actualTo.Year, actualTo.Month, 1);
                 while (currentMonth <= endMonth)
                 {
                     allDates.Add(currentMonth);
@@ -352,14 +362,20 @@ namespace bipj
                 }
             }
 
-            // Group snapshots by date for quick lookup
+            // group snapshots by normalized date
             var groupedData = snapshots
-                .GroupBy(s => s.SnapshotDate.Date)
+                .GroupBy(s =>
+                    periodType == "daily"
+                        ? s.SnapshotDate.Date
+                        : new DateTime(s.SnapshotDate.Year, s.SnapshotDate.Month, 1))
                 .ToDictionary(g => g.Key, g => g.ToList());
 
-            // Use full date range for labels
-            var labels = allDates.Select(d => d.ToString(periodType == "daily" ? "dd MMM" : "MMM yyyy")).ToList();
+            // format labels
+            var labels = allDates
+                .Select(d => d.ToString(periodType == "daily" ? "dd MMM" : "MMM yyyy"))
+                .ToList();
 
+            var jars = new Jar().GetJarsByUser(_userId);
             var datasets = new List<object>();
 
             foreach (var jar in jars)
@@ -379,7 +395,7 @@ namespace bipj
                             continue;
                         }
                     }
-                    // No snapshot for this date, use last known balance or 0
+                    // forward-fill using last known balance (or zero if none yet)
                     dataPoints.Add(lastKnownBalance);
                 }
 
@@ -388,12 +404,14 @@ namespace bipj
                     label = jar.JarName,
                     data = dataPoints,
                     borderWidth = 2,
-                    fill = false
+                    fill = false,
+                    spanGaps = false 
                 });
             }
 
             snapshotLabelsJson = JsonConvert.SerializeObject(labels);
             snapshotDatasetsJson = JsonConvert.SerializeObject(datasets);
         }
+
     }
 }

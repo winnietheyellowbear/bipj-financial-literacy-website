@@ -141,16 +141,11 @@
                 }
 
         .action-button-wrapper {
-            position: fixed;
-            bottom: 30px;
-            right: 40px;
+            position: absolute;
+            bottom: 80px;
+            right: 20px;
             z-index: 100;
-            transition: position 0.3s ease;
         }
-
-            .action-button-wrapper.scrolled {
-                position: static; /* or relative */
-            }
     </style>
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
@@ -244,7 +239,7 @@
             </div>
         </div>
 
-        <div class="content" style="height: calc(100vh - 155px); overflow-y: auto">
+        <div class="content" style="height: calc(100vh - 155px); overflow-y: auto; position: relative;">
             <!-- TOTAL BALANCE Section -->
             <div class="p-4 mb-3 d-flex flex-column"
                 style="background: linear-gradient(90deg, #dfe4ff, #f4f2fd); border-radius: 16px; min-height: 200px;">
@@ -335,9 +330,18 @@
                         Text="No ongoing goals…" />
                 </div>
             </div>
-
-            <h3 class="fw-bold mt-4">Jar Balance Trends</h3>
-            <canvas id="jarSnapshotChart" width="400" height="200"></canvas>
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h3 class="card-title mb-4">Jar Balance Trends</h3>
+                            <div class="ratio ratio-16x9">
+                                <canvas id="jarSnapshotChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="action-button-wrapper">
                 <button type="button" class="btn add-btn" data-bs-toggle="modal" data-bs-target="#addEntryModal">
                     + New Entry
@@ -512,22 +516,7 @@
 <asp:Content ID="Content3" ContentPlaceHolderID="scripts" runat="server">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-
-        document.addEventListener('DOMContentLoaded', function () {
-            const actionBtnWrapper = document.querySelector('.action-button-wrapper');
-            const scrollContainer = document.querySelector('.content'); // scrollable container
-
-            // On scroll, check scrollTop
-            scrollContainer.addEventListener('scroll', function () {
-                if (scrollContainer.scrollTop > 0) {
-                    actionBtnWrapper.classList.add('scrolled');
-                } else {
-                    actionBtnWrapper.classList.remove('scrolled');
-                }
-            });
-        });
-
+    <script>      
         function $(id) { return document.getElementById(id); }
 
         function resetValidation(ctx) {

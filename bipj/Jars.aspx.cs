@@ -23,7 +23,8 @@ namespace bipj
             if (IsPostBack) return;
 
             var jarSvc = new Jar();
-            if (!jarSvc.UserHasJars(_userId)) jarSvc.CreateDefaultJars(_userId);
+            if (!jarSvc.UserHasJars(_userId))
+                jarSvc.CreateDefaultJars(_userId);
 
             LoadJars();
             BindDefaultJarDropdown();
@@ -34,14 +35,7 @@ namespace bipj
         private void LoadJars()
         {
             var jarSvc = new Jar();
-            var txnSvc = new JarTransaction();
-
             var jars = jarSvc.GetJarsByUser(_userId);
-            foreach (var j in jars)
-            {
-                decimal net = txnSvc.GetTransactionSum(_userId, j.JarId);
-                j.Amount = j.InitialAmount + net;
-            }
 
             rptJars.DataSource = jars;
             rptJars.DataBind();
@@ -49,18 +43,23 @@ namespace bipj
             rptSettings.DataSource = jars;
             rptSettings.DataBind();
 
-            lblTotalAmount.Text = $"${jars.Sum(j => j.Amount):F2}";
+            lblTotalAmount.Text = $"${jars.Sum(j => j.Balance):F2}";
 
             var chartData = new
             {
-                labels = jars.Where(j => j.Amount > 0).Select(j => j.JarName).ToList(),
-                amounts = jars.Where(j => j.Amount > 0).Select(j => Math.Round(j.Amount, 2)).ToList(),
-                colors = jars.Where(j => j.Amount > 0).Select(j => j.ColorHex ?? "#cccccc").ToList()
+                labels = jars.Where(j => j.Balance > 0).Select(j => j.JarName).ToList(),
+                amounts = jars.Where(j => j.Balance > 0).Select(j => Math.Round(j.Balance, 2)).ToList(),
+                colors = jars.Where(j => j.Balance > 0).Select(j => j.ColorHex ?? "#cccccc").ToList()
             };
 
             string json = new JavaScriptSerializer().Serialize(chartData);
-            ScriptManager.RegisterStartupScript(this, GetType(), "chartData",
-                $"window.chartData = {json}; renderPieChart();", true);
+            ScriptManager.RegisterStartupScript(
+                this,
+                GetType(),
+                "chartData",
+                $"window.chartData = {json}; renderPieChart();",
+                true
+            );
         }
 
         private void BindDefaultJarDropdown()
@@ -85,8 +84,8 @@ namespace bipj
                 var tb = (TextBox)item.FindControl("percentInput");
                 var hf = (HiddenField)item.FindControl("hiddenJarId");
 
-                decimal pct;
-                if (!decimal.TryParse(tb.Text.Trim(), out pct) || Math.Round(pct * 10) != pct * 10)
+                if (!decimal.TryParse(tb.Text.Trim(), out decimal pct)
+                    || Math.Round(pct * 10) != pct * 10)
                 {
                     ShowAlert("Percentages must be numbers with at most one decimal place.");
                     return;
@@ -109,12 +108,12 @@ namespace bipj
                 BindDefaultJarDropdown();
 
                 const string script = @"
-window.addEventListener('load', function() {
-  var s = document.getElementById('settingsModal');
-  if (s) bootstrap.Modal.getOrCreateInstance(s).hide();
-  var e = document.getElementById('percentErrorModal');
-  if (e) bootstrap.Modal.getOrCreateInstance(e).show();
-});";
+                    window.addEventListener('load', function() {
+                      var s = document.getElementById('settingsModal');
+                      if (s) bootstrap.Modal.getOrCreateInstance(s).hide();
+                      var e = document.getElementById('percentErrorModal');
+                      if (e) bootstrap.Modal.getOrCreateInstance(e).show();
+                    });";
                 ClientScript.RegisterStartupScript(GetType(), "pctError", script, true);
                 return;
             }
@@ -124,11 +123,11 @@ window.addEventListener('load', function() {
             BindDefaultJarDropdown();
 
             const string closeScript = @"
-window.addEventListener('load', function() {
-  var s = document.getElementById('settingsModal');
-  if (s) bootstrap.Modal.getOrCreateInstance(s).hide();
-  renderPieChart();
-});";
+                window.addEventListener('load', function() {
+                  var s = document.getElementById('settingsModal');
+                  if (s) bootstrap.Modal.getOrCreateInstance(s).hide();
+                  renderPieChart();
+                });";
             ClientScript.RegisterStartupScript(GetType(), "closeSettings", closeScript, true);
         }
 
@@ -138,13 +137,13 @@ window.addEventListener('load', function() {
             if (string.IsNullOrWhiteSpace(name)) return;
 
             string desc = txtNewJarDesc.Text.Trim();
-            decimal amt; decimal.TryParse(txtNewJarAmount.Text.Trim(), out amt);
 
-            var svc = new Jar();
-            int pos = svc.GetJarsByUser(_userId).Count;
-            string color = svc.GetNextAvailableColor(_userId);
+            var jarSvc = new Jar();
+            int pos = jarSvc.GetJarsByUser(_userId).Count;
+            string color = jarSvc.GetNextAvailableColor(_userId);
 
-            var jar = new Jar(_userId, name, desc, 0m, false, amt, amt, pos) { ColorHex = color };
+            // match your Jar constructor: (jarId, userId, jarName, description, percentage, isDefault, position, colorHex)
+            var jar = new Jar(0, _userId, name, desc, 0m, false, pos, color);
             jar.InsertJar();
 
             LoadJars();
@@ -155,7 +154,7 @@ window.addEventListener('load', function() {
         {
             if (e.CommandName != "Edit") return;
 
-            LoadJars(); // ensure chartData is re-emitted
+            LoadJars();
 
             int jarId = Convert.ToInt32(e.CommandArgument);
             var jar = new Jar().GetJarById(jarId, _userId);
@@ -164,38 +163,42 @@ window.addEventListener('load', function() {
             hiddenEditJarId.Value = jar.JarId.ToString();
             txtEditName.Text = jar.JarName;
             txtEditDesc.Text = jar.Description;
-            txtEditAmount.Text = jar.InitialAmount.ToString("F2");
             txtEditPercent.Text = jar.Percentage.ToString("0.0");
 
-            ScriptManager.RegisterStartupScript(this, GetType(), "showEdit",
-                "var m=new bootstrap.Modal(document.getElementById('editModal'));m.show();", true);
+            ScriptManager.RegisterStartupScript(
+                this,
+                GetType(),
+                "showEdit",
+                "var m=new bootstrap.Modal(document.getElementById('editModal'));m.show();",
+                true
+            );
         }
 
         protected void btnUpdateJar_Click(object sender, EventArgs e)
         {
-            int jarId;
-            if (!int.TryParse(hiddenEditJarId.Value, out jarId)) return;
+            if (!int.TryParse(hiddenEditJarId.Value, out int jarId)) return;
 
             var svc = new Jar();
             var jar = svc.GetJarById(jarId, _userId);
             if (jar == null) return;
 
-            decimal newInit; decimal.TryParse(txtEditAmount.Text.Trim(), out newInit);
-
             jar.JarName = txtEditName.Text.Trim();
             jar.Description = txtEditDesc.Text.Trim();
-            jar.InitialAmount = newInit;
             jar.UpdateJar();
 
             LoadJars();
-            ScriptManager.RegisterStartupScript(this, GetType(), "closeEdit",
-                "closeEditModal(); renderPieChart();", true);
+            ScriptManager.RegisterStartupScript(
+                this,
+                GetType(),
+                "closeEdit",
+                "closeEditModal(); renderPieChart();",
+                true
+            );
         }
 
         protected void btnConfirmDelete_Click(object sender, EventArgs e)
         {
-            int jarId;
-            if (!int.TryParse(hiddenDeleteJarId.Value, out jarId)) return;
+            if (!int.TryParse(hiddenDeleteJarId.Value, out int jarId)) return;
 
             var svc = new Jar();
             var toDelete = svc.GetJarById(jarId, _userId);
@@ -205,16 +208,27 @@ window.addEventListener('load', function() {
                 return;
             }
 
-            // Model handles balance transfer + goal txn reassignment
             toDelete.DeleteJar();
 
             LoadJars();
-            ScriptManager.RegisterStartupScript(this, GetType(), "afterDelete", "renderPieChart();", true);
+            ScriptManager.RegisterStartupScript(
+                this,
+                GetType(),
+                "afterDelete",
+                "renderPieChart();",
+                true
+            );
         }
 
         private void ShowAlert(string msg)
         {
-            ScriptManager.RegisterStartupScript(this, GetType(), "alert", $"alert('{msg}');", true);
+            ScriptManager.RegisterStartupScript(
+                this,
+                GetType(),
+                "alert",
+                $"alert('{msg}');",
+                true
+            );
         }
     }
 }

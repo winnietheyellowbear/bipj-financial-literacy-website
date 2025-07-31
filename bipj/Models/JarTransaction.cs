@@ -48,11 +48,14 @@ namespace bipj.Models
 
         public int InsertTransaction()
         {
+            if (TransactionType == TxnType.Expense)
+                Amount = -Math.Abs(Amount);
+
             const string sql = @"
             INSERT INTO JarTransactions
             (UserID, JarID, Name, Amount, Date, TransactionType, Category)
             VALUES (@UserID, @JarID, @Name, @Amount, @Date, @TransactionType, @Category)";
-            return Db.Exec(sql, p =>
+            var result = Db.Exec(sql, p =>
             {
                 p.AddWithValue("@UserID", UserId);
                 p.AddWithValue("@JarID", JarId);
@@ -62,13 +65,24 @@ namespace bipj.Models
                 p.AddWithValue("@TransactionType", TransactionType.ToString());
                 p.AddWithValue("@Category", Category ?? "");
             });
+
+            Jar.InvalidateCache(); // ✅ Clear cached balances
+            return result;
         }
 
         public void InsertTransfer(int userId, int fromJarId, int toJarId, decimal amount, string desc)
         {
-            new JarTransaction(0, userId, fromJarId, desc, -amount, DateTime.Now, TxnType.Transfer, "Transfer").InsertTransaction();
-            new JarTransaction(0, userId, toJarId, desc, amount, DateTime.Now, TxnType.Transfer, "Transfer").InsertTransaction();
+            // withdraw from source jar
+            new JarTransaction(0, userId, fromJarId, desc, -amount, DateTime.Now, TxnType.Transfer, "Transfer")
+                .InsertTransaction();
+
+            // deposit into destination jar
+            new JarTransaction(0, userId, toJarId, desc, amount, DateTime.Now, TxnType.Transfer, "Transfer")
+                .InsertTransaction();
+
+            Jar.InvalidateCache();
         }
+
 
         public int UpdateTransaction()
         {
@@ -76,7 +90,7 @@ namespace bipj.Models
             UPDATE JarTransactions
             SET Name=@Name, Amount=@Amount, Date=@Date
             WHERE TransactionID=@TransactionID AND UserID=@UserID";
-            return Db.Exec(sql, p =>
+            var result = Db.Exec(sql, p =>
             {
                 p.AddWithValue("@Name", Name);
                 p.AddWithValue("@Amount", Amount);
@@ -84,17 +98,24 @@ namespace bipj.Models
                 p.AddWithValue("@TransactionID", TransactionId);
                 p.AddWithValue("@UserID", UserId);
             });
+
+            Jar.InvalidateCache(); 
+            return result;
         }
 
         public int DeleteTransaction()
         {
             const string sql = "DELETE FROM JarTransactions WHERE TransactionID=@TransactionID AND UserID=@UserID";
-            return Db.Exec(sql, p =>
+            var result = Db.Exec(sql, p =>
             {
                 p.AddWithValue("@TransactionID", TransactionId);
                 p.AddWithValue("@UserID", UserId);
             });
+
+            Jar.InvalidateCache(); 
+            return result;
         }
+
 
         public List<JarTransaction> GetTransactionsByJar(int userID, int jarID)
         {
@@ -148,7 +169,7 @@ namespace bipj.Models
             SELECT SUM(
                 CASE TransactionType
                     WHEN 'Income'  THEN Amount
-                    WHEN 'Expense' THEN -Amount
+                    WHEN 'Expense' THEN Amount
                     WHEN 'Transfer' THEN Amount
                 END)
             FROM JarTransactions
@@ -199,14 +220,6 @@ namespace bipj.Models
                     if (toDate.HasValue) p.AddWithValue("@To", toDate.Value);
                 },
                 0m);
-        }
-
-        private static void ClampToSqlRange(ref DateTime? from, ref DateTime? to)
-        {
-            DateTime sqlMin = SqlDateTime.MinValue.Value;
-            DateTime sqlMax = SqlDateTime.MaxValue.Value;
-            if (from.HasValue && from.Value < sqlMin) from = sqlMin;
-            if (to.HasValue && to.Value > sqlMax) to = sqlMax;
         }
 
         public class DashboardDetail

@@ -80,9 +80,7 @@ namespace bipj
             var jar = new Jar().GetJarById(_jarId, _userId);
             if (jar != null)
             {
-                decimal net = txn.GetTransactionSum(_userId, _jarId);
-                jar.Amount = jar.InitialAmount + net;
-                jar.UpdateJarAmount();
+                decimal net = txn.GetTransactionSum(_userId, _jarId);                
             }
 
             LoadJarSummary();
@@ -123,10 +121,33 @@ namespace bipj
         protected void btnMoveFunds_Click(object sender, EventArgs e)
         {
             if (!int.TryParse(ddlTargetJar.SelectedValue, out int targetJarId)) return;
-            if (!decimal.TryParse(txtMoveAmount.Text.Trim(), out decimal amount) || amount <= 0 || targetJarId == _jarId) return;
+            if (!decimal.TryParse(txtMoveAmount.Text.Trim(), out decimal amount)
+                || amount <= 0
+                || targetJarId == _jarId)
+                return;
 
-            new JarTransaction().InsertTransfer(_userId, _jarId, targetJarId, amount, $"Move {amount:C}");
+            var jarSvc = new Jar();
+            var sourceJar = jarSvc.GetJarById(_jarId, _userId);
+            var destJar = jarSvc.GetJarById(targetJarId, _userId);
+            if (sourceJar == null || destJar == null) return;
 
+            // balance guard using transaction-based balance
+            decimal sourceLiveBal = jarSvc.GetCurrentBalance(_userId, _jarId);
+            if (amount > sourceLiveBal)
+            {
+                ScriptManager.RegisterStartupScript(
+                    this, GetType(), "insuff",
+                    "showInsufficientFundsModal();",
+                    true);
+                return;
+            }
+
+            string transferName = $"Move {amount:C} from {sourceJar.JarName} to {destJar.JarName}";
+
+            // perform transfer (records two transactions and invalidates cache)
+            new JarTransaction().InsertTransfer(_userId, _jarId, targetJarId, amount, transferName);
+
+            // refresh UI
             LoadJarSummary();
             LoadTransactions();
         }
@@ -169,7 +190,7 @@ namespace bipj
                     Date = t.Date,
                     Category = t.Category,
                     TransactionType = isTransfer ? "Transfer" : t.TransactionType.ToString(),
-                    Amount = Math.Abs(t.Amount),
+                    Amount = t.Amount,
                     RowCss = isTransfer ? "disabled-transaction" : "clickable-card"
                 };
             })
@@ -181,9 +202,23 @@ namespace bipj
             rptTransactions.DataBind();
         }
 
+        protected string FormatAmount(object amountObj)
+        {
+            if (!decimal.TryParse(Convert.ToString(amountObj), out decimal amt)) amt = 0;
+            string sign = amt < 0 ? "−" : "+";
+            return $"{sign}{Math.Abs(amt):C2}";
+        }
+
+        protected string AmountCss(object amountObj)
+        {
+            if (!decimal.TryParse(Convert.ToString(amountObj), out decimal amt)) amt = 0;
+            return amt < 0 ? "text-danger fs-5 fw-bold" : "text-success fs-5 fw-bold";
+        }
+
         private void LoadJarSummary()
         {
-            var jar = new Jar().GetJarById(_jarId, _userId);
+            var jarSvc = new Jar();
+            var jar = jarSvc.GetJarById(_jarId, _userId);
             if (jar == null || jar.UserId != _userId)
             {
                 Response.Redirect("Jars.aspx");
@@ -203,15 +238,22 @@ namespace bipj
                              .ToList();
 
             decimal income = txns
-            .Where(t => t.TransactionType == TxnType.Income || (t.TransactionType == TxnType.Transfer && t.Amount > 0))
-            .Sum(t => t.Amount);
+                .Where(t => t.TransactionType == TxnType.Income
+                            || (t.TransactionType == TxnType.Transfer && t.Amount > 0))
+                .Sum(t => t.Amount);
 
             decimal expense = txns
-            .Where(t => t.TransactionType == TxnType.Expense || (t.TransactionType == TxnType.Transfer && t.Amount < 0))
-            .Sum(t => t.TransactionType == TxnType.Transfer ? Math.Abs(t.Amount) : t.Amount);
+                .Where(t => t.TransactionType == TxnType.Expense
+                            || (t.TransactionType == TxnType.Transfer && t.Amount < 0))
+                .Sum(t => Math.Abs(t.Amount));
 
-            decimal transferIn = txns.Where(t => t.TransactionType == TxnType.Transfer && t.Amount > 0).Sum(t => t.Amount);
-            decimal transferOut = txns.Where(t => t.TransactionType == TxnType.Transfer && t.Amount < 0).Sum(t => -t.Amount);
+            decimal transferIn = txns
+                .Where(t => t.TransactionType == TxnType.Transfer && t.Amount > 0)
+                .Sum(t => t.Amount);
+
+            decimal transferOut = txns
+                .Where(t => t.TransactionType == TxnType.Transfer && t.Amount < 0)
+                .Sum(t => -t.Amount);
 
             lblIncomeTotal.Text = $"${income:F2}";
             lblExpenseTotal.Text = $"${expense:F2}";
@@ -224,10 +266,11 @@ namespace bipj
                                   ? "fw-bold fs-5 text-success"
                                   : "fw-bold fs-5 text-danger";
 
-            decimal netAllTime = txnMgr.GetTransactionSum(_userId, _jarId); // transfers included
-            decimal liveBalance = jar.InitialAmount + netAllTime;
+            // use the new GetCurrentBalance instead of the removed GetLiveBalance
+            decimal liveBalance = jarSvc.GetCurrentBalance(_userId, _jarId);
             hdnCurrentJarBalance.Value = liveBalance.ToString("F2");
         }
+
 
         private void LoadTargetJarDropdown()
         {

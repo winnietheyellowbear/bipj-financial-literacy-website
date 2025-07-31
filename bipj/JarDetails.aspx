@@ -287,7 +287,7 @@
                     <asp:Repeater ID="rptTransactions" runat="server">
                         <ItemTemplate>
                             <div class='transaction-card d-flex align-items-center justify-content-between mb-3 p-3 border rounded shadow-sm bg-white 
-                            <%# Eval("TransactionType").ToString() == "Transfer" ? "disabled-transaction" : "clickable-card" %>'
+                                <%# Eval("TransactionType").ToString() == "Transfer" ? "disabled-transaction" : "clickable-card" %>'
                                 <%# Eval("TransactionType").ToString() == "Transfer" ? "" : "onclick=\"openEditModal(this)\"" %>
                                 data-id='<%# Eval("TransactionId") %>'
                                 data-name='<%# Eval("Name") %>'
@@ -302,8 +302,8 @@
                                 </div>
 
                                 <div>
-                                    <span class='<%# Eval("TransactionType").ToString() == "Expense" ? "text-danger fs-5 fw-bold" : "text-success fs-5 fw-bold" %>'>
-                                        <%# Eval("TransactionType").ToString() == "Expense" ? "−" : "+" %>$<%# Eval("Amount", "{0:N2}") %>
+                                    <span class='<%# AmountCss(Eval("Amount")) %>'>
+                                        <%# FormatAmount(Eval("Amount")) %>
                                     </span>
                                 </div>
                             </div>
@@ -746,12 +746,12 @@
 
             if (txnType === "Expense") {
                 nameInput = document.getElementById('<%= txtExpenseName.ClientID %>');
-             amountInput = document.getElementById('<%= txtExpenseAmount.ClientID %>');
-             dateInput = document.getElementById('<%= txtExpenseDate.ClientID %>');
-         } else {
-             nameInput = document.getElementById('<%= txtIncomeName.ClientID %>');
-             amountInput = document.getElementById('<%= txtIncomeAmount.ClientID %>');
-             dateInput = document.getElementById('<%= txtIncomeDate.ClientID %>');
+                amountInput = document.getElementById('<%= txtExpenseAmount.ClientID %>');
+                dateInput = document.getElementById('<%= txtExpenseDate.ClientID %>');
+            } else {
+                nameInput = document.getElementById('<%= txtIncomeName.ClientID %>');
+                amountInput = document.getElementById('<%= txtIncomeAmount.ClientID %>');
+                dateInput = document.getElementById('<%= txtIncomeDate.ClientID %>');
             }
 
             resetValidation(nameInput.closest("form") || document);

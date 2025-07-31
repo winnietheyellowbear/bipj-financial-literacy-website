@@ -1,6 +1,8 @@
 ﻿using bipj.Models;
 using Microsoft.VisualBasic;
+using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Web.UI;
@@ -17,19 +19,24 @@ namespace bipj
             if (Session["UserId"] == null) { Response.Redirect("Loginpage.aspx"); return; }
             _userId = Convert.ToInt32(Session["UserId"]);
 
-            if (IsPostBack) return;
+            if (!IsPostBack)
+            {
+                new JarSnapshot().BackfillSnapshots(_userId);
 
-            txtExpenseAmount.Attributes["step"] = "0.01";
-            txtIncomeAmount.Attributes["step"] = "0.01";
+                txtExpenseAmount.Attributes["step"] = "0.01";
+                txtIncomeAmount.Attributes["step"] = "0.01";
 
-            hdnSelectedPeriod.Value = string.IsNullOrEmpty(hdnSelectedPeriod.Value) ? "month" : hdnSelectedPeriod.Value;
-            hdnSelectedDate.Value = string.IsNullOrEmpty(hdnSelectedDate.Value) ? DateTime.Today.ToString("yyyy-MM", CultureInfo.InvariantCulture) : hdnSelectedDate.Value;
+                hdnSelectedPeriod.Value = string.IsNullOrEmpty(hdnSelectedPeriod.Value) ? "month" : hdnSelectedPeriod.Value;
+                hdnSelectedDate.Value = string.IsNullOrEmpty(hdnSelectedDate.Value) ? DateTime.Today.ToString("yyyy-MM", CultureInfo.InvariantCulture) : hdnSelectedDate.Value;
 
-            UpdatePeriodLabel();
-            LoadTotals();
-            LoadJarTotal();
-            LoadGoals();
-            LoadJarsDropdowns();
+                UpdatePeriodLabel();
+                LoadTotals();
+                LoadJarTotal();
+                LoadGoals();
+                LoadJarsDropdowns();
+            }
+            LoadJarSnapshotChart();
+
         }
 
         protected void btnPeriodChange_Click(object sender, EventArgs e)
@@ -38,6 +45,7 @@ namespace bipj
             LoadTotals();
             LoadJarTotal();
             LoadGoals();
+            LoadJarSnapshotChart();
         }
 
         private (DateTime From, DateTime To) GetRange()
@@ -270,6 +278,122 @@ namespace bipj
             LoadTotals();
             LoadJarTotal();
             LoadGoals();
+        }
+        protected string snapshotLabelsJson;
+        protected string snapshotDatasetsJson;
+        private void LoadJarSnapshotChart()
+        {
+            var snapshot = new JarSnapshot();
+
+            string periodType;
+
+            switch (hdnSelectedPeriod.Value)
+            {
+                case "day":
+                case "week":
+                    periodType = "daily";
+                    break;
+
+                case "month":
+                    periodType = "daily";
+                    break;
+                case "year":
+                    periodType = "monthly";
+                    break;
+                case "all":
+                    periodType = "monthly";
+                    break;
+
+                default:
+                    periodType = "daily";
+                    break;
+            }
+
+            var (fromValue, toValue) = GetRange();
+
+            DateTime? from = fromValue;
+            DateTime? to = toValue;
+
+            bipj.Data.SqlDate.Clamp(ref from, ref to);
+
+            fromValue = from ?? DateTime.MinValue;
+            toValue = to ?? DateTime.MaxValue;
+
+            var snapshots = snapshot.GetSnapshots(_userId, periodType, fromValue, toValue);
+
+            if (snapshots == null || !snapshots.Any())
+            {
+                snapshotLabelsJson = "[]";
+                snapshotDatasetsJson = "[]";
+                return;
+            }
+
+            var jars = new Jar().GetJarsByUser(_userId);
+
+            // Generate a full date range list depending on period type
+            List<DateTime> allDates;
+
+            if (periodType == "daily")
+            {
+                allDates = new List<DateTime>();
+                for (var dt = fromValue.Date; dt <= toValue.Date; dt = dt.AddDays(1))
+                    allDates.Add(dt);
+            }
+            else // monthly
+            {
+                allDates = new List<DateTime>();
+                DateTime currentMonth = new DateTime(fromValue.Year, fromValue.Month, 1);
+                DateTime endMonth = new DateTime(toValue.Year, toValue.Month, 1);
+
+                while (currentMonth <= endMonth)
+                {
+                    allDates.Add(currentMonth);
+                    currentMonth = currentMonth.AddMonths(1);
+                }
+            }
+
+            // Group snapshots by date for quick lookup
+            var groupedData = snapshots
+                .GroupBy(s => s.SnapshotDate.Date)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            // Use full date range for labels
+            var labels = allDates.Select(d => d.ToString(periodType == "daily" ? "dd MMM" : "MMM yyyy")).ToList();
+
+            var datasets = new List<object>();
+
+            foreach (var jar in jars)
+            {
+                var dataPoints = new List<decimal>();
+                decimal lastKnownBalance = 0m;
+
+                foreach (var date in allDates)
+                {
+                    if (groupedData.TryGetValue(date, out var snapsForDate))
+                    {
+                        var snap = snapsForDate.FirstOrDefault(s => s.JarId == jar.JarId);
+                        if (snap != null)
+                        {
+                            lastKnownBalance = snap.Balance;
+                            dataPoints.Add(lastKnownBalance);
+                            continue;
+                        }
+                    }
+                    // No snapshot for this date, use last known balance or 0
+                    dataPoints.Add(lastKnownBalance);
+                }
+
+                datasets.Add(new
+                {
+                    label = jar.JarName,
+                    data = dataPoints,
+                    borderWidth = 2,
+                    fill = false
+                });
+            }
+
+            snapshotLabelsJson = JsonConvert.SerializeObject(labels);
+            snapshotDatasetsJson = JsonConvert.SerializeObject(datasets);
         }
     }
 }

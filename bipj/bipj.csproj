@@ -538,6 +538,7 @@
     <Compile Include="Models\Goal.cs" />
     <Compile Include="Models\GoalTransaction.cs" />
     <Compile Include="Models\Jar.cs" />
+    <Compile Include="Models\JarSnapshot.cs" />
     <Compile Include="Models\JarTransaction.cs" />
     <Compile Include="MyNotification.aspx.cs">
       <DependentUpon>MyNotification.aspx</DependentUpon>

@@ -45,13 +45,6 @@
                     object-fit: contain;
                 }
 
-        .fixed-action-buttons {
-            position: fixed;
-            bottom: 30px;
-            right: 40px;
-            z-index: 999;
-        }
-
         .add-btn {
             background-color: #5e4bd3;
             color: white;
@@ -146,6 +139,18 @@
                 .custom-dropdown .option:hover {
                     background-color: #f8f9fa;
                 }
+
+        .action-button-wrapper {
+            position: fixed;
+            bottom: 30px;
+            right: 40px;
+            z-index: 100;
+            transition: position 0.3s ease;
+        }
+
+            .action-button-wrapper.scrolled {
+                position: static; /* or relative */
+            }
     </style>
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
@@ -181,9 +186,10 @@
     </div>
 
     <!-- Main Content -->
-    <div class="mainpage-content" style="height: calc(100vh - 66px); overflow: hidden;">
+    <div class="mainpage-content" style="height: calc(100vh - 66px); overflow: hidden">
         <!-- Header Row -->
-        <div class="d-flex justify-content-between align-items-center px-4 py-1 mb-2">
+        <div class="d-flex justify-content-between align-items-center px-4 py-2 mb-2"
+            style="position: sticky; top: 0; z-index: 10;">
             <h1 class="fw-bold mb-0">OVERALL DASHBOARD</h1>
             <div class="col-auto">
                 <div class="d-flex align-items-center gap-3">
@@ -238,106 +244,106 @@
             </div>
         </div>
 
-        <!-- TOTAL BALANCE Section -->
-        <div class="p-4 mb-3 d-flex flex-column"
-            style="background: linear-gradient(90deg, #dfe4ff, #f4f2fd); border-radius: 16px; min-height: 200px;">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h3 class="fw-bold mb-0">TOTAL BALANCE</h3>
+        <div class="content" style="height: calc(100vh - 155px); overflow-y: auto">
+            <!-- TOTAL BALANCE Section -->
+            <div class="p-4 mb-3 d-flex flex-column"
+                style="background: linear-gradient(90deg, #dfe4ff, #f4f2fd); border-radius: 16px; min-height: 200px;">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="fw-bold mb-0">TOTAL BALANCE</h3>
+                </div>
+                <div class="d-flex gap-4 align-items-stretch flex-grow-1">
+                    <!-- Expense Card -->
+                    <div class="bg-white text-center shadow-sm rounded p-3 flex-grow-1 d-flex flex-column justify-content-center">
+                        <div class="fw-semibold fs-6 text-dark">Expense</div>
+                        <div class="text-danger fw-bold fs-5">
+                            <i class="bi bi-caret-down-fill"></i>
+                            <asp:Label ID="lblExpense" runat="server"></asp:Label>
+                        </div>
+                    </div>
+
+                    <!-- Income Card -->
+                    <div class="bg-white text-center shadow-sm rounded p-3 flex-grow-1 d-flex flex-column justify-content-center">
+                        <div class="fw-semibold fs-6 text-dark">Income</div>
+                        <div class="text-success fw-bold fs-5">
+                            <i class="bi bi-caret-up-fill"></i>
+                            <asp:Label ID="lblIncome" runat="server"></asp:Label>
+                        </div>
+                    </div>
+
+
+                    <!-- Balance Card -->
+                    <div class="bg-white text-center shadow-sm rounded p-3 flex-grow-1 d-flex flex-column justify-content-center">
+                        <div class="fw-semibold fs-6 text-dark">Balance</div>
+                        <div id="balanceAmountDiv" runat="server" class="text-success fw-bold fs-5">
+                            <i class="bi bi-equals"></i>
+                            <asp:Label ID="lblBalance" runat="server"></asp:Label>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="d-flex gap-4 align-items-stretch flex-grow-1">
-                <!-- Expense Card -->
-                <div class="bg-white text-center shadow-sm rounded p-3 flex-grow-1 d-flex flex-column justify-content-center">
-                    <div class="fw-semibold fs-6 text-dark">Expense</div>
-                    <div class="text-danger fw-bold fs-5">
-                        <i class="bi bi-caret-down-fill"></i>
-                        <asp:Label ID="lblExpense" runat="server"></asp:Label>
-                    </div>
-                </div>
 
-                <!-- Income Card -->
-                <div class="bg-white text-center shadow-sm rounded p-3 flex-grow-1 d-flex flex-column justify-content-center">
-                    <div class="fw-semibold fs-6 text-dark">Income</div>
-                    <div class="text-success fw-bold fs-5">
-                        <i class="bi bi-caret-up-fill"></i>
-                        <asp:Label ID="lblIncome" runat="server"></asp:Label>
-                    </div>
-                </div>
-
-
-                <!-- Balance Card -->
-                <div class="bg-white text-center shadow-sm rounded p-3 flex-grow-1 d-flex flex-column justify-content-center">
-                    <div class="fw-semibold fs-6 text-dark">Balance</div>
-                    <div id="balanceAmountDiv" runat="server" class="text-success fw-bold fs-5">
-                        <i class="bi bi-equals"></i>
-                        <asp:Label ID="lblBalance" runat="server"></asp:Label>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- JARS + GOALS row -->
-        <div class="d-flex gap-4">
-            <!-- JARS -->
-            <div class="flex-1 border p-4 rounded shadow-sm bg-white">
-                <h3 class="fw-bold mb-3">MY JARS
+            <!-- JARS + GOALS row -->
+            <div class="d-flex gap-4">
+                <!-- JARS -->
+                <div class="flex-1 border p-4 rounded shadow-sm bg-white">
+                    <h3 class="fw-bold mb-3">MY JARS
                  <a href="#" data-bs-toggle="modal" data-bs-target="#info-popup" title="Learn more about Jars">
                      <img src="images/info-icon.png" alt="Info" class="info-icon-img" />
                  </a>
-                </h3>
-                <div class="d-flex align-items-center">
-                    <img src="images/piggy-icon.png" alt="Jars" style="height: 60px;" class="me-3" />
-                    <div>
-                        <h6 class="mb-1">Total Money (All Jars)</h6>
-                        <asp:Label ID="lblJarTotal" runat="server"
-                            CssClass="fw-bold fs-5 text-dark"
-                            Text="$0" />
+                    </h3>
+                    <div class="d-flex align-items-center">
+                        <img src="images/piggy-icon.png" alt="Jars" style="height: 60px;" class="me-3" />
+                        <div>
+                            <h6 class="mb-1">Total Money (All Jars)</h6>
+                            <asp:Label ID="lblJarTotal" runat="server"
+                                CssClass="fw-bold fs-5 text-dark"
+                                Text="$0" />
+                        </div>
                     </div>
+                </div>
+
+                <!-- GOALS -->
+                <div class="flex-fill border p-4 rounded shadow-sm bg-white position-relative">
+                    <h3 class="fw-bold mb-3">MY GOALS</h3>
+                    <asp:Panel ID="pnlOngoingGoals" runat="server">
+                        <p class="mb-2">
+                            <strong>
+                                <asp:Label ID="lblOngoingCount" runat="server" /></strong> Ongoing,
+                    <strong>
+                        <asp:Label ID="lblCompletedCount" runat="server" /></strong> Completed
+                        </p>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <canvas id="goalProgressRing" width="30" height="30" style="display: block;"></canvas>
+                                <span class="fw-semibold" style="font-size: 14px;">
+                                    <asp:Label ID="lblOverallPercent" runat="server" />
+                                    Done
+                                </span>
+                            </div>
+                            <span class="text-muted">|</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <img src="images/piggy-icon.png" style="height: 30px;" />
+                                <span class="fw-semibold" style="font-size: 14px;">
+                                    <asp:Label ID="lblSavedVsTarget" runat="server" />
+                                </span>
+                            </div>
+                    </asp:Panel>
+                    <asp:Label ID="lblNoOngoingGoals"
+                        runat="server"
+                        CssClass="text-muted"
+                        Visible="false"
+                        Text="No ongoing goals…" />
                 </div>
             </div>
 
-            <!-- GOALS -->
-            <div class="flex-fill border p-4 rounded shadow-sm bg-white position-relative">
-                <h3 class="fw-bold mb-3">MY GOALS</h3>
-                <asp:Panel ID="pnlOngoingGoals" runat="server">
-                    <p class="mb-2">
-                        <strong>
-                            <asp:Label ID="lblOngoingCount" runat="server" /></strong> Ongoing,
-                    <strong>
-                        <asp:Label ID="lblCompletedCount" runat="server" /></strong> Completed
-                    </p>
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="d-flex align-items-center gap-2">
-                            <canvas id="goalProgressRing" width="30" height="30" style="display: block;"></canvas>
-                            <span class="fw-semibold" style="font-size: 14px;">
-                                <asp:Label ID="lblOverallPercent" runat="server" />
-                                Done
-                            </span>
-                        </div>
-                        <span class="text-muted">|</span>
-                        <div class="d-flex align-items-center gap-2">
-                            <img src="images/piggy-icon.png" style="height: 30px;" />
-                            <span class="fw-semibold" style="font-size: 14px;">
-                                <asp:Label ID="lblSavedVsTarget" runat="server" />
-                            </span>
-                        </div>
-                </asp:Panel>
-                <asp:Label ID="lblNoOngoingGoals"
-                    runat="server"
-                    CssClass="text-muted"
-                    Visible="false"
-                    Text="No ongoing goals…" />
+            <h3 class="fw-bold mt-4">Jar Balance Trends</h3>
+            <canvas id="jarSnapshotChart" width="400" height="200"></canvas>
+            <div class="action-button-wrapper">
+                <button type="button" class="btn add-btn" data-bs-toggle="modal" data-bs-target="#addEntryModal">
+                    + New Entry
+                </button>
             </div>
         </div>
-    </div>
-
-    <!-- Fixed Action Buttons -->
-    <div class="fixed-action-buttons d-flex gap-2">
-        <button type="button"
-            class="btn ms-lg-3 add-btn"
-            data-bs-toggle="modal"
-            data-bs-target="#addEntryModal">
-            + New Entry
-        </button>
     </div>
 
     <!-- Add New Entry Modal -->
@@ -507,7 +513,21 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // ====================== GLOBAL HELPERS ===================================
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const actionBtnWrapper = document.querySelector('.action-button-wrapper');
+            const scrollContainer = document.querySelector('.content'); // scrollable container
+
+            // On scroll, check scrollTop
+            scrollContainer.addEventListener('scroll', function () {
+                if (scrollContainer.scrollTop > 0) {
+                    actionBtnWrapper.classList.add('scrolled');
+                } else {
+                    actionBtnWrapper.classList.remove('scrolled');
+                }
+            });
+        });
+
         function $(id) { return document.getElementById(id); }
 
         function resetValidation(ctx) {
@@ -534,32 +554,60 @@
             return parseFloat(opt.getAttribute('data-balance')) || 0;
         }
 
+        // ====================== CHARTS ========================================
+        let jarSnapshotChart;
+
+        function renderGoalChart() {
+            const pctText = '<%= lblOverallPercent.Text.Replace("%", "") %>';
+            const percentage = parseFloat(pctText) || 0;
+            const canvas = $('goalProgressRing');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [percentage, 100 - percentage],
+                        backgroundColor: ['#3C2C80', '#E5E5E5'],
+                        borderWidth: 0,
+                        cutout: '60%'
+                    }]
+                },
+                options: {
+                    responsive: false,
+                    plugins: { legend: { display: false }, tooltip: { enabled: false } }
+                }
+            });
+        }
+
+        function renderJarSnapshotChart() {
+            const labels = <%= snapshotLabelsJson %>;
+            const datasets = <%= snapshotDatasetsJson %>;
+            const canvas = $('jarSnapshotChart');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+
+            if (jarSnapshotChart) {
+                jarSnapshotChart.destroy();
+            }
+
+            jarSnapshotChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels: labels, datasets: datasets },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom' } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
         // ====================== DOM READY ========================================
         document.addEventListener('DOMContentLoaded', function () {
-
-            // 1) Goal doughnut
-            (function initGoalChart() {
-                const pctText = '<%= lblOverallPercent.Text.Replace("%", "") %>';
-                const percentage = parseFloat(pctText) || 0;
-                const canvas = $('goalProgressRing');
-                if (!canvas) return;
-                const ctx = canvas.getContext('2d');
-                new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        datasets: [{
-                            data: [percentage, 100 - percentage],
-                            backgroundColor: ['#3C2C80', '#E5E5E5'],
-                            borderWidth: 0,
-                            cutout: '60%'
-                        }]
-                    },
-                    options: {
-                        responsive: false,
-                        plugins: { legend: { display: false }, tooltip: { enabled: false } }
-                    }
-                });
-            })();
+            renderGoalChart();
+            renderJarSnapshotChart();
 
             // 2) Period dropdown + date inputs
             const dropdown = $('customDropdown');
@@ -646,15 +694,18 @@
                 document.querySelectorAll('.custom-dropdown .options').forEach(o => o.style.display = 'none');
                 optionsContainer.style.display = open ? 'none' : 'block';
             });
+
             document.addEventListener('click', e => {
                 if (!dropdown.contains(e.target)) optionsContainer.style.display = 'none';
             });
+
             optionsList.forEach(o => o.addEventListener('click', () => handleOptionClick(o)));
 
             window.handleDateChange = function (inp) {
                 dateField.value = inp.value;
                 $('<%= btnPeriodChange.ClientID %>').click();
             };
+
             updateVisibleInput();
 
             // 3) Form validation & toggles
@@ -666,35 +717,35 @@
 
                 if (txnType === 'Expense') {
                     nameI = $('<%= txtExpenseName.ClientID %>');
-            amtI = $('<%= txtExpenseAmount.ClientID %>');
-            dateI = $('<%= txtExpenseDate.ClientID %>');
-            resetValidation(nameI.closest('form'));
+                    amtI = $('<%= txtExpenseAmount.ClientID %>');
+                    dateI = $('<%= txtExpenseDate.ClientID %>');
+                    resetValidation(nameI.closest('form'));
 
-            if (!nameI.value.trim()) { showInvalid(nameI, 'Please enter a name.'); valid = false; }
-            const a = parseFloat(amtI.value);
-            if (isNaN(a) || a <= 0) { showInvalid(amtI, 'Please enter a valid amount greater than 0.'); valid = false; }
-            else if (a > currentBal) {
-                showInsufficientFundsModal();
-                return false;
-            }
-            if (!dateI.value) { showInvalid(dateI, 'Please select a date.'); valid = false; }
-            const ddl = $('<%= ddlJars.ClientID %>');
-            if (!ddl.value) { showInvalid(ddl, 'Please select a jar.'); valid = false; }
-        }
-        else if (txnType === 'Income') {
-            nameI = $('<%= txtIncomeName.ClientID %>');
-            amtI = $('<%= txtIncomeAmount.ClientID %>');
-            dateI = $('<%= txtIncomeDate.ClientID %>');
-            resetValidation(nameI.closest('form'));
+                    if (!nameI.value.trim()) { showInvalid(nameI, 'Please enter a name.'); valid = false; }
+                    const a = parseFloat(amtI.value);
+                    if (isNaN(a) || a <= 0) { showInvalid(amtI, 'Please enter a valid amount greater than 0.'); valid = false; }
+                    else if (a > currentBal) {
+                        showInsufficientFundsModal();
+                        return false;
+                    }
+                    if (!dateI.value) { showInvalid(dateI, 'Please select a date.'); valid = false; }
+                    const ddl = $('<%= ddlJars.ClientID %>');
+                    if (!ddl.value) { showInvalid(ddl, 'Please select a jar.'); valid = false; }
+                }
+                else if (txnType === 'Income') {
+                    nameI = $('<%= txtIncomeName.ClientID %>');
+                    amtI = $('<%= txtIncomeAmount.ClientID %>');
+                    dateI = $('<%= txtIncomeDate.ClientID %>');
+                    resetValidation(nameI.closest('form'));
 
-            if (!nameI.value.trim()) { showInvalid(nameI, 'Please enter a name.'); valid = false; }
-            const a = parseFloat(amtI.value);
-            if (isNaN(a) || a <= 0) { showInvalid(amtI, 'Please enter a valid amount greater than 0.'); valid = false; }
-            if (!dateI.value) { showInvalid(dateI, 'Please select a date.'); valid = false; }
+                    if (!nameI.value.trim()) { showInvalid(nameI, 'Please enter a name.'); valid = false; }
+                    const a = parseFloat(amtI.value);
+                    if (isNaN(a) || a <= 0) { showInvalid(amtI, 'Please enter a valid amount greater than 0.'); valid = false; }
+                    if (!dateI.value) { showInvalid(dateI, 'Please select a date.'); valid = false; }
 
-            const alloc = $('hdnIncomeAllocation').value;
-            if (alloc === 'manual') {
-                const ddlInc = $('<%= ddlIncomeJars.ClientID %>');
+                    const alloc = $('hdnIncomeAllocation').value;
+                    if (alloc === 'manual') {
+                        const ddlInc = $('<%= ddlIncomeJars.ClientID %>');
                         if (!ddlInc.value) { showInvalid(ddlInc, 'Please select a jar for income allocation.'); valid = false; }
                     }
                 } else {
@@ -758,15 +809,14 @@
             const addEntryModal = $('addEntryModal');
             if (addEntryModal) {
                 addEntryModal.addEventListener('show.bs.modal', function () {
-                    // reset fields
                     const today = new Date().toLocaleDateString('en-CA');
                     [
-                '<%= txtExpenseName.ClientID %>',
-                '<%= txtExpenseAmount.ClientID %>',
-                '<%= txtExpenseDate.ClientID %>',
-                '<%= txtIncomeName.ClientID %>',
-                '<%= txtIncomeAmount.ClientID %>',
-                '<%= txtIncomeDate.ClientID %>'
+                    '<%= txtExpenseName.ClientID %>',
+                    '<%= txtExpenseAmount.ClientID %>',
+                    '<%= txtExpenseDate.ClientID %>',
+                    '<%= txtIncomeName.ClientID %>',
+                    '<%= txtIncomeAmount.ClientID %>',
+                    '<%= txtIncomeDate.ClientID %>'
                     ].forEach(id => {
                         const el = $(id);
                         if (el) el.value = '';
@@ -782,5 +832,11 @@
                 });
             }
         });
+
+        // Re-render charts after ASP.NET postback
+        Sys.Application.add_load(function () {
+            renderJarSnapshotChart();
+        });
     </script>
+
 </asp:Content>

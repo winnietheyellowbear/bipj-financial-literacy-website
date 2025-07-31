@@ -202,15 +202,21 @@ namespace bipj
                              .Where(t => t.Date >= from && t.Date < to)
                              .ToList();
 
-            decimal income = txns.Where(t => t.TransactionType == TxnType.Income).Sum(t => t.Amount);
-            decimal expense = txns.Where(t => t.TransactionType == TxnType.Expense).Sum(t => t.Amount);
+            decimal income = txns
+            .Where(t => t.TransactionType == TxnType.Income || (t.TransactionType == TxnType.Transfer && t.Amount > 0))
+            .Sum(t => t.Amount);
+
+            decimal expense = txns
+            .Where(t => t.TransactionType == TxnType.Expense || (t.TransactionType == TxnType.Transfer && t.Amount < 0))
+            .Sum(t => t.TransactionType == TxnType.Transfer ? Math.Abs(t.Amount) : t.Amount);
+
             decimal transferIn = txns.Where(t => t.TransactionType == TxnType.Transfer && t.Amount > 0).Sum(t => t.Amount);
             decimal transferOut = txns.Where(t => t.TransactionType == TxnType.Transfer && t.Amount < 0).Sum(t => -t.Amount);
 
             lblIncomeTotal.Text = $"${income:F2}";
             lblExpenseTotal.Text = $"${expense:F2}";
-            lblTransferIn.Text = transferIn > 0 ? $"Transferred ${transferIn:F2} in" : "";
-            lblTransferOut.Text = transferOut > 0 ? $"Transferred ${transferOut:F2} out" : "";
+            lblTransferIn.Text = transferIn > 0 ? $"(Transferred ${transferIn:F2} in)" : "";
+            lblTransferOut.Text = transferOut > 0 ? $"(Transferred ${transferOut:F2} out)" : "";
 
             decimal periodBalance = income - expense;
             lblBalance.Text = $"${periodBalance:F2}";

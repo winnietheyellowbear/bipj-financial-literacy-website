@@ -79,8 +79,8 @@ namespace bipj.Models
                 foreach (var jar in jars)
                 {
                     const string sql = @"INSERT INTO Jars
-(UserId, JarName, Description, Percentage, IsDefault, InitialAmount, Amount, Position, ColorHex)
-VALUES (@UserId,@JarName,@Description,@Percentage,@IsDefault,@InitialAmount,@Amount,@Position,@ColorHex)";
+                    (UserId, JarName, Description, Percentage, IsDefault, InitialAmount, Amount, Position, ColorHex)
+                    VALUES (@UserId,@JarName,@Description,@Percentage,@IsDefault,@InitialAmount,@Amount,@Position,@ColorHex)";
                     using (var cmd = new SqlCommand(sql, conn))
                     {
                         cmd.Parameters.AddWithValue("@UserId", jar.UserId);
@@ -103,9 +103,9 @@ VALUES (@UserId,@JarName,@Description,@Percentage,@IsDefault,@InitialAmount,@Amo
             if (IsDefault) throw new InvalidOperationException("Cannot insert a default jar via InsertJar method.");
 
             const string sql = @"
-INSERT INTO Jars
-(UserId, JarName, Description, Percentage, IsDefault, InitialAmount, Amount, Position, ColorHex, IsDeleted, CreatedAt)
-VALUES (@UserId,@JarName,@Description,@Percentage,@IsDefault,@InitialAmount,@Amount,@Position,@ColorHex,@IsDeleted,@CreatedAt)";
+            INSERT INTO Jars
+            (UserId, JarName, Description, Percentage, IsDefault, InitialAmount, Amount, Position, ColorHex, IsDeleted, CreatedAt)
+            VALUES (@UserId,@JarName,@Description,@Percentage,@IsDefault,@InitialAmount,@Amount,@Position,@ColorHex,@IsDeleted,@CreatedAt)";
             return Db.Exec(sql, p =>
             {
                 p.AddWithValue("@UserId", UserId);
@@ -125,9 +125,9 @@ VALUES (@UserId,@JarName,@Description,@Percentage,@IsDefault,@InitialAmount,@Amo
         public int UpdateJar(bool allowDefaultUpdate = false)
         {
             const string sql = @"
-UPDATE Jars SET JarName=@JarName, Description=@Description,
-InitialAmount=@InitialAmount, Amount=@Amount, Position=@Position, ColorHex=@ColorHex
-WHERE JarId=@JarId AND UserId=@UserId";
+            UPDATE Jars SET JarName=@JarName, Description=@Description,
+            InitialAmount=@InitialAmount, Amount=@Amount, Position=@Position, ColorHex=@ColorHex
+            WHERE JarId=@JarId AND UserId=@UserId";
             return Db.Exec(sql, p =>
             {
                 p.AddWithValue("@JarName", JarName ?? "");

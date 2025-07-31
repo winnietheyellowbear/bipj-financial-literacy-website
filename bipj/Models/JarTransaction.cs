@@ -49,9 +49,9 @@ namespace bipj.Models
         public int InsertTransaction()
         {
             const string sql = @"
-INSERT INTO JarTransactions
-(UserID, JarID, Name, Amount, Date, TransactionType, Category)
-VALUES (@UserID, @JarID, @Name, @Amount, @Date, @TransactionType, @Category)";
+            INSERT INTO JarTransactions
+            (UserID, JarID, Name, Amount, Date, TransactionType, Category)
+            VALUES (@UserID, @JarID, @Name, @Amount, @Date, @TransactionType, @Category)";
             return Db.Exec(sql, p =>
             {
                 p.AddWithValue("@UserID", UserId);
@@ -73,9 +73,9 @@ VALUES (@UserID, @JarID, @Name, @Amount, @Date, @TransactionType, @Category)";
         public int UpdateTransaction()
         {
             const string sql = @"
-UPDATE JarTransactions
-SET Name=@Name, Amount=@Amount, Date=@Date
-WHERE TransactionID=@TransactionID AND UserID=@UserID";
+            UPDATE JarTransactions
+            SET Name=@Name, Amount=@Amount, Date=@Date
+            WHERE TransactionID=@TransactionID AND UserID=@UserID";
             return Db.Exec(sql, p =>
             {
                 p.AddWithValue("@Name", Name);
@@ -99,9 +99,9 @@ WHERE TransactionID=@TransactionID AND UserID=@UserID";
         public List<JarTransaction> GetTransactionsByJar(int userID, int jarID)
         {
             const string sql = @"
-SELECT * FROM JarTransactions
-WHERE UserID=@UserID AND JarID=@JarID
-ORDER BY Date DESC, TransactionID DESC";
+            SELECT * FROM JarTransactions
+            WHERE UserID=@UserID AND JarID=@JarID
+            ORDER BY Date DESC, TransactionID DESC";
             return Db.Query(sql,
                 p =>
                 {
@@ -114,8 +114,8 @@ ORDER BY Date DESC, TransactionID DESC";
         public JarTransaction GetTransactionById(int txnId, int userId)
         {
             const string sql = @"
-SELECT TOP 1 * FROM JarTransactions
-WHERE TransactionID=@TxnID AND UserID=@UserID";
+            SELECT TOP 1 * FROM JarTransactions
+            WHERE TransactionID=@TxnID AND UserID=@UserID";
             var list = Db.Query(sql,
                 p =>
                 {
@@ -145,15 +145,15 @@ WHERE TransactionID=@TxnID AND UserID=@UserID";
             SqlDate.Clamp(ref fromDate, ref toDate);
 
             var sql = new StringBuilder(@"
-SELECT SUM(
-    CASE TransactionType
-        WHEN 'Income'  THEN Amount
-        WHEN 'Expense' THEN -Amount
-        WHEN 'Transfer' THEN Amount
-    END)
-FROM JarTransactions
-WHERE UserID=@UserID AND JarID=@JarID
-  AND (@incl = 1 OR TransactionType <> 'Transfer')");
+            SELECT SUM(
+                CASE TransactionType
+                    WHEN 'Income'  THEN Amount
+                    WHEN 'Expense' THEN -Amount
+                    WHEN 'Transfer' THEN Amount
+                END)
+            FROM JarTransactions
+            WHERE UserID=@UserID AND JarID=@JarID
+              AND (@incl = 1 OR TransactionType <> 'Transfer')");
 
             if (fromDate.HasValue) sql.Append(" AND Date >= @From");
             if (toDate.HasValue) sql.Append(" AND Date <  @To");
@@ -175,15 +175,15 @@ WHERE UserID=@UserID AND JarID=@JarID
             SqlDate.Clamp(ref fromDate, ref toDate);
 
             var sql = new StringBuilder(@"
-SELECT SUM(
-    CASE @TxnType
-        WHEN 'Income'  THEN Amount
-        WHEN 'Expense' THEN -Amount
-    END)
-FROM JarTransactions
-WHERE UserID=@UserID AND JarID=@JarID
-  AND TransactionType=@TxnType
-  AND (@incl = 1 OR TransactionType <> 'Transfer')");
+            SELECT SUM(
+                CASE @TxnType
+                    WHEN 'Income'  THEN Amount
+                    WHEN 'Expense' THEN -Amount
+                END)
+            FROM JarTransactions
+            WHERE UserID=@UserID AND JarID=@JarID
+              AND TransactionType=@TxnType
+              AND (@incl = 1 OR TransactionType <> 'Transfer')");
 
             if (fromDate.HasValue) sql.Append(" AND Date >= @From");
             if (toDate.HasValue) sql.Append(" AND Date <  @To");

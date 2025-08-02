@@ -8,28 +8,15 @@ namespace bipj
 {
     public partial class Booking2 : Page
     {
-        // Always fetch fresh list of approved advisors
+        // Fetch all approved advisors
         private List<Advisor> AllAdvisors => Advisor.GetByStatus(1);
 
         protected void Page_Load(object sender, EventArgs e)
         {
             if (!IsPostBack)
             {
-                BindSpecialties();
                 BindAdvisors(AllAdvisors);
             }
-        }
-
-        private void BindSpecialties()
-        {
-            var specs = AllAdvisors
-                .SelectMany(a => new[] { a.Specialty1, a.Specialty2, a.Specialty3 })
-                .Where(s => !string.IsNullOrEmpty(s))
-                .Distinct()
-                .OrderBy(s => s);
-
-            cblSpecialties.DataSource = specs;
-            cblSpecialties.DataBind();
         }
 
         private void BindAdvisors(List<Advisor> advisors)
@@ -45,36 +32,26 @@ namespace bipj
         {
             var filtered = AllAdvisors;
 
-            // Text search
+            // Keyword search: name or category
             var q = txtSearch.Text.Trim().ToLower();
             if (!string.IsNullOrEmpty(q))
+            {
                 filtered = filtered
                     .Where(a => a.Name.ToLower().Contains(q)
                              || a.Category.ToLower().Contains(q))
                     .ToList();
+            }
 
-            // Min rating
-            int minR = int.Parse(ddlMinRating.SelectedValue);
-            if (minR > 0)
+            // Star rating filter
+            if (int.TryParse(ddlMinRating.SelectedValue, out int minR) && minR > 0)
+            {
                 filtered = filtered.Where(a => a.Rating >= minR).ToList();
-
-            // Specialties
-            var chosen = cblSpecialties.Items
-                .Cast<ListItem>()
-                .Where(i => i.Selected)
-                .Select(i => i.Value)
-                .ToList();
-            if (chosen.Any())
-                filtered = filtered
-                    .Where(a => chosen.Contains(a.Specialty1)
-                             || chosen.Contains(a.Specialty2)
-                             || chosen.Contains(a.Specialty3))
-                    .ToList();
+            }
 
             BindAdvisors(filtered);
         }
 
-        // Renders ★★½☆☆ etc.
+        // Generates star icons for rating
         public string GenerateStars(decimal rating)
         {
             int full = (int)Math.Floor(rating);
@@ -88,7 +65,7 @@ namespace bipj
             return sb.ToString();
         }
 
-        // Emits <li>Specialty</li> for each non-null specialty
+        // Generates specialties as <li> items
         public string GetSpecialtiesList(object s1, object s2, object s3)
         {
             var list = new List<string>();
@@ -98,23 +75,22 @@ namespace bipj
             return string.Join("", list);
         }
 
-        // When user clicks “Select”
+        // When user clicks "Select"
         protected void btnSelectAdvisor_Click(object sender, EventArgs e)
         {
             var btn = (Button)sender;
             int advisorId = int.Parse(btn.CommandArgument);
             var adv = Advisor.GetById(advisorId);
+
             if (adv == null)
             {
                 Response.Redirect("Booking2.aspx");
                 return;
             }
 
-            // store under the keys Booking5.aspx.cs expects:
             Session["BookingAdvisorName"] = adv.Name;
             Session["BookingAdvisorEmail"] = adv.Email;
             Session["BookingAdvisorCategory"] = adv.Category;
-            // still keep the raw ID if you need it later
             Session["AdvisorId"] = adv.AdvisorId;
 
             Response.Redirect("Booking3.aspx");

@@ -1,12 +1,13 @@
 ﻿<%@ Page Title="Login" Language="C#" MasterPageFile="~/Customer_Nav_loggedin.master"AutoEventWireup="true" CodeBehind="Loginpage.aspx.cs" Inherits="bipj.Loginpage" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
-
+    <br />
+    <br />
     <div class="container mt-5">
         <div class="row justify-content-center">
             <div class="col-md-6">
                 <div class="card">
-                    <div class="card-header bg-primary text-white">
+                    <div class="card-header text-white" style="background-color: #3B387E">
                         <h4 class="mb-0">Login</h4>
                     </div>
                     <div class="card-body">

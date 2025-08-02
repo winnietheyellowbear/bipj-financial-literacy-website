@@ -17,7 +17,7 @@
         }
 
         .navbar-custom {
-            background-color: #f4f2fd;
+            background-color: #E5E3F9;
             font-family: inherit;
             padding: 0.5rem 2rem;
             justify-content: center;
@@ -51,15 +51,15 @@
             }
 
         .btn {
-            background-color: #6f42c1 !important;
+            background-color: #3B387E !important;
             color: white !important;
-            border-color: #6f42c1 !important;
+            border-color: #3B387E !important;
         }
 
             .btn:hover,
             .btn:focus {
-                background-color: #5a32a3 !important;
-                border-color: #5a32a3 !important;
+                background-color: #5652AD !important;
+                border-color: #5652AD !important;
                 color: white !important;
             }
 
@@ -88,15 +88,15 @@
             }
 
         .btn-primary {
-            background-color: #6f42c1 !important;
-            border-color: #6f42c1 !important;
+            background-color: #3B387E !important;
+            border-color: #3B387E !important;
             color: white !important;
         }
 
             .btn-primary:hover,
             .btn-primary:focus {
-                background-color: #5a32a3 !important;
-                border-color: #5a32a3 !important;
+                background-color: #5652AD !important;
+                border-color: #5652AD !important;
             }
 
         .btn-link {

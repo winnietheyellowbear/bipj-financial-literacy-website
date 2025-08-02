@@ -13,17 +13,16 @@
 <style>
     .content-wrapper {
         display: flex;
-        margin-top: 10px;
+        align-items: flex-start;
     }
 
     .main-content {
         flex: 1;
         background-color: #f8f9fa;
-        padding: 30px;
+        border-radius: 10px;
         margin-left: 20px;
         max-width: 1000px;
     }
-
     .form {
         padding: 30px;
         background-color: white;

@@ -13,18 +13,15 @@
         .content-wrapper {
             display: flex;
             align-items: flex-start;
-            margin-top: 10px;
         }
 
         .main-content {
             flex: 1;
             background-color: #f8f9fa;
-            padding: 30px;
             border-radius: 10px;
             margin-left: 20px;
             max-width: 1000px;
         }
-
     </style>
 
     <div class="content-wrapper">

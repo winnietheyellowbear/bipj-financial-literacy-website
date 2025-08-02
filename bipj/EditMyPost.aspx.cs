@@ -10,22 +10,22 @@ namespace bipj
 {
     public partial class EditMyPost : System.Web.UI.Page
     {
+        public string user_id = "2";
         protected void Page_Load(object sender, EventArgs e)
         {
-            string post_id = Session["Post_ID"].ToString();
+            string post_id = Request.QueryString["post_id"];
 
             if (!IsPostBack)
             {
                 User_Post user_post = new User_Post();
-                user_post = user_post.GetPostByPostID(post_id);
+                user_post = user_post.GetPostByPostID(post_id, user_id);
 
-                // Filter out invalid or empty entries from the Images_List
+                // Filter out invalid or empty entries from the Images_List & Video_Lisr
                 var validImages = user_post.Images_List?.Where(img => !string.IsNullOrEmpty(img)).ToList() ?? new List<string>();
 
                 Image.DataSource = validImages;
                 Image.DataBind();
 
-                // Same for Videos if necessary
                 var validVideos = user_post.Videos_List?.Where(v => !string.IsNullOrEmpty(v)).ToList() ?? new List<string>();
 
                 Video.DataSource = validVideos;
@@ -39,16 +39,14 @@ namespace bipj
             }
         }
 
-
         protected void btn_remove_image_Click(object sender, EventArgs e)
         {
             Button btn = (Button)sender;
             string image = btn.CommandArgument;
 
             var images = Session["ImagesList"] as List<string>;
-
-            images.Remove(image); // Remove image from the list
-            Session["ImagesList"] = images; // Save it back to session
+            images.Remove(image); 
+            Session["ImagesList"] = images;
             
             Image.DataSource = images;
             Image.DataBind();
@@ -62,7 +60,6 @@ namespace bipj
             string video = btn.CommandArgument;
 
             var videos = Session["VideosList"] as List<string>;
-
             videos.Remove(video); 
             Session["VideosList"] = videos; 
 
@@ -76,9 +73,12 @@ namespace bipj
         {
             Response.Redirect("MyPost.aspx");
         }
+
         protected void btn_update_Click(object sender, EventArgs e)
         {
             int result = 0;
+
+            string post_id = Request.QueryString["post_id"];
 
             // Get existing session lists or create new ones
             List<string> imagePaths = Session["ImagesList"] as List<string> ?? new List<string>();
@@ -86,8 +86,6 @@ namespace bipj
 
             string text = tb_text.Text;
             string category = radiobtn_category.SelectedValue;
-            string user_id = "2";
-            string post_id = Session["Post_ID"].ToString();
 
             HttpFileCollection uploadedFiles = Request.Files;
 
@@ -115,7 +113,6 @@ namespace bipj
                 }
             }
 
-            // Convert list to comma-separated string (or store differently if your DB supports JSON, etc.)
             string images = string.Join(",", imagePaths);
             string videos = string.Join(",", videoPaths);
 

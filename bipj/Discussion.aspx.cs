@@ -11,8 +11,8 @@ namespace bipj
 {
     public partial class Discussion : System.Web.UI.Page
     {
-        public string user_id = "5";
-        public string user_type = "Staff";
+        public string user_id;
+        public string user_type;
 
         public List<User_Post> post_list = new List<User_Post>();
         User_Post user_post = new User_Post();
@@ -24,6 +24,12 @@ namespace bipj
 
         protected void Page_Load(object sender, EventArgs e)
         {
+            if (Session["UserId"] != null)
+            { 
+                user_id = Session["UserId"].ToString();
+                user_type = Session["UserType"].ToString();
+            }
+
             if (!IsPostBack)
             {
                 Session["Discussion_Search"] = null;
@@ -36,6 +42,11 @@ namespace bipj
 
         protected void btn_like_Click(object sender, EventArgs e)
         {
+            if (Session["UserId"] == null)
+            {
+                Response.Redirect("Loginpage.aspx");
+            }
+
             LinkButton btn = (LinkButton)sender;
             string post_id = btn.CommandArgument;
 
@@ -47,6 +58,11 @@ namespace bipj
 
         protected void btn_comment_Click(object sender, EventArgs e)
         {
+            if (Session["UserId"] == null)
+            {
+                Response.Redirect("Loginpage.aspx");
+            }
+
             Button btn = (Button)sender;
             string post_id = btn.CommandArgument;
 
@@ -82,6 +98,10 @@ namespace bipj
 
         protected void btn_delete_comment_Click(object sender, EventArgs e)
         {
+            if (Session["UserId"] == null)
+            {
+                Response.Redirect("Loginpage.aspx");
+            }
             LinkButton btn = (LinkButton)sender;
             string comment_id = btn.CommandArgument;
 

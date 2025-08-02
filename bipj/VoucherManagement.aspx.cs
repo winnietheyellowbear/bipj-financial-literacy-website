@@ -13,7 +13,6 @@ namespace bipj
         {
             if (!IsPostBack)
             {
-                // Retrieve the token from the query string
                 string token = Request.QueryString["token"];
                 Staff_Voucher staff_voucher = new Staff_Voucher();
                 staff_voucher = staff_voucher.GetVoucherByToken(token);
@@ -56,23 +55,21 @@ namespace bipj
                     this,
                     this.GetType(),
                     "alert",
-                    "alert('Voucher is used successfully. 😊'); window.location='VoucherManagement.aspx?token=" + token + "';",
+                    "alert('Voucher status is updated. 😊'); window.location='VoucherManagement.aspx?token=" + token + "';",
                     true
                 );
             }
             else
             {
-                ScriptManager.RegisterStartupScript(this, this.GetType(), "alert", "alert('Failed to use voucher. 😞');", true);
+                ScriptManager.RegisterStartupScript(this, this.GetType(), "alert", "alert('Failed to update voucher status. 😞');", true);
             }
 
         }
 
         private async void WhatsApp()
         {
-            // Example: Send a message when voucher is used
             Staff_Voucher staff_voucher = new Staff_Voucher();
-            string phoneNumber = "6582581110"; // Replace with the actual recipient's phone number
-
+            string phoneNumber = "6582581110"; 
             await staff_voucher.SendMessageAsync(phoneNumber);
         }
     }

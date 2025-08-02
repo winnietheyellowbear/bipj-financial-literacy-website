@@ -19,14 +19,14 @@ namespace bipj
     public partial class CreateVoucherAuto : System.Web.UI.Page
     {
         Sponsor_Voucher sponsor_voucher = new Sponsor_Voucher();
+
         protected void Page_Load(object sender, EventArgs e)
         {
             if (!IsPostBack)
             {
                 Page.RegisterAsyncTask(new PageAsyncTask(async () =>
                 {
-                    string email_id = Session["Email_ID"].ToString();
-
+                    string email_id = Request.QueryString["Email_ID"];
                     sponsor_voucher = sponsor_voucher.GetEmailByEmailID(email_id);
 
                     await fill_in_fields(sponsor_voucher.Subject + " " + sponsor_voucher.Message);
@@ -100,7 +100,7 @@ namespace bipj
             {
                 Email(token);
 
-                string email_id = Session["Email_ID"].ToString();
+                string email_id = Request.QueryString["Email_ID"];
                 sponsor_voucher.StatusUpdate(email_id);
 
                 ScriptManager.RegisterStartupScript(this, this.GetType(), "alert", "alert('Voucher created. 😊'); window.location='VoucherSponsor.aspx';", true);
@@ -113,21 +113,37 @@ namespace bipj
 
         protected void Email(string token)
         {
-            string email_id = Session["Email_ID"].ToString();
-
-            Sponsor_Voucher sponsor_voucher = new Sponsor_Voucher();
+            string email_id = Request.QueryString["Email_ID"];
             sponsor_voucher = sponsor_voucher.GetEmailByEmailID(email_id);
 
             ComponentInfo.SetLicense("FREE-LIMITED-KEY");
 
             var message = new MailMessage(
-               new MailAddress("usagitheyellowrabbit@gmail.com", "Sender"),
-               new MailAddress(sponsor_voucher.Email, "First receiver"));
+                new MailAddress("usagitheyellowrabbit@gmail.com", "Voucher Team"),
+                new MailAddress(sponsor_voucher.Email, "Valued Sponsor"));
 
-            string url = $"https://localhost:44369/VoucherManagement.aspx?token={token}";
+            string voucherUrl = $"https://localhost:44369/VoucherManagement.aspx?token={token}";
+            string qrCodeUrl = "https://localhost:44369/QRCodeScanner.aspx";
 
-            message.Subject = "Voucher created!";
-            message.BodyText = "Hi, your sponsor voucher has been successfully created. Please click the link to review the details before enabling it, or if you wish to disable the voucher." + url;
+            StringBuilder bodyText = new StringBuilder();
+            bodyText.AppendLine("Dear Sponsor,");
+            bodyText.AppendLine();
+            bodyText.AppendLine("We are excited to inform you that your sponsor voucher has been successfully created! 🎉");
+            bodyText.AppendLine();
+            bodyText.AppendLine("To manage and use your voucher, please follow the links below:");
+            bodyText.AppendLine();
+            bodyText.AppendLine($"1. **[Voucher Management]( {voucherUrl} )**: Enable or disable your voucher.");
+            bodyText.AppendLine($"2. **[QR Code Scanner]( {qrCodeUrl} )**: Scan the voucher when the customer presents it to redeem.");
+            bodyText.AppendLine();
+            bodyText.AppendLine("Should you have any questions or need assistance, please do not hesitate to contact us.");
+            bodyText.AppendLine();
+            bodyText.AppendLine("Thank you for being a sponsor. We appreciate your support!");
+            bodyText.AppendLine();
+            bodyText.AppendLine("Best regards,");
+            bodyText.AppendLine("Fin Clarity");
+
+            message.Subject = "Your sponsor is ready!";
+            message.BodyText = bodyText.ToString();
 
             using (var smtp = new SmtpClient("smtp.gmail.com", 587))
             {
@@ -148,7 +164,6 @@ namespace bipj
         {
             byte[] randomBytes = new byte[32];
 
-            // Works in all .NET versions
             using (var rng = RandomNumberGenerator.Create())
             {
                 rng.GetBytes(randomBytes);

@@ -11,7 +11,6 @@
             background-color: #f4f7fa;
         }
 
-        /* Flex container to center content vertically and horizontally */
         .flex-center {
             display: flex;
             justify-content: center;
@@ -20,7 +19,6 @@
             padding: 20px;
         }
 
-        /* The card container */
         .scanner-card {
             background-color: #fff;
             border-radius: 12px;
@@ -33,8 +31,7 @@
 
         h2 {
             margin: 0 0 25px 0;
-            font-weight: 700;
-            color: #2c3e50;
+            color: #3B387E;
             letter-spacing: 1px;
             font-size: 24px;
         }
@@ -49,14 +46,12 @@
         }
 
         #scan-result {
-            font-size: 18px;
-            color: #27ae60;
+            font-size: 14px;
+            color: #3B387E;
             min-height: 28px;
-            font-weight: 600;
             user-select: none;
         }
 
-        /* Responsive tweaks */
         @media (max-width: 400px) {
             .scanner-card {
                 padding: 20px;

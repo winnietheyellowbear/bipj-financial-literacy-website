@@ -16,12 +16,18 @@ namespace bipj
 {
     public partial class Post : System.Web.UI.Page
     {
-        
+        public string user_id;
         protected void Page_Load(object sender, EventArgs e)
         {
-
+            if (Session["UserId"] == null)
+            {
+                Response.Redirect("Loginpage.aspx");
+            }
+            else
+            {
+                user_id = Session["UserId"].ToString(); 
+            }
         }
-
 
         protected async void btn_publish_Click(object sender, EventArgs e)
         {
@@ -32,9 +38,7 @@ namespace bipj
 
             string text = tb_text.Text;
             string category = radiobtn_category.SelectedValue;
-            string user_id = "2";
 
-            // Loop through uploaded files
             HttpFileCollection uploadedFiles = Request.Files;
 
             for (int i = 0; i < uploadedFiles.Count; i++)
@@ -61,13 +65,10 @@ namespace bipj
                 }
             }
 
-            // Convert list to comma-separated string (or store differently if your DB supports JSON, etc.)
             string images = string.Join(",", imagePaths);
             string videos = string.Join(",", videoPaths);
 
             User_Post user_post = new User_Post();
-
-            // Call the asynchronous ContentModerator method
             string content_moderator = await user_post.ContentModerator(text);
 
             if (content_moderator == "Yes")
@@ -90,9 +91,5 @@ namespace bipj
                 }
             }
         }
-
-
-
-
     }
 }

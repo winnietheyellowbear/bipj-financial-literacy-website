@@ -21,6 +21,7 @@ namespace bipj
 
         private string _User_Profile;
         private string _User_Name;
+        private string _User_Type;
 
         public User_Comment()
         {
@@ -35,7 +36,7 @@ namespace bipj
         }
 
         // retrieve comment
-        public User_Comment(string comment_id, string text, string user_id, string post_id, string comment_datetime, string profile, string name)
+        public User_Comment(string comment_id, string text, string user_id, string post_id, string comment_datetime, string profile, string name, string type)
         {
             _Comment_ID = comment_id;
             _Text = text;
@@ -44,6 +45,7 @@ namespace bipj
             _Comment_DateTime = comment_datetime;
             _User_Profile = profile;
             _User_Name = name;
+            _User_Type = type;
         }
 
         public string Comment_ID
@@ -87,12 +89,16 @@ namespace bipj
             get { return _User_Name; }
             set { _User_Name = value; }
         }
+        public string User_Type
+        {
+            get { return _User_Type; }
+            set { _User_Type = value; }
+        }
 
         public void CommentInsert()
         {
-
             string queryStr = "INSERT INTO Comment(Text, User_ID, Post_ID, Comment_DateTime) " +
-                  "OUTPUT INSERTED.Comment_ID " +  // return the new Comment_ID
+                  "OUTPUT INSERTED.Comment_ID " +  
                   "VALUES (@Text, @User_ID, @Post_ID, @Comment_DateTime)";
 
             SqlConnection conn = new SqlConnection(_connStr);
@@ -102,8 +108,9 @@ namespace bipj
             cmd.Parameters.AddWithValue("@User_ID", this.User_ID);
             cmd.Parameters.AddWithValue("@Post_ID", this.Post_ID);
 
-            DateTime currentDateTime = new DateTime(2025, 6, 15, 13, 45, 0);
-            cmd.Parameters.AddWithValue("@Comment_DateTime", currentDateTime);
+            DateTime currentDateTime = DateTime.Now;
+            string formattedDateTime = currentDateTime.ToString("dd MMM yyyy hh:mm tt");
+            cmd.Parameters.AddWithValue("@Comment_DateTime", formattedDateTime);
 
             conn.Open();
             string comment_id = cmd.ExecuteScalar().ToString();
@@ -111,20 +118,18 @@ namespace bipj
 
             // insert notification
             User_Post user_post = new User_Post();
-            string user_id = user_post.GetPostByUserID(this.Post_ID);
+            string user_id = user_post.GetPostUserID(this.Post_ID);
 
             if (user_id != this.User_ID)
             {
                 User_Notification user_notification = new User_Notification("Comment", comment_id, this.Post_ID);
                 user_notification.NotificationInsert();
             }
-
         }
-
 
         public List<User_Comment> GetCommentsByPostID(string post_id)
         {
-            string comment_id, text, user_id, comment_datetime, profile, name;
+            string comment_id, text, user_id, comment_datetime, profile, name, type;
             List<User_Comment> comment_list = new List<User_Comment>();
 
             string queryStr = "SELECT * FROM Comment c LEFT OUTER JOIN [User] u ON c.User_ID = u.Id WHERE c.Post_ID = @Post_ID ORDER BY c.Comment_ID DESC";
@@ -144,8 +149,9 @@ namespace bipj
                 comment_datetime = dr["Comment_DateTime"].ToString();
                 profile = dr["Profile"].ToString();
                 name = dr["Name"].ToString();
+                type = dr["Type"].ToString();
 
-                User_Comment user_comment = new User_Comment(comment_id, text, user_id, post_id, comment_datetime, profile, name);
+                User_Comment user_comment = new User_Comment(comment_id, text, user_id, post_id, comment_datetime, profile, name, type);
                 comment_list.Add(user_comment);
             }
 

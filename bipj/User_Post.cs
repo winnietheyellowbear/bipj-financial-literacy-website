@@ -33,11 +33,11 @@ namespace bipj
         private string _Type;
         private bool _Like_Status;
         private List<User_Comment> _Comments_List;
-
         private List<string> _Images_List;
         private List<string> _Videos_List;
 
-        
+        string apiKey = "";
+
         public User_Post()
         {
         }
@@ -168,7 +168,6 @@ namespace bipj
             set { _Comments_List = value; }
         }
 
-
         public List<string> Images_List
         {
             get { return _Images_List; }
@@ -198,8 +197,9 @@ namespace bipj
             cmd.Parameters.AddWithValue("@Category", this.Category);
             cmd.Parameters.AddWithValue("@User_ID", this.User_ID);
 
-            DateTime currentDateTime = new DateTime(2025, 6, 15, 13, 45, 0);
-            cmd.Parameters.AddWithValue("@Post_DateTime", currentDateTime);
+            DateTime currentDateTime = DateTime.Now;
+            string formattedDateTime = currentDateTime.ToString("dd MMM yyyy hh:mm tt");
+            cmd.Parameters.AddWithValue("@Post_DateTime", formattedDateTime);
 
             conn.Open();
             result += cmd.ExecuteNonQuery();
@@ -215,6 +215,9 @@ namespace bipj
             List<string> images_list = new List<string>();
             List<string> videos_list = new List<string>();
 
+            User_Like user_like = new User_Like();
+            User_Comment user_Comment = new User_Comment();
+            List<User_Comment> comments_list = new List<User_Comment>();
             List<User_Post> post_list = new List<User_Post>();
 
             string queryStr = "SELECT * FROM Post p LEFT OUTER JOIN [User] u ON p.User_ID = u.Id ORDER BY p.Post_ID DESC";
@@ -238,29 +241,23 @@ namespace bipj
                 profile = dr["Profile"].ToString();
                 type = dr["Type"].ToString();
 
-                User_Like user_like = new User_Like();
-                int result = user_like.IsPostLiked(post_id, user_id);
-
-                if (result == 1)
-                {
-                    like_status = true;
-                }
-                else
-                {
-                    like_status = false;
-                }
-
                 images_list = images.Split(',').ToList();
                 videos_list = videos.Split(',').ToList();
 
-                User_Comment user_Comment = new User_Comment();
-                List<User_Comment> comments_list = new List<User_Comment>();
+                if (user_id == null)
+                {
+                    like_status = false;
+                }
+                else
+                {
+                    like_status = user_like.IsPostLiked(post_id, user_id);
+                }
+
                 comments_list = user_Comment.GetCommentsByPostID(post_id);
 
                 User_Post user_post = new User_Post(post_id, images_list, videos_list, text, category, user_id, post_datetime, last_update_datetime, name, profile, type, like_status, comments_list);
                 post_list.Add(user_post);
             }
-
             conn.Close();
             dr.Close();
             dr.Dispose();
@@ -275,6 +272,9 @@ namespace bipj
             List<string> images_list = new List<string>();
             List<string> videos_list = new List<string>();
 
+            User_Like user_like = new User_Like();
+            User_Comment user_Comment = new User_Comment();
+            List<User_Comment> comments_list = new List<User_Comment>();
             List<User_Post> post_list = new List<User_Post>();
 
             string queryStr = "SELECT * FROM Post p LEFT OUTER JOIN [User] u ON p.User_ID = u.Id WHERE p.User_ID = @User_ID ORDER BY p.Post_ID DESC";
@@ -299,24 +299,10 @@ namespace bipj
                 profile = dr["Profile"].ToString();
                 type = dr["Type"].ToString();
 
-                // like
-                User_Like user_like = new User_Like();
-                int result = user_like.IsPostLiked(post_id, user_id);
-
-                if (result == 1)
-                {
-                    like_status = true;
-                }
-                else
-                {
-                    like_status = false;
-                }
-
                 images_list = images.Split(',').ToList();
                 videos_list = videos.Split(',').ToList();
 
-                User_Comment user_Comment = new User_Comment();
-                List<User_Comment> comments_list = new List<User_Comment>();
+                like_status = user_like.IsPostLiked(post_id, user_id);
                 comments_list = user_Comment.GetCommentsByPostID(post_id);
 
                 User_Post user_post = new User_Post(post_id, images_list, videos_list, text, category, user_id, post_datetime, last_update_datetime, name, profile, type, like_status, comments_list);
@@ -330,16 +316,20 @@ namespace bipj
             return post_list;
         }
 
-
-        public User_Post GetPostByPostID(string post_id)
+        public User_Post GetPostByPostID(string post_id, string user_id)
         {
-            string images, videos, text, category;
+            string images, videos, text, category, post_datetime, last_update_datetime, name, profile, type;
+            bool like_status;
             List<string> images_list = new List<string>();
             List<string> videos_list = new List<string>();
 
             User_Post user_post = new User_Post();
+            User_Like user_like = new User_Like();
+            User_Comment user_Comment = new User_Comment();
+            List<User_Comment> comments_list = new List<User_Comment>();
 
-            string queryStr = "SELECT * FROM Post WHERE Post_ID = @Post_ID";
+
+            string queryStr = "SELECT * FROM Post p LEFT OUTER JOIN [User] u ON p.User_ID = u.Id WHERE Post_ID = @Post_ID";
 
             SqlConnection conn = new SqlConnection(_connStr);
             SqlCommand cmd = new SqlCommand(queryStr, conn);
@@ -354,11 +344,28 @@ namespace bipj
                 videos = dr["Videos"].ToString();
                 text = dr["Text"].ToString();
                 category = dr["Category"].ToString();
+                post_datetime = dr["Post_DateTime"].ToString();
+                last_update_datetime = dr["Last_Update_DateTime"].ToString();
+                name = dr["Name"].ToString();
+                profile = dr["Profile"].ToString();
+                type = dr["Type"].ToString();
 
                 images_list = images.Split(',').ToList();
                 videos_list = videos.Split(',').ToList();
 
-                user_post = new User_Post(post_id, images_list, videos_list, text, category);
+                if (user_id == null)
+                {
+                    like_status = false;
+                }
+                else
+                {
+                    like_status = user_like.IsPostLiked(post_id, user_id);
+                }
+
+                comments_list = user_Comment.GetCommentsByPostID(post_id);
+
+                user_post = new User_Post(post_id, images_list, videos_list, text, category, user_id, post_datetime, last_update_datetime, name, profile, type, like_status, comments_list);
+                return user_post;
             }
 
             conn.Close();
@@ -368,7 +375,7 @@ namespace bipj
             return user_post;
         }
 
-        public string GetPostByUserID(string post_id)
+        public string GetPostUserID(string post_id)
         {
             string user_id = null;
 
@@ -384,6 +391,7 @@ namespace bipj
             while (dr.Read())
             {
                 user_id = dr["User_ID"].ToString();
+                return user_id;
             }
 
             conn.Close();
@@ -438,9 +446,9 @@ namespace bipj
             cmd.Parameters.AddWithValue("@Text", this.Text);
             cmd.Parameters.AddWithValue("@Category", this.Category);
 
-            DateTime datetime = DateTime.Now;
-            cmd.Parameters.AddWithValue("@Last_Update_DateTime", datetime);
-
+            DateTime currentDateTime = DateTime.Now;
+            string formattedDateTime = currentDateTime.ToString("dd MMM yyyy hh:mm tt");
+            cmd.Parameters.AddWithValue("@Last_Update_DateTime", formattedDateTime);
 
             conn.Open();
             int nofRow = 0;
@@ -452,9 +460,8 @@ namespace bipj
 
         public List<User_Post> GetSearchPosts(string searchInput, string filterInput, string user_id)
         {
-            
-            List<User_Post> post_list = new List<User_Post>();
             User_Post user_post = new User_Post();
+            List<User_Post> post_list = new List<User_Post>();
 
             string queryStr = "SELECT * FROM Post p LEFT OUTER JOIN [User] u ON p.User_ID = u.Id";
 
@@ -466,7 +473,7 @@ namespace bipj
             {
                 queryStr += " WHERE (Text LIKE @searchInput OR Name LIKE @searchInput)";
             }
-            else if (!string.IsNullOrEmpty(filterInput))
+            else if (filterInput != "category")
             {
                 queryStr += " WHERE Category = @category";
             }
@@ -487,7 +494,7 @@ namespace bipj
                 cmd.Parameters.AddWithValue("@searchInput", "%" + searchInput + "%");
 
             }
-            else if (!string.IsNullOrEmpty(filterInput))
+            else if (filterInput != "category")
             {
                 cmd.Parameters.AddWithValue("@category", filterInput);
             }
@@ -499,7 +506,7 @@ namespace bipj
             {
                 string post_id = dr["Post_ID"].ToString();
 
-                user_post = user_post.GetPostByPostID(post_id);
+                user_post = user_post.GetPostByPostID(post_id, user_id);
                 post_list.Add(user_post);
             }
 
@@ -520,26 +527,24 @@ namespace bipj
         {
             using (var client = new HttpClient())
             {
-                // Set Authorization header with the OpenAI API key
-                client.DefaultRequestHeaders.Add("Authorization", "Bearer ");  
+                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");  
 
-                // Prepare the request body for the Chat Completion API
                 var requestBody = new
                 {
-                    model = "gpt-4",  // You can use gpt-3.5-turbo if needed
+                    model = "gpt-4",  
                     messages = new[]
                     {
-                new
-                {
-                    role = "system",
-                    content = "You are a content moderator. Respond ONLY with 'Yes' if the text contains rude, offensive, disrespectful, or insulting language, even if it's mild. Respond 'No' otherwise."
-                },
-                new
-                {
-                    role = "user",
-                    content = $"Is this content inappropriate? '{text}'"
-                }
-            }
+                        new
+                        {
+                            role = "system",
+                            content = "You are a content moderator. Respond ONLY with 'Yes' if the text contains rude, offensive, disrespectful, or insulting language, even if it's mild. Respond 'No' otherwise."
+                        },
+                        new
+                        {
+                            role = "user",
+                            content = $"Is this content inappropriate? '{text}'"
+                        }
+                    }
                 };
 
                 // Send the request to the OpenAI API
@@ -553,7 +558,6 @@ namespace bipj
                 var responseObject = JsonConvert.DeserializeObject<dynamic>(responseString);
                 string resultText = responseObject.choices[0].message.content.ToString().Trim();
 
-                // Return 'Yes' or 'No' based on the result
                 if (resultText.Equals("Yes", StringComparison.OrdinalIgnoreCase))
                 {
                     return "Yes";
@@ -569,28 +573,26 @@ namespace bipj
         {
             using (HttpClient client = new HttpClient())
             {
-                // Set the authorization header with your API key
-                client.DefaultRequestHeaders.Add("Authorization", "Bearer ");
+                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
 
-                // Prepare the request body for the Chat Completion API
                 var requestBody = new
                 {
-                    model = "gpt-4",  // Use gpt-4 for more advanced responses or gpt-3.5-turbo for lower cost
+                    model = "gpt-4", 
                     messages = new[]
                     {
-                new
-                {
-                    role = "system",
-                    content = "You are a staff member of a financial literacy website, commenting on a post in a forum. Your task is to evaluate the user's comment and suggest improvements if necessary. The format of your response should be as follows:\n\n" +
-                              "1. 'evaluation of comment (if any):' - Evaluate the user's comment and mention any improvements or praise if it's good.\n" +
-                              "2. 'suggested comment:' - If the comment could be improved, provide a suggested response that is professional, encouraging, and informative about financial literacy."
-                },
-                new
-                {
-                    role = "user",
-                    content = $"Given the following text post by the user, please evaluate my comment and suggest a new one if necessary. The post text is: '{text}'. My response is: '{comment}'"
-                }
-            }
+                        new
+                        {
+                            role = "system",
+                            content = "You are a staff member of a financial literacy website, commenting on a post in a forum. Your task is to evaluate the user's comment and suggest improvements if necessary. The format of your response should be as follows:\n\n" +
+                                      "1. 'evaluation of comment (if any):' - Evaluate the user's comment and mention any improvements or praise if it's good.\n" +
+                                      "2. 'suggested comment:' - If the comment could be improved, provide a suggested response that is professional, encouraging, and informative about financial literacy."
+                        },
+                        new
+                        {
+                            role = "user",
+                            content = $"Given the following text post by the user, please evaluate my comment and suggest a new one if necessary. The post text is: '{text}'. My response is: '{comment}'"
+                        }
+                    }
                 };
 
                 // Send the request to the OpenAI API

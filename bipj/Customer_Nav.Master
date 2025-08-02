@@ -109,6 +109,20 @@
                 text-decoration: underline;
             }
 
+        .btn-danger {
+            color: #fff;
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+
+            .btn-danger:hover,
+            .btn-danger:focus,
+            .btn-danger:active {
+                color: #fff;
+                background-color: #bb2d3b;
+                border-color: #b02a37;
+            }
+
         .qwitcher {
             font-family: 'Qwitcher Grypen', cursive;
             font-size: 40px;
@@ -137,6 +151,7 @@
 </head>
 <body>
     <form id="form2" runat="server" enctype="multipart/form-data">
+        <asp:ScriptManager ID="ScriptManager1" runat="server" EnablePageMethods="true" />
         <!-- ✅ NAVBAR -->
         <nav class="navbar navbar-expand-lg navbar-custom">
             <div class="d-flex align-items-center">
@@ -158,7 +173,7 @@
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Financial Tools</a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#">Budgeting</a></li>
+                            <li><a class="dropdown-item" href="Dashboard.aspx">Budgeting</a></li>
                             <li><a class="dropdown-item" href="#">Investment</a></li>
                             <li><a class="dropdown-item" href="#">Insurance</a></li>
                         </ul>

@@ -1,15 +1,15 @@
-﻿using System;
+﻿using Microsoft.Azure.CognitiveServices.ContentModerator.Models;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-
+using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
-using System.Configuration;
-
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
+using Twilio.Jwt.AccessToken;
 
 namespace bipj
 {
@@ -48,6 +48,15 @@ namespace bipj
             Points_Required = points_required;
             _Status = status;
             _Token = token;
+        }
+
+        // update voucher
+        public Staff_Voucher(string company_name, string description, string validity, int points_required)
+        {
+            Company_Name = company_name;
+            Description = description;
+            Validity = validity;
+            Points_Required = points_required;
         }
 
         public string Voucher_ID
@@ -156,7 +165,6 @@ namespace bipj
             Staff_Voucher staff_voucher = new Staff_Voucher();
             staff_voucher = staff_voucher.GetVoucherByVoucherID(voucher_id);
 
-            // retrieve user details
             User_Voucher user_voucher = new User_Voucher();
             user_points = user_voucher.GetUserPoint(user_id);
 
@@ -170,12 +178,10 @@ namespace bipj
             }
         }
 
-
         public Staff_Voucher GetVoucherByVoucherID(string voucher_id)
         {
             string company_name, description, validity, status, token;
             int points_required;
-
             Staff_Voucher staff_voucher = new Staff_Voucher();   
 
             string queryStr = "SELECT * FROM Staff_Voucher WHERE Voucher_ID = @Voucher_ID";
@@ -210,7 +216,6 @@ namespace bipj
         {
             string voucher_id, company_name, description, validity, status;
             int points_required;
-
             Staff_Voucher staff_voucher = new Staff_Voucher();
 
             string queryStr = "SELECT * FROM Staff_Voucher WHERE Token = @Token";
@@ -269,28 +274,24 @@ namespace bipj
 
             string queryStr = "SELECT * FROM Staff_Voucher WHERE Status = 'Active'";
 
-            // Constructing dynamic WHERE clause and ORDER BY
             if (!string.IsNullOrEmpty(searchInput))
             {
                 queryStr += " AND (Company_Name LIKE @searchInput OR Description LIKE @searchInput)";
             }
 
-            // Appending ORDER BY clause based on filterInput
             if (!string.IsNullOrEmpty(filterInput) && filterInput != "order")
             {
                 queryStr += " " + filterInput;
             }
             else if (string.IsNullOrEmpty(searchInput) && string.IsNullOrEmpty(filterInput))
             {
-                // If no searchInput and no filterInput, just order by Voucher_ID ascending by default
-                queryStr += " ORDER BY Voucher_ID ASC";
+                queryStr += " ORDER BY Voucher_ID DESC";
             }
 
             SqlConnection conn = new SqlConnection(_connStr);
             SqlCommand cmd = new SqlCommand(queryStr, conn);
 
-            // Adding parameters for search input if necessary
-            if (!string.IsNullOrEmpty(searchInput))
+            if (!string.IsNullOrEmpty(searchInput) && filterInput != "order")
             {
                 cmd.Parameters.AddWithValue("@searchInput", "%" + searchInput + "%");
             }
@@ -316,7 +317,6 @@ namespace bipj
             dr.Close();
             dr.Dispose();
 
-            // Handling case where only filter is passed without search
             if (string.IsNullOrEmpty(searchInput) && (filterInput == "order"))
             {
                 voucher_list = staff_voucher.GetAllVouchers();
@@ -325,12 +325,11 @@ namespace bipj
             return voucher_list;
         }
 
-        // Method to send a WhatsApp message
 
         public async Task SendMessageAsync(string toPhoneNumber)
         {
             string apiUrl = "https://graph.facebook.com/v22.0/662395820298319/messages";
-            string accessToken = "EAAQJhoZCqvUQBPGAxmUj4ClvQx6tslX0yvFCKu19HdzOecZCZAZCk5cCzOV6jD4GonWY0eWhOVCuQ8szu679V02nvI2wZAUSmZClwHECphqdle82su55afw1fqnKQL0KQ5ThMBsxspOrdRsqOt3f8ympIFwGbARuDB8lCFMh72I6MZAy8hvFhmDIXDPkZAYutQPnQwZByzEuk6GPUIQNwD7PV07tD9AKQ5KRzDV1NFRTPx337WQZDZD"; // Replace with your access token
+            string accessToken = "EAAQJhoZCqvUQBPEteikpjtZA6GkDB5Gudunb7tEA6NotiNM9Y2ZCiISNiEFr6N3PVC4XoCa52rt8g0bWK2kRprEzUrkDGqKZCa09uQFPoRPMlElZBtSjBpsYduXXjOl5ebMHEtwMETuT7rRSWe2Ay0izgEg2FczlEEyYdVq9b2j9RGDVCRrW6VzrtQJI7LzTTFWZCzuKOh1Chqxhv4EUoWMgHbMJC5j1kBzaH01H5UcFZCR7vAZD"; // Replace with your access token
 
             using (var client = new HttpClient())
             {
@@ -359,7 +358,31 @@ namespace bipj
                 }
             }
         }
-        
+
+        public int VoucherUpdate(string voucher_id)
+        {
+            string queryStr = "UPDATE Staff_Voucher SET" +
+                  " Company_Name = @Company_Name," +
+                  " Description = @Description," +
+                  " Validity = @Validity," +
+                  " Points_Required = @Points_Required" +
+                  " WHERE Voucher_ID = @Voucher_ID";
+
+            SqlConnection conn = new SqlConnection(_connStr);
+            SqlCommand cmd = new SqlCommand(queryStr, conn);
+            cmd.Parameters.AddWithValue("@Company_Name", this.Company_Name);
+            cmd.Parameters.AddWithValue("@Description", this.Description);
+            cmd.Parameters.AddWithValue("@Validity", this.Validity);
+            cmd.Parameters.AddWithValue("@Points_Required", this.Points_Required);
+            cmd.Parameters.AddWithValue("@Voucher_ID", voucher_id);
+
+            conn.Open();
+            int nofRow = 0;
+            nofRow = cmd.ExecuteNonQuery();
+            conn.Close();
+
+            return nofRow;
+        }
 
     }
 }

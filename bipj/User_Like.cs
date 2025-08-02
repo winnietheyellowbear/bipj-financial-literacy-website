@@ -19,7 +19,6 @@ namespace bipj
         private string _User_ID;
         private string _User_Name;
         private string _User_Profile;
-
         public User_Like()
         {
         }
@@ -30,6 +29,8 @@ namespace bipj
             _Post_ID = post_id;
             _User_ID = user_id;
         }
+
+        // retrieve like
         public User_Like(string like_id, string post_id, string user_id, string profile, string name)
         {
             _Like_ID = like_id;
@@ -69,15 +70,12 @@ namespace bipj
             set { _User_Profile = value; }
         }
 
-
         public void LikeInsert()
         {
-            int result = 0;
-
             User_Like user_like = new User_Like();
-            result = user_like.IsPostLiked(this.Post_ID, this.User_ID);
+            bool like_status = user_like.IsPostLiked(this.Post_ID, this.User_ID);
 
-            if (result == 0)
+            if (like_status == false)
             {
                 string queryStr = "INSERT INTO [Like](User_ID, Post_ID, Like_DateTime) " +
                                   "OUTPUT INSERTED.Like_ID " +
@@ -89,17 +87,17 @@ namespace bipj
                 cmd.Parameters.AddWithValue("@User_ID", this.User_ID);
                 cmd.Parameters.AddWithValue("@Post_ID", this.Post_ID);
 
-                DateTime currentDateTime = new DateTime(2025, 6, 15, 13, 45, 0);
-                cmd.Parameters.AddWithValue("@Like_DateTime", currentDateTime);
+                DateTime currentDateTime = DateTime.Now;
+                string formattedDateTime = currentDateTime.ToString("dd MMM yyyy hh:mm tt");
+                cmd.Parameters.AddWithValue("@Like_DateTime", formattedDateTime);
 
                 conn.Open();
                 string like_id = cmd.ExecuteScalar().ToString();
                 conn.Close();
 
-
                 // insert notification
                 User_Post user_post = new User_Post();
-                string user_id = user_post.GetPostByUserID(this.Post_ID);
+                string user_id = user_post.GetPostUserID(this.Post_ID);
 
                 if (user_id != this.User_ID)
                 {
@@ -108,9 +106,12 @@ namespace bipj
                 }
 
             }
-            else if (result == 1)
+            else if (like_status == true)
             {
-                string queryStr = "DELETE FROM [Like] WHERE Post_ID = @post_id AND User_ID = @user_id";
+                string queryStr = @"
+                                DELETE FROM [Like] 
+                                OUTPUT DELETED.Like_ID
+                                WHERE Post_ID = @post_id AND User_ID = @user_id";
 
                 SqlConnection conn = new SqlConnection(_connStr);
                 SqlCommand cmd = new SqlCommand(queryStr, conn);
@@ -119,19 +120,16 @@ namespace bipj
                 cmd.Parameters.AddWithValue("@user_id", this.User_ID);
 
                 conn.Open();
-
-                int nofRow = 0;
-                nofRow = cmd.ExecuteNonQuery();
-
+                string like_id = cmd.ExecuteScalar().ToString();
                 conn.Close();
 
                 User_Notification user_notification = new User_Notification();
-                user_notification.NotificationDelete("Like", this.Post_ID);
+                user_notification.NotificationDelete("Like", like_id);
             }
 
         }
 
-        public int IsPostLiked(string post_id, string user_id)
+        public bool IsPostLiked(string post_id, string user_id)
         {
             string queryStr = "SELECT * FROM [Like] WHERE Post_ID = @Post_ID AND User_ID = @User_ID";
 
@@ -143,11 +141,10 @@ namespace bipj
             conn.Open();
             SqlDataReader dr = cmd.ExecuteReader();
 
-            int result = 0;
-
+            bool result = false;
             while (dr.Read())
             {
-                result = 1;
+                result = true;
             }
 
             conn.Close();
@@ -174,7 +171,6 @@ namespace bipj
 
             while (dr.Read())
             {
-
                 like_id = dr["Like_ID"].ToString();
                 user_id = dr["User_ID"].ToString();
                 profile = dr["Profile"].ToString();

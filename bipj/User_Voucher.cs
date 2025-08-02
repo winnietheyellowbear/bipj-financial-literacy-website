@@ -216,7 +216,6 @@ namespace bipj
                 status = dr["Status"].ToString();
                
                 user_voucher = new User_Voucher(user_voucher_id, company_name, description, expiry_date, user_id, status, token);
-                
             }
 
             conn.Close();
@@ -250,7 +249,7 @@ namespace bipj
             string expiry_date, token;
             User_Voucher user_voucher = new User_Voucher();
 
-            string queryStr = "SELECT * FROM User_Voucher WHERE Status = 'Available'";
+            string queryStr = "SELECT * FROM User_Voucher WHERE Status = 'available'";
 
             SqlConnection conn = new SqlConnection(_connStr);
             SqlCommand cmd = new SqlCommand(queryStr, conn);
@@ -263,7 +262,7 @@ namespace bipj
                 expiry_date = dr["Expiry_Date"].ToString();
                 token = dr["Token"].ToString();
 
-                // Convert expiry_date string to DateTime (assuming it's stored as string in database)
+                // Convert expiry_date string to DateTime 
                 DateTime expiryDateTime = DateTime.Parse(expiry_date);
 
                 // Check if the voucher has expired
@@ -271,7 +270,6 @@ namespace bipj
                 {
                     user_voucher.StatusUpdate(token, "expired");
                 }
-
             }
 
             conn.Close();
@@ -311,7 +309,6 @@ namespace bipj
                 cmd.Parameters.AddWithValue("@searchInput", "%" + searchInput + "%");
                 cmd.Parameters.AddWithValue("@status", filterInput);
             }
-
             else if (!string.IsNullOrEmpty(searchInput))
             {
                 cmd.Parameters.AddWithValue("@searchInput", "%" + searchInput + "%");

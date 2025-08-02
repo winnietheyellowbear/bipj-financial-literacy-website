@@ -102,7 +102,7 @@ namespace bipj
             {
                 // Connect to mail server (replace with your actual server and credentials)
                 client.Connect("imap.gmail.com", 993, true); // SSL enabled
-                client.Authenticate("usagitheyellowrabbit@gmail.com", "ohxf cbou kwjk dmou"); // Not your main Gmail password!
+                client.Authenticate("usagitheyellowrabbit@gmail.com", "ohxf cbou kwjk dmou"); 
 
                 var inbox = client.Inbox;
                 inbox.Open(FolderAccess.ReadWrite);
@@ -130,15 +130,13 @@ namespace bipj
                         message.TextBody ?? message.HtmlBody ?? "",
                         message.Date.ToString("yyyy-MM-dd HH:mm:ss")
                     );
-
                     sponsor_voucher.SponsorInsert();
+
                     inbox.AddFlags(id, MessageFlags.Seen, true);
                 }
 
                 client.Disconnect(true);
             }
-
-            
         }
 
         public int SponsorInsert()
@@ -222,7 +220,6 @@ namespace bipj
                 status = dr["Status"].ToString();
 
                 sponsor_voucher = new Sponsor_Voucher(email_id, email, subject, message, receive_datetime, create_datetime, status);
-                
             }
 
             conn.Close();

@@ -1,35 +1,30 @@
-﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Customer_Nav.Master" AutoEventWireup="true" CodeBehind="MyNotification.aspx.cs" Inherits="bipj.MyNotification" %>
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Customer_Nav_loggedin.Master" AutoEventWireup="true" CodeBehind="MyNotification.aspx.cs" Inherits="bipj.MyNotification" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
 
 <head>
   <link rel="stylesheet" href="Forum_Nav.css">
-  <asp:ScriptManager ID="ScriptManager" runat="server" />
 </head>
 
 <style>
 
-    /* General Styles */
     body {
         font-family: 'Quicksand', sans-serif;
     }
 
     .content-wrapper {
         display: flex;
-        align-items: flex-start; /* Align items at the top */
-        margin-top: 10px;
+        align-items: flex-start;
     }
 
     .main-content {
         flex: 1;
         background-color: #f8f9fa;
-        padding: 30px;
         border-radius: 10px;
-        margin-left: 20px; /* Add spacing so it doesn't overlap with the sidebar */
+        margin-left: 20px;
         max-width: 1000px;
     }
-
 
     /* Filter Buttons */
     .filters {
@@ -130,10 +125,7 @@
 
 </style>
 
-
-<!-- Sidebar and main content wrapper -->
 <div class="content-wrapper">
-    <!-- Sidebar -->
     <div class="sidebar">
         <ul>
             <br />
@@ -171,21 +163,21 @@
         </ul>
     </div>
 
-    <!-- Main content -->
     <div class="main-content">
         <h1>Notification</h1>
 
+        <asp:UpdatePanel ID="UpdatePanel" runat="server" UpdateMode="Conditional">
+        <ContentTemplate>
         <!-- Filter Buttons -->
         <div class="filters">
-            <button class="filter-btn active" data-filter="all">All</button>
-            <button class="filter-btn" data-filter="like">Likes</button>
-            <button class="filter-btn" data-filter="comment">Comments</button>
+            <asp:Button ID="Button1" runat="server" Text="All" class="filter-btn active" CommandArgument="" OnClick="Filter"/>
+            <asp:Button ID="Button2" runat="server" Text="Likes" class="filter-btn active" CommandArgument="Like" OnClick="Filter"/>
+            <asp:Button ID="Button3" runat="server" Text="Comments" class="filter-btn active" CommandArgument="Comment" OnClick="Filter"/>
         </div>
 
         <asp:Repeater ID="Notification" runat="server">
             <ItemTemplate>
 
-                <!-- Notifications List -->
                 <div class="notification-list" id="notifications">
                     <asp:Panel runat="server" Visible='<%# Eval("Action").ToString() == "Like" %>'>
                         <div class="notification like">
@@ -193,7 +185,7 @@
                                      src='<%# ResolveUrl("~/Images/" + Eval("User_Profile")) %>' 
                                      alt="Profile Picture" />
                             <div class="notification-content">
-                                <div class="notification-header">@<%# Eval("User_Name") %> liked your post</div>
+                                <div class="notification-header">@<%# Eval("User_Name") %> <asp:Label runat="server" style="color: red; font-weight: bold" Visible='<%# Eval("User_Type").ToString() == "Staff" %>'><%# Eval("User_Type") %></asp:Label> liked your post</div>
                                 <div class="notification-footer"><%# Eval("DateTime") %></div>
                             </div>
                         </div>
@@ -205,7 +197,7 @@
                                      src='<%# ResolveUrl("~/Images/" + Eval("User_Profile")) %>' 
                                      alt="Profile Picture"/>
                             <div class="notification-content">
-                                <div class="notification-header">@<%# Eval("User_Name") %> commented on your post</div>
+                                <div class="notification-header">@<%# Eval("User_Name") %> <asp:Label runat="server" style="color: red; font-weight: bold" Visible='<%# Eval("User_Type").ToString() == "Staff" %>'><%# Eval("User_Type") %></asp:Label> commented on your post</div>
                                 <div class="notification-comment"><%# Eval("Text") %></div>
                                 <div class="notification-footer"><%# Eval("DateTime") %></div>
                             </div>
@@ -215,7 +207,8 @@
 
             </ItemTemplate>
         </asp:Repeater>
-
+        </ContentTemplate>
+        </asp:UpdatePanel>
     </div>
 </div>
 

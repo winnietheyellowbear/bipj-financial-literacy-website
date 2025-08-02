@@ -14,6 +14,7 @@ namespace bipj
 
         protected void Page_Load(object sender, EventArgs e)
         {
+            sponsor_voucher.RetrieveSponsorVoucherEmails();
             sponsor_list = sponsor_voucher.GetAllSponsors();
 
             if (!IsPostBack)
@@ -27,10 +28,8 @@ namespace bipj
         {
             Button btn = (Button)sender;
             string email_id = btn.CommandArgument;
-            Session["Email_ID"] = email_id;
 
-            Response.Redirect("CreateVoucherAuto.aspx");
-
+            Response.Redirect("CreateVoucher.aspx?Email_ID=" + email_id);
         }
     }
 }

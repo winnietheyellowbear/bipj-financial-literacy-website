@@ -58,11 +58,11 @@ namespace bipj
 
                 // Save the file
                 string fileName = System.IO.Path.GetFileName(fileUploadImage.FileName);
-                string savePath = Server.MapPath("~/images/education/") + fileName;
+                string savePath = Server.MapPath("~/Images/education/") + fileName;
                 fileUploadImage.SaveAs(savePath);
 
                 // Store the file name for saving module later
-                UploadedImageFile = "images/education/" + fileName;
+                UploadedImageFile = "Images/education/" + fileName;
 
                 lblMessage.Text = "Image uploaded successfully!";
             }

@@ -708,6 +708,7 @@
     <Folder Include="Forum\Icon\" />
     <Folder Include="Forum\Images\" />
     <Folder Include="Forum\Videos\" />
+    <Folder Include="Images\education\" />
     <Folder Include="Profileuploads\" />
     <Folder Include="uploadcontents\" />
     <Folder Include="Voucher\" />

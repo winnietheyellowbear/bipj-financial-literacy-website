@@ -291,7 +291,7 @@ namespace bipj
             SqlConnection conn = new SqlConnection(_connStr);
             SqlCommand cmd = new SqlCommand(queryStr, conn);
 
-            if (!string.IsNullOrEmpty(searchInput) && filterInput != "order")
+            if (!string.IsNullOrEmpty(searchInput))
             {
                 cmd.Parameters.AddWithValue("@searchInput", "%" + searchInput + "%");
             }

@@ -96,8 +96,9 @@
                                 <!-- Profile Section -->
                                 <div class="post-header">
                                     <div class="profile-image">
-                                        <asp:Image ID="imgProfile" runat="server" CssClass="profile-pic" 
-                                            ImageUrl='<%# ResolveUrl("~/Images/" + Eval("Profile")) %>' />
+                                        <asp:Image ID="imgProfile" runat="server" CssClass="profile-pic" style="width: 50px; height: 50px"
+                                            ImageUrl='<%# Eval("Profile") != DBNull.Value && Eval("Profile").ToString() != "" ? ResolveUrl(Eval("Profile").ToString()) : "~/Profileuploads/profile_pic.jpg" %>' />
+
                                     </div>
                                     <div class="user-info">
                                         <div><strong><%# Eval("Name") %></strong> <asp:Label runat="server" style="color: red; font-weight: bold" Visible='<%# Eval("Type").ToString() == "Staff" %>'><%# Eval("Type") %></asp:Label></div>
@@ -145,8 +146,10 @@
                                             <asp:Repeater ID="Comment" runat="server" DataSource='<%# Eval("Comments_List") %>'>
                                                 <ItemTemplate>
                                                     <div class="comment">
-                                                        <img src='<%# ResolveUrl("~/Images/" + Eval("User_Profile")) %>' 
-                                                             class="profile-pic" />
+                                                        <asp:Image ID="imgProfile" runat="server" CssClass="profile-pic" 
+                                                            ImageUrl='<%# Eval("User_Profile") != DBNull.Value && Eval("User_Profile").ToString() != "" ? ResolveUrl(Eval("User_Profile").ToString()) : "~/Profileuploads/profile_pic.jpg" %>' />
+
+
                                                         <div class="comment-content">
                                                             <div class="comment-author"><%# Eval("User_Name") %> <asp:Label runat="server" style="color: red; font-weight: bold" Visible='<%# Eval("User_Type").ToString() == "Staff" %>'><%# Eval("User_Type") %></asp:Label></div>
                                                             <div class="comment-time"><%# Eval("Comment_DateTime", "{0:dd MMM yyyy, hh:mmtt}") %></div>

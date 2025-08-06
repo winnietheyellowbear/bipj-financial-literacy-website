@@ -181,9 +181,8 @@
                 <div class="notification-list" id="notifications">
                     <asp:Panel runat="server" Visible='<%# Eval("Action").ToString() == "Like" %>'>
                         <div class="notification like">
-                            <img class="notification-profile-picture" 
-                                     src='<%# ResolveUrl("~/Images/" + Eval("User_Profile")) %>' 
-                                     alt="Profile Picture" />
+                             <asp:Image ID="Image1" runat="server" CssClass="notification-profile-picture" 
+                                    ImageUrl='<%# Eval("User_Profile") != DBNull.Value && Eval("User_Profile").ToString() != "" ? ResolveUrl(Eval("User_Profile").ToString()) : "~/Profileuploads/profile_pic.jpg" %>' />
                             <div class="notification-content">
                                 <div class="notification-header">@<%# Eval("User_Name") %> <asp:Label runat="server" style="color: red; font-weight: bold" Visible='<%# Eval("User_Type").ToString() == "Staff" %>'><%# Eval("User_Type") %></asp:Label> liked your post</div>
                                 <div class="notification-footer"><%# Eval("DateTime") %></div>
@@ -193,9 +192,8 @@
 
                     <asp:Panel runat="server" Visible='<%# Eval("Action").ToString() == "Comment" %>'>
                         <div class="notification comment">
-                            <img class="notification-profile-picture" 
-                                     src='<%# ResolveUrl("~/Images/" + Eval("User_Profile")) %>' 
-                                     alt="Profile Picture"/>
+                             <asp:Image ID="Image2" runat="server" CssClass="notification-profile-picture" 
+                                    ImageUrl='<%# Eval("User_Profile") != DBNull.Value && Eval("User_Profile").ToString() != "" ? ResolveUrl(Eval("User_Profile").ToString()) : "~/Profileuploads/profile_pic.jpg" %>' />
                             <div class="notification-content">
                                 <div class="notification-header">@<%# Eval("User_Name") %> <asp:Label runat="server" style="color: red; font-weight: bold" Visible='<%# Eval("User_Type").ToString() == "Staff" %>'><%# Eval("User_Type") %></asp:Label> commented on your post</div>
                                 <div class="notification-comment"><%# Eval("Text") %></div>

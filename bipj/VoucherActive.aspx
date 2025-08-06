@@ -8,6 +8,7 @@
     <style>
        
         body {
+            background-color: #f8f0ff !important;
             margin: 0;
             padding: 0;
         }

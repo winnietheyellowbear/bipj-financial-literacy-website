@@ -20,6 +20,7 @@ namespace bipj
         private string _Status;
         private string _User_Name;
         private string _User_Profile;
+        private string _User_Type;
         private string _Text;
         private string _DateTime;
         public User_Notification()
@@ -35,15 +36,16 @@ namespace bipj
         }
 
         // retrieve user notification
-        public User_Notification(string notification_id, string action, string action_id, string post_id, string status, string name, string profile, string text, string datetime)
+        public User_Notification(string notification_id, string action, string action_id, string post_id, string status, string name, string profile, string type,string text, string datetime)
         {
             _Notification_ID = notification_id;
             _Action = action;
             _Action_ID = action_id;
             _Post_ID = post_id;
             _Status = status;
-            User_Name = name;
-            User_Profile = profile;
+            _User_Name = name;
+            _User_Profile = profile;
+            _User_Type = type;
             _Text = text;
             _DateTime = datetime;
         }
@@ -87,6 +89,11 @@ namespace bipj
             get { return _User_Profile; }
             set { _User_Profile = value; }
         }
+        public string User_Type
+        {
+            get { return _User_Type; }
+            set { _User_Type = value; }
+        }
 
         public string Text
         {
@@ -122,19 +129,30 @@ namespace bipj
             return result;
         }
 
-        public List<User_Notification> GetNotificationsByUserID(string user_id)
+        public List<User_Notification> GetNotificationsByUserID(string user_id, string filter)
         {
-            string notification_id, action, action_id, post_id, status, name, profile, text, datetime;
+            string notification_id, action, action_id, post_id, status, name, profile, type, text, datetime;
             List<User_Notification> notification_list = new List<User_Notification>();
 
             string queryStr = "SELECT * FROM Notification n " +
                             "LEFT OUTER JOIN Post p ON n.Post_ID = p.Post_ID " +
-                            "WHERE p.User_ID = @User_ID " +
-                            "ORDER BY Notification_ID DESC";
+                            "WHERE p.User_ID = @User_ID ";
+
+            if (filter == "Like" || filter == "Comment")
+            {
+                queryStr += "AND Action = @action ";
+            }
+
+            queryStr += "ORDER BY Notification_ID DESC";
 
             SqlConnection conn = new SqlConnection(_connStr);
             SqlCommand cmd = new SqlCommand(queryStr, conn);
             cmd.Parameters.AddWithValue("@User_ID", user_id);
+
+            if (filter == "Like" || filter == "Comment")
+            {
+                cmd.Parameters.AddWithValue("@Action", filter);
+            }
 
             conn.Open();
             SqlDataReader dr = cmd.ExecuteReader();
@@ -164,10 +182,11 @@ namespace bipj
                     {
                         name = dr1["Name"].ToString();
                         profile = dr1["Profile"].ToString();
+                        type = dr1["Type"].ToString();
                         text = null;
                         datetime = dr1["Like_DateTime"].ToString();
 
-                        User_Notification user_notification = new User_Notification(notification_id, action, action_id, post_id, status, name, profile, text, datetime);
+                        User_Notification user_notification = new User_Notification(notification_id, action, action_id, post_id, status, name, profile, type, text, datetime);
                         notification_list.Add(user_notification);
                     }
 
@@ -193,10 +212,11 @@ namespace bipj
                     {
                         name = dr2["Name"].ToString();
                         profile = dr2["Profile"].ToString();
+                        type = dr2["Type"].ToString();
                         text = dr2["Text"].ToString();
                         datetime = dr2["Comment_DateTime"].ToString();
 
-                        User_Notification user_notification = new User_Notification(notification_id, action, action_id, post_id, status, name, profile, text, datetime);
+                        User_Notification user_notification = new User_Notification(notification_id, action, action_id, post_id, status, name, profile, type, text, datetime);
                         notification_list.Add(user_notification);
                     }
 

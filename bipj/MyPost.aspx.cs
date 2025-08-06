@@ -85,17 +85,18 @@ namespace bipj
 
         protected void Update_Panel()
         {
-            if ((Session["Discussion_Search"] != null) || (Session["Discussion_Filter"] != null))
-            {
-                string search = Session["Discussion_Search"].ToString();
-                string category = Session["Discussion_Filter"].ToString();
-                post_list = user_post.GetSearchPosts(search, category, user_id);
-                post_list = post_list.Where(post => post.User_ID == user_id).ToList();
-            }
-            else
-            {
-                post_list = user_post.GetPostsByUserID(user_id);
-            }
+            //if ((Session["Discussion_Search"] != null) || (Session["Discussion_Filter"] != null))
+            //{
+            //    string search = Session["Discussion_Search"].ToString();
+            //    string category = Session["Discussion_Filter"].ToString();
+            //    post_list = user_post.GetSearchPosts(search, category, user_id);
+            //    post_list = post_list.Where(post => post.User_ID == user_id).ToList();
+            //}
+            //else
+            //{
+            //    
+            //}
+            post_list = user_post.GetPostsByUserID(user_id);
 
             Post.DataSource = post_list;
             Post.DataBind();

@@ -1,4 +1,4 @@
-﻿<%@ Page Title="OTP Confirmation" Language="C#" MasterPageFile="~/Customer_Nav.Master" AutoEventWireup="true" CodeBehind="OtpConfirmation.aspx.cs" Inherits="bipj.OtpConfirmation" %>
+﻿<%@ Page Title="OTP Confirmation" Language="C#" MasterPageFile="~/Customer_Nav_loggedin.master" AutoEventWireup="true" CodeBehind="OtpConfirmation.aspx.cs" Inherits="bipj.OtpConfirmation" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     <div class="container mt-5">

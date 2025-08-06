@@ -14,6 +14,7 @@ namespace bipj
 
         protected void Page_Load(object sender, EventArgs e)
         {
+            sponsor_voucher.RetrieveSponsorVoucherEmails();
             sponsor_list = sponsor_voucher.GetAllSponsors();
 
             if (!IsPostBack)

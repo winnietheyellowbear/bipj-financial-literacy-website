@@ -60,30 +60,47 @@ namespace bipj
 
         protected void btnSubmitEntry_Click(object sender, EventArgs e)
         {
-            if (!decimal.TryParse(txtTxnAmount.Text.Trim(), out decimal amount) || amount <= 0) return;
-            if (!DateTime.TryParse(txtTxnDate.Text.Trim(), out DateTime date)) return;
+            if (!decimal.TryParse(txtTxnAmount.Text.Trim(), out decimal amount) || amount <= 0)
+                return;
+            if (!DateTime.TryParse(txtTxnDate.Text.Trim(), out DateTime date))
+                return;
             string name = txtTxnName.Text.Trim();
-            if (string.IsNullOrEmpty(name)) return;
+            if (string.IsNullOrEmpty(name))
+                return;
 
             string sourceType = "topup";
             int? fromJarId = null;
 
+            var jarSvc = new Jar();
+
             if (rdoTransferYes.Checked)
             {
-                if (string.IsNullOrEmpty(ddlJars.SelectedValue)) return;
+                if (string.IsNullOrEmpty(ddlJars.SelectedValue))
+                    return;
+
                 fromJarId = int.Parse(ddlJars.SelectedValue);
                 sourceType = "jar";
 
-                var jar = new Jar().GetJarById(fromJarId.Value, _userId);
-                if (jar == null || jar.Amount < amount)
+                var jar = jarSvc.GetJarById(fromJarId.Value, _userId);
+                if (jar == null)
+                {
+                    hdnInsufficientFunds.Value = "true";
+                    return;
+                }
+
+                decimal jarBal = jarSvc.GetCurrentBalance(_userId, fromJarId.Value);
+                if (jarBal < amount)
                 {
                     hdnInsufficientFunds.Value = "true";
                     return;
                 }
             }
 
-            bool ok = _goalTxnModel.InsertGoalTransaction(_goalId, _userId, name, amount, date, sourceType, fromJarId, lblGoalName.Text);
-            if (!ok) return;
+            bool ok = _goalTxnModel.InsertGoalTransaction(
+                _goalId, _userId, name, amount, date, sourceType, fromJarId, lblGoalName.Text
+            );
+            if (!ok)
+                return;
 
             hdnInsufficientFunds.Value = "false";
             LoadGoalDetails();

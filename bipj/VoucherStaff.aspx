@@ -121,15 +121,15 @@
                 <asp:TextBox ID="txtSearch" runat="server" AutoPostBack="true" placeholder=" 🔍 " class="custom"/>
                 
                 <asp:DropDownList ID="filterType" runat="server" AutoPostBack="true" class="custom">
-                    <asp:ListItem Text="Select Category Type" Value="" />
-                    <asp:ListItem Text="Grocery" Value="Grocery" />
-                    <asp:ListItem Text="Recipe" Value="Recipe" />
+                    <asp:ListItem Text="Status" Value=""/>
+                    <asp:ListItem Text="Active" Value=" WHERE Status = 'Active'"/>
+                    <asp:ListItem Text="Inactive" Value=" WHERE Status = 'Inactive'"/>
                 </asp:DropDownList>
 
                 <asp:DropDownList ID="filterOrder" runat="server" AutoPostBack="true" class="custom">
-                    <asp:ListItem Text="Select Order" Value="" />
-                    <asp:ListItem Text="Latest" Value="latest" />
-                    <asp:ListItem Text="Earliest" Value="earliest" />
+                    <asp:ListItem Text="Order" Value=""/>
+                    <asp:ListItem Text="Latest" Value=" ORDER BY Voucher_ID DESC" />
+                    <asp:ListItem Text="Earliest" Value=" ORDER BY Voucher_ID ASC" />
                 </asp:DropDownList>
             </div>
 

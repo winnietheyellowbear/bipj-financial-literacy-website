@@ -156,9 +156,9 @@
         <!-- Header Row -->
         <div class="d-flex justify-content-between align-items-center px-4 py-1 mb-2">
             <h1 class="fw-bold mb-0">MY JARS
-        <a href="#" data-bs-toggle="modal" data-bs-target="#info-popup" title="Learn more about Jars">
-            <img src="images/info-icon.png" alt="Info" class="info-icon-img" />
-        </a>
+            <a href="#" data-bs-toggle="modal" data-bs-target="#info-popup" title="Learn more about Jars">
+                <img src="images/info-icon.png" alt="Info" class="info-icon-img" />
+            </a>
             </h1>
             <button type="button" class="settings-btn" data-bs-toggle="modal" data-bs-target="#settingsModal">
                 <i class="bi bi-gear"></i>
@@ -181,9 +181,11 @@
                                     <span class="fw-semibold fs-5"><%# Eval("JarName") %></span>
                                 </div>
                                 <div class="d-flex align-items-center gap-3">
-                                    <span class="fw-bold fs-5">$<%# ((decimal)Eval("Amount") % 1 == 0) 
-                                                            ? ((decimal)Eval("Amount")).ToString("F0") 
-                                                            : ((decimal)Eval("Amount")).ToString("F2") %>
+                                    <span class='<%# ((decimal)Eval("Balance") >= 0 
+                                          ? "fw-bold fs-5 text-success" 
+                                          : "fw-bold fs-5 text-danger") %>'>$<%# ((decimal)Eval("Balance") % 1 == 0) 
+                                    ? ((decimal)Eval("Balance")).ToString("F0") 
+                                    : ((decimal)Eval("Balance")).ToString("F2") %>
                                     </span>
                                     <asp:LinkButton runat="server"
                                         CommandName="Edit"
@@ -191,7 +193,7 @@
                                         CssClass="btn btn-outline-primary btn-sm rounded-circle"
                                         title="Edit Jar"
                                         OnClientClick="event.stopPropagation();">
-                                <i class="bi bi-pencil"></i>
+                                    <i class="bi bi-pencil"></i>
                                     </asp:LinkButton>
                                 </div>
                             </div>
@@ -301,10 +303,6 @@
                             <label for="txtNewJarDesc" class="form-label fw-semibold">Description</label>
                             <asp:TextBox ID="txtNewJarDesc" runat="server" CssClass="form-control" placeholder="e.g. to use for emergencies like hospitalisation" TextMode="MultiLine" Rows="3" />
                         </div>
-                        <div class="mb-3">
-                            <label for="txtNewJarAmount" class="form-label fw-semibold">Initial Amount</label>
-                            <asp:TextBox ID="txtNewJarAmount" runat="server" CssClass="form-control" Text="0" type="number" />
-                        </div>
                         <small class="text-muted d-block mb-3">Note: Jar allocation is set to 0%. Adjust percentages in 
                     <i class="bi bi-gear"></i>on the jars page to split income automatically.
                         </small>
@@ -338,10 +336,6 @@
                         <div class="mb-3">
                             <label for="txtEditDesc" class="form-label fw-semibold">Description</label>
                             <asp:TextBox ID="txtEditDesc" runat="server" CssClass="form-control" TextMode="MultiLine" Rows="3" placeholder="Jar Description" />
-                        </div>
-                        <div class="mb-3">
-                            <label for="txtEditAmount" class="form-label fw-semibold">Initial Amount</label>
-                            <asp:TextBox ID="txtEditAmount" runat="server" CssClass="form-control" TextMode="SingleLine" />
                         </div>
                         <div class="mb-4">
                             <label for="txtEditPercent" class="form-label fw-semibold">Percentage</label>
@@ -517,7 +511,6 @@
 
         function validateAddJarForm() {
             const nameInput = document.getElementById('<%= txtNewJarName.ClientID %>');
-         const amountInput = document.getElementById('<%= txtNewJarAmount.ClientID %>');
             let isValid = true;
 
             resetValidation(nameInput.closest("form") || document);
@@ -538,7 +531,6 @@
 
         function validateEditJarForm() {
             const nameInput = document.getElementById('<%= txtEditName.ClientID %>');
-         const amountInput = document.getElementById('<%= txtEditAmount.ClientID %>');
             let isValid = true;
 
             resetValidation(nameInput.closest("form") || document);
@@ -672,9 +664,9 @@
                 document.getElementById('jarNameToDelete').textContent = jarName;
                 document.getElementById('<%= hiddenDeleteJarId.ClientID %>').value = jarId;
 
-             const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
-             deleteModal.show();
-         }, 300);
+                const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+                deleteModal.show();
+            }, 300);
         }
 
         function cancelDeleteAndReturnToEdit() {

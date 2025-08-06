@@ -45,13 +45,6 @@
                     object-fit: contain;
                 }
 
-        .fixed-action-buttons {
-            position: fixed;
-            bottom: 30px;
-            right: 40px;
-            z-index: 999;
-        }
-
         .add-btn {
             background-color: #5e4bd3;
             color: white;
@@ -146,6 +139,13 @@
                 .custom-dropdown .option:hover {
                     background-color: #f8f9fa;
                 }
+
+        .action-button-wrapper {
+            position: absolute;
+            bottom: 80px;
+            right: 20px;
+            z-index: 100;
+        }
     </style>
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
@@ -181,164 +181,167 @@
     </div>
 
     <!-- Main Content -->
-    <div class="mainpage-content" style="height: calc(100vh - 66px); overflow: hidden;">
+    <div class="mainpage-content" style="height: calc(100vh - 66px); overflow: hidden">
         <!-- Header Row -->
-        <div class="d-flex justify-content-between align-items-center px-4 py-1 mb-2">
+        <header class="d-flex justify-content-between align-items-center px-4 py-2 mb-2" style="position: sticky; top: 0;">
             <h1 class="fw-bold mb-0">OVERALL DASHBOARD</h1>
-            <div class="col-auto">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="custom-dropdown" id="customDropdown">
+            <div class="d-flex align-items-center gap-3 col-auto">
+                <div class="custom-dropdown" id="customDropdown">
+                    <!-- hidden trigger -->
+                    <asp:LinkButton ID="btnPeriodChange" runat="server" OnClick="btnPeriodChange_Click" Style="display: none"></asp:LinkButton>
 
-                        <!-- closed LinkButton -->
-                        <asp:LinkButton
-                            ID="btnPeriodChange"
-                            runat="server"
-                            OnClick="btnPeriodChange_Click"
-                            Style="display: none">
-                        </asp:LinkButton>
-
-                        <div class="selected" id="selectedOption">
-                            <asp:Literal ID="litPeriodIcon" runat="server" />
-                            <span class="selected-label">
-                                <asp:Literal ID="litPeriodLabel" runat="server" />
-                            </span>
-                            <span class="dropdown-arrow"><i class="bi bi-caret-down-fill"></i></span>
-                        </div>
-                        <div class="options" style="display: none;">
-                            <div class="option" data-value="day">
-                                <img src="images/calendar/calendar-day.png" width="20" height="20" />
-                                <span>Day</span>
-                            </div>
-                            <div class="option" data-value="week">
-                                <img src="images/calendar/calendar-week.png" width="20" height="20" />
-                                <span>Week</span>
-                            </div>
-                            <div class="option" data-value="month">
-                                <img src="images/calendar/calendar-month.png" width="20" height="20" />
-                                <span>Month</span>
-                            </div>
-                            <div class="option" data-value="year">
-                                <img src="images/calendar/calendar-year.png" width="20" height="20" />
-                                <span>Year</span>
-                            </div>
-                            <div class="option" data-value="all">
-                                <span style="font-size: 1.1rem;">∞ All Time</span>
-                            </div>
-                        </div>
+                    <div class="selected d-flex align-items-center" id="selectedOption">
+                        <asp:Literal ID="litPeriodIcon" runat="server" />
+                        <span class="selected-label">
+                            <asp:Literal ID="litPeriodLabel" runat="server" />
+                        </span>
+                        <span class="dropdown-arrow"><i class="bi bi-caret-down-fill"></i></span>
                     </div>
 
-                    <asp:HiddenField ID="hdnSelectedPeriod" runat="server" />
-                    <asp:HiddenField ID="hdnSelectedDate" runat="server" />
+                    <div class="options" style="display: none;">
+                        <div class="option" data-value="day">
+                            <img src="images/calendar/calendar-day.png" width="20" height="20" />
+                            <span>Day</span>
+                        </div>
+                        <div class="option" data-value="week">
+                            <img src="images/calendar/calendar-week.png" width="20" height="20" />
+                            <span>Week</span>
+                        </div>
+                        <div class="option" data-value="month">
+                            <img src="images/calendar/calendar-month.png" width="20" height="20" />
+                            <span>Month</span>
+                        </div>
+                        <div class="option" data-value="year">
+                            <img src="images/calendar/calendar-year.png" width="20" height="20" />
+                            <span>Year</span>
+                        </div>
+                        <div class="option" data-value="all">
+                            <span style="font-size: 1.1rem;">∞ All Time</span>
+                        </div>
+                    </div>
+                </div>
 
+                <asp:HiddenField ID="hdnSelectedPeriod" runat="server" />
+                <asp:HiddenField ID="hdnSelectedDate" runat="server" />
+
+                <div class="d-flex gap-2">
                     <input type="date" id="inputDay" class="form-control" style="min-width: 160px;" onchange="handleDateChange(this)" />
                     <input type="week" id="inputWeek" class="form-control" style="min-width: 160px; display: none;" onchange="handleDateChange(this)" />
                     <input type="month" id="inputMonth" class="form-control" style="min-width: 160px; display: none;" onchange="handleDateChange(this)" />
                     <input type="number" id="inputYear" class="form-control" style="min-width: 100px; display: none;" min="2000" max="2100" placeholder="Year" onchange="handleDateChange(this)" />
                 </div>
             </div>
-        </div>
+        </header>
 
-        <!-- TOTAL BALANCE Section -->
-        <div class="p-4 mb-3 d-flex flex-column"
-            style="background: linear-gradient(90deg, #dfe4ff, #f4f2fd); border-radius: 16px; min-height: 200px;">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h3 class="fw-bold mb-0">TOTAL BALANCE</h3>
-            </div>
-            <div class="d-flex gap-4 align-items-stretch flex-grow-1">
-                <!-- Expense Card -->
-                <div class="bg-white text-center shadow-sm rounded p-3 flex-grow-1 d-flex flex-column justify-content-center">
-                    <div class="fw-semibold fs-6 text-dark">Expense</div>
-                    <div class="text-danger fw-bold fs-5">
-                        <i class="bi bi-caret-down-fill"></i>
-                        <asp:Label ID="lblExpense" runat="server"></asp:Label>
-                    </div>
+        <div class="content" style="height: calc(100vh - 155px); overflow-y: auto; overflow-x: hidden; position: relative;">
+            <!-- TOTAL BALANCE Section -->
+            <section class="p-4 mb-3 d-flex flex-column" style="background: linear-gradient(90deg, #dfe4ff, #f4f2fd); border-radius: 16px; min-height: 200px;">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="fw-bold mb-0">TOTAL BALANCE</h3>
                 </div>
-
-                <!-- Income Card -->
-                <div class="bg-white text-center shadow-sm rounded p-3 flex-grow-1 d-flex flex-column justify-content-center">
-                    <div class="fw-semibold fs-6 text-dark">Income</div>
-                    <div class="text-success fw-bold fs-5">
-                        <i class="bi bi-caret-up-fill"></i>
-                        <asp:Label ID="lblIncome" runat="server"></asp:Label>
-                    </div>
-                </div>
-
-
-                <!-- Balance Card -->
-                <div class="bg-white text-center shadow-sm rounded p-3 flex-grow-1 d-flex flex-column justify-content-center">
-                    <div class="fw-semibold fs-6 text-dark">Balance</div>
-                    <div id="balanceAmountDiv" runat="server" class="text-success fw-bold fs-5">
-                        <i class="bi bi-equals"></i>
-                        <asp:Label ID="lblBalance" runat="server"></asp:Label>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- JARS + GOALS row -->
-        <div class="d-flex gap-4">
-            <!-- JARS -->
-            <div class="flex-1 border p-4 rounded shadow-sm bg-white">
-                <h3 class="fw-bold mb-3">MY JARS
-                 <a href="#" data-bs-toggle="modal" data-bs-target="#info-popup" title="Learn more about Jars">
-                     <img src="images/info-icon.png" alt="Info" class="info-icon-img" />
-                 </a>
-                </h3>
-                <div class="d-flex align-items-center">
-                    <img src="images/piggy-icon.png" alt="Jars" style="height: 60px;" class="me-3" />
-                    <div>
-                        <h6 class="mb-1">Total Money (All Jars)</h6>
-                        <asp:Label ID="lblJarTotal" runat="server"
-                            CssClass="fw-bold fs-5 text-dark"
-                            Text="$0" />
-                    </div>
-                </div>
-            </div>
-
-            <!-- GOALS -->
-            <div class="flex-fill border p-4 rounded shadow-sm bg-white position-relative">
-                <h3 class="fw-bold mb-3">MY GOALS</h3>
-                <asp:Panel ID="pnlOngoingGoals" runat="server">
-                    <p class="mb-2">
-                        <strong>
-                            <asp:Label ID="lblOngoingCount" runat="server" /></strong> Ongoing,
-                    <strong>
-                        <asp:Label ID="lblCompletedCount" runat="server" /></strong> Completed
-                    </p>
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="d-flex align-items-center gap-2">
-                            <canvas id="goalProgressRing" width="30" height="30" style="display: block;"></canvas>
-                            <span class="fw-semibold" style="font-size: 14px;">
-                                <asp:Label ID="lblOverallPercent" runat="server" />
-                                Done
-                            </span>
+                <div class="d-flex gap-4 align-items-stretch flex-grow-1">
+                    <!-- Expense Card -->
+                    <div class="bg-white text-center shadow-sm rounded p-3 flex-grow-1 d-flex flex-column justify-content-center">
+                        <div class="fw-semibold fs-6 text-dark">Expense</div>
+                        <div class="text-danger fw-bold fs-5">
+                            <i class="bi bi-caret-down-fill"></i>
+                            <asp:Label ID="lblExpense" runat="server"></asp:Label>
                         </div>
-                        <span class="text-muted">|</span>
-                        <div class="d-flex align-items-center gap-2">
-                            <img src="images/piggy-icon.png" style="height: 30px;" />
-                            <span class="fw-semibold" style="font-size: 14px;">
-                                <asp:Label ID="lblSavedVsTarget" runat="server" />
-                            </span>
+                    </div>
+
+                    <!-- Income Card -->
+                    <div class="bg-white text-center shadow-sm rounded p-3 flex-grow-1 d-flex flex-column justify-content-center">
+                        <div class="fw-semibold fs-6 text-dark">Income</div>
+                        <div class="text-success fw-bold fs-5">
+                            <i class="bi bi-caret-up-fill"></i>
+                            <asp:Label ID="lblIncome" runat="server"></asp:Label>
                         </div>
-                </asp:Panel>
-                <asp:Label ID="lblNoOngoingGoals"
-                    runat="server"
-                    CssClass="text-muted"
-                    Visible="false"
-                    Text="No ongoing goals…" />
+                    </div>
+
+                    <!-- Balance Card -->
+                    <div class="bg-white text-center shadow-sm rounded p-3 flex-grow-1 d-flex flex-column justify-content-center">
+                        <div class="fw-semibold fs-6 text-dark">Balance</div>
+                        <div id="balanceAmountDiv" runat="server" class="text-success fw-bold fs-5">
+                            <i class="bi bi-equals"></i>
+                            <asp:Label ID="lblBalance" runat="server"></asp:Label>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- JARS + GOALS row -->
+            <div class="d-flex gap-4">
+                <!-- JARS -->
+                <div class="flex-1 border p-4 rounded shadow-sm bg-white">
+                    <div class="d-flex align-items-center mb-3 gap-1">
+                        <h3 class="fw-bold mb-0 me-1">MY JARS</h3>
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#info-popup" title="Learn more about Jars">
+                            <img src="images/info-icon.png" alt="Info" class="info-icon-img" />
+                        </a>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <img src="images/piggy-icon.png" alt="Jars" style="height: 60px;" class="me-3" />
+                        <div>
+                            <h6 class="mb-1">Total Money (All Jars)</h6>
+                            <asp:Label ID="lblJarTotal" runat="server" CssClass="fw-bold fs-5 text-dark" Text="$0" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GOALS -->
+                <div class="flex-fill border p-4 rounded shadow-sm bg-white position-relative">
+                    <h3 class="fw-bold mb-3">MY GOALS</h3>
+                    <asp:Panel ID="pnlOngoingGoals" runat="server">
+                        <p class="mb-2">
+                            <strong>
+                                <asp:Label ID="lblOngoingCount" runat="server" /></strong> Ongoing,
+            <strong>
+                <asp:Label ID="lblCompletedCount" runat="server" /></strong> Completed
+                        </p>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <canvas id="goalProgressRing" width="30" height="30" style="display: block;"></canvas>
+                                <span class="fw-semibold" style="font-size: 14px;">
+                                    <asp:Label ID="lblOverallPercent" runat="server" />
+                                    Done
+                                </span>
+                            </div>
+                            <span class="text-muted">|</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <img src="images/piggy-icon.png" style="height: 30px;" />
+                                <span class="fw-semibold" style="font-size: 14px;">
+                                    <asp:Label ID="lblSavedVsTarget" runat="server" />
+                                </span>
+                            </div>
+                        </div>
+                    </asp:Panel>
+                    <asp:Label ID="lblNoOngoingGoals" runat="server" CssClass="text-muted" Visible="false" Text="No ongoing goals…" />
+                </div>
+            </div>
+
+            <!-- Chart Section -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h3 class="card-title mb-4">Jar Balance Trends</h3>
+                            <div class="ratio ratio-16x9">
+                                <canvas id="jarSnapshotChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Button -->
+            <div class="action-button-wrapper mt-3">
+                <button type="button" class="btn add-btn" data-bs-toggle="modal" data-bs-target="#addEntryModal">
+                    + New Entry
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- Fixed Action Buttons -->
-    <div class="fixed-action-buttons d-flex gap-2">
-        <button type="button"
-            class="btn ms-lg-3 add-btn"
-            data-bs-toggle="modal"
-            data-bs-target="#addEntryModal">
-            + New Entry
-        </button>
-    </div>
 
     <!-- Add New Entry Modal -->
     <div class="modal fade"
@@ -506,8 +509,7 @@
 <asp:Content ID="Content3" ContentPlaceHolderID="scripts" runat="server">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        // ====================== GLOBAL HELPERS ===================================
+    <script>      
         function $(id) { return document.getElementById(id); }
 
         function resetValidation(ctx) {
@@ -534,32 +536,60 @@
             return parseFloat(opt.getAttribute('data-balance')) || 0;
         }
 
+        // ====================== CHARTS ========================================
+        let jarSnapshotChart;
+
+        function renderGoalChart() {
+            const pctText = '<%= lblOverallPercent.Text.Replace("%", "") %>';
+            const percentage = parseFloat(pctText) || 0;
+            const canvas = $('goalProgressRing');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [percentage, 100 - percentage],
+                        backgroundColor: ['#3C2C80', '#E5E5E5'],
+                        borderWidth: 0,
+                        cutout: '60%'
+                    }]
+                },
+                options: {
+                    responsive: false,
+                    plugins: { legend: { display: false }, tooltip: { enabled: false } }
+                }
+            });
+        }
+
+        function renderJarSnapshotChart() {
+            const labels = <%= snapshotLabelsJson %>;
+            const datasets = <%= snapshotDatasetsJson %>;
+            const canvas = $('jarSnapshotChart');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+
+            if (jarSnapshotChart) {
+                jarSnapshotChart.destroy();
+            }
+
+            jarSnapshotChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels: labels, datasets: datasets },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom' } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
         // ====================== DOM READY ========================================
         document.addEventListener('DOMContentLoaded', function () {
-
-            // 1) Goal doughnut
-            (function initGoalChart() {
-                const pctText = '<%= lblOverallPercent.Text.Replace("%", "") %>';
-                const percentage = parseFloat(pctText) || 0;
-                const canvas = $('goalProgressRing');
-                if (!canvas) return;
-                const ctx = canvas.getContext('2d');
-                new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        datasets: [{
-                            data: [percentage, 100 - percentage],
-                            backgroundColor: ['#3C2C80', '#E5E5E5'],
-                            borderWidth: 0,
-                            cutout: '60%'
-                        }]
-                    },
-                    options: {
-                        responsive: false,
-                        plugins: { legend: { display: false }, tooltip: { enabled: false } }
-                    }
-                });
-            })();
+            renderGoalChart();
+            renderJarSnapshotChart();
 
             // 2) Period dropdown + date inputs
             const dropdown = $('customDropdown');
@@ -646,15 +676,18 @@
                 document.querySelectorAll('.custom-dropdown .options').forEach(o => o.style.display = 'none');
                 optionsContainer.style.display = open ? 'none' : 'block';
             });
+
             document.addEventListener('click', e => {
                 if (!dropdown.contains(e.target)) optionsContainer.style.display = 'none';
             });
+
             optionsList.forEach(o => o.addEventListener('click', () => handleOptionClick(o)));
 
             window.handleDateChange = function (inp) {
                 dateField.value = inp.value;
                 $('<%= btnPeriodChange.ClientID %>').click();
             };
+
             updateVisibleInput();
 
             // 3) Form validation & toggles
@@ -666,35 +699,35 @@
 
                 if (txnType === 'Expense') {
                     nameI = $('<%= txtExpenseName.ClientID %>');
-            amtI = $('<%= txtExpenseAmount.ClientID %>');
-            dateI = $('<%= txtExpenseDate.ClientID %>');
-            resetValidation(nameI.closest('form'));
+                    amtI = $('<%= txtExpenseAmount.ClientID %>');
+                    dateI = $('<%= txtExpenseDate.ClientID %>');
+                    resetValidation(nameI.closest('form'));
 
-            if (!nameI.value.trim()) { showInvalid(nameI, 'Please enter a name.'); valid = false; }
-            const a = parseFloat(amtI.value);
-            if (isNaN(a) || a <= 0) { showInvalid(amtI, 'Please enter a valid amount greater than 0.'); valid = false; }
-            else if (a > currentBal) {
-                showInsufficientFundsModal();
-                return false;
-            }
-            if (!dateI.value) { showInvalid(dateI, 'Please select a date.'); valid = false; }
-            const ddl = $('<%= ddlJars.ClientID %>');
-            if (!ddl.value) { showInvalid(ddl, 'Please select a jar.'); valid = false; }
-        }
-        else if (txnType === 'Income') {
-            nameI = $('<%= txtIncomeName.ClientID %>');
-            amtI = $('<%= txtIncomeAmount.ClientID %>');
-            dateI = $('<%= txtIncomeDate.ClientID %>');
-            resetValidation(nameI.closest('form'));
+                    if (!nameI.value.trim()) { showInvalid(nameI, 'Please enter a name.'); valid = false; }
+                    const a = parseFloat(amtI.value);
+                    if (isNaN(a) || a <= 0) { showInvalid(amtI, 'Please enter a valid amount greater than 0.'); valid = false; }
+                    else if (a > currentBal) {
+                        showInsufficientFundsModal();
+                        return false;
+                    }
+                    if (!dateI.value) { showInvalid(dateI, 'Please select a date.'); valid = false; }
+                    const ddl = $('<%= ddlJars.ClientID %>');
+                    if (!ddl.value) { showInvalid(ddl, 'Please select a jar.'); valid = false; }
+                }
+                else if (txnType === 'Income') {
+                    nameI = $('<%= txtIncomeName.ClientID %>');
+                    amtI = $('<%= txtIncomeAmount.ClientID %>');
+                    dateI = $('<%= txtIncomeDate.ClientID %>');
+                    resetValidation(nameI.closest('form'));
 
-            if (!nameI.value.trim()) { showInvalid(nameI, 'Please enter a name.'); valid = false; }
-            const a = parseFloat(amtI.value);
-            if (isNaN(a) || a <= 0) { showInvalid(amtI, 'Please enter a valid amount greater than 0.'); valid = false; }
-            if (!dateI.value) { showInvalid(dateI, 'Please select a date.'); valid = false; }
+                    if (!nameI.value.trim()) { showInvalid(nameI, 'Please enter a name.'); valid = false; }
+                    const a = parseFloat(amtI.value);
+                    if (isNaN(a) || a <= 0) { showInvalid(amtI, 'Please enter a valid amount greater than 0.'); valid = false; }
+                    if (!dateI.value) { showInvalid(dateI, 'Please select a date.'); valid = false; }
 
-            const alloc = $('hdnIncomeAllocation').value;
-            if (alloc === 'manual') {
-                const ddlInc = $('<%= ddlIncomeJars.ClientID %>');
+                    const alloc = $('hdnIncomeAllocation').value;
+                    if (alloc === 'manual') {
+                        const ddlInc = $('<%= ddlIncomeJars.ClientID %>');
                         if (!ddlInc.value) { showInvalid(ddlInc, 'Please select a jar for income allocation.'); valid = false; }
                     }
                 } else {
@@ -758,15 +791,14 @@
             const addEntryModal = $('addEntryModal');
             if (addEntryModal) {
                 addEntryModal.addEventListener('show.bs.modal', function () {
-                    // reset fields
                     const today = new Date().toLocaleDateString('en-CA');
                     [
-                '<%= txtExpenseName.ClientID %>',
-                '<%= txtExpenseAmount.ClientID %>',
-                '<%= txtExpenseDate.ClientID %>',
-                '<%= txtIncomeName.ClientID %>',
-                '<%= txtIncomeAmount.ClientID %>',
-                '<%= txtIncomeDate.ClientID %>'
+                    '<%= txtExpenseName.ClientID %>',
+                    '<%= txtExpenseAmount.ClientID %>',
+                    '<%= txtExpenseDate.ClientID %>',
+                    '<%= txtIncomeName.ClientID %>',
+                    '<%= txtIncomeAmount.ClientID %>',
+                    '<%= txtIncomeDate.ClientID %>'
                     ].forEach(id => {
                         const el = $(id);
                         if (el) el.value = '';
@@ -782,5 +814,11 @@
                 });
             }
         });
+
+        // Re-render charts after ASP.NET postback
+        Sys.Application.add_load(function () {
+            renderJarSnapshotChart();
+        });
     </script>
+
 </asp:Content>

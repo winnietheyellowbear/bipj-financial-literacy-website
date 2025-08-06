@@ -9,6 +9,8 @@ namespace bipj
 {
     public partial class MyNotification : System.Web.UI.Page
     {
+        string user_id;
+
         User_Notification user_notification = new User_Notification();
         public List<User_Notification> notification_list = new List<User_Notification>();
         protected void Page_Load(object sender, EventArgs e)
@@ -19,8 +21,8 @@ namespace bipj
             }
             else
             {
-                string user_id = Session["UserId"].ToString();
-                notification_list = user_notification.GetNotificationsByUserID(user_id);
+                user_id = Session["UserId"].ToString();
+                notification_list = user_notification.GetNotificationsByUserID(user_id, "");
 
                 if (!IsPostBack)
                 {
@@ -29,6 +31,19 @@ namespace bipj
                 }
             }
           
+        }
+
+        protected void Filter(object sender, EventArgs e)
+        {
+            Button btn = (Button)sender;
+            string category = btn.CommandArgument;
+
+            notification_list = user_notification.GetNotificationsByUserID(user_id, category);
+
+            Notification.DataSource = notification_list;
+            Notification.DataBind();
+
+            UpdatePanel.Update();
         }
     }
 }

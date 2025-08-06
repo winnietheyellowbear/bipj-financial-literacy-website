@@ -11,17 +11,21 @@
     <asp:ContentPlaceHolder ID="head" runat="server" />
 
     <style>
-                body {
+        body {
             font-family: 'Roboto', sans-serif;
             background: #FAFAFA;
         }
 
         .navbar-custom {
-            background-color: #f4f2fd;
+            background-color: #E5E3F9;
             font-family: inherit;
             padding: 0.5rem 2rem;
             justify-content: center;
-            
+            width: 100%;
+            top: 0;
+            left: 0;
+            position: fixed;
+            z-index: 3;
         }
 
         .nav-link, .dropdown-item {
@@ -47,15 +51,15 @@
             }
 
         .btn {
-            background-color: #6f42c1 !important;
+            background-color: #3B387E !important;
             color: white !important;
-            border-color: #6f42c1 !important;
+            border-color: #3B387E !important;
         }
 
             .btn:hover,
             .btn:focus {
-                background-color: #5a32a3 !important;
-                border-color: #5a32a3 !important;
+                background-color: #5652AD !important;
+                border-color: #5652AD !important;
                 color: white !important;
             }
 
@@ -84,15 +88,15 @@
             }
 
         .btn-primary {
-            background-color: #6f42c1 !important;
-            border-color: #6f42c1 !important;
+            background-color: #3B387E !important;
+            border-color: #3B387E !important;
             color: white !important;
         }
 
             .btn-primary:hover,
             .btn-primary:focus {
-                background-color: #5a32a3 !important;
-                border-color: #5a32a3 !important;
+                background-color: #5652AD !important;
+                border-color: #5652AD !important;
             }
 
         .btn-link {
@@ -138,12 +142,16 @@
             .navbar .dropdown .dropdown-menu {
                 margin-top: 0;
             }
-        }        
+        }
+
+        .main-content {
+            margin-top: 66px; /* same as navbar height */
+        }
     </style>
 </head>
 <body>
     <form id="form2" runat="server" enctype="multipart/form-data">
-          <asp:ScriptManager ID="ScriptManager1" runat="server" EnablePageMethods="true" />
+        <asp:ScriptManager ID="ScriptManager1" runat="server" EnablePageMethods="true" />
         <!-- ✅ NAVBAR -->
         <nav class="navbar navbar-expand-lg navbar-custom">
             <div class="d-flex align-items-center">
@@ -193,8 +201,7 @@
                     <li class="nav-item">
                         <a class="nav-link position-relative" href="ReminderPage.aspx">
                             <i class="fa fa-bell" style="font-size: 22px; color: #433e8e;"></i>
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 10px;">
-                                3
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 10px;">3
                                 <span class="visually-hidden">unread notifications</span>
                             </span>
                         </a>
@@ -203,8 +210,16 @@
                     <li class="nav-item">
                         <a class="nav-link" href="AllProfile.aspx">Profiles</a>
                     </li>
+
+                    <asp:Panel ID="Panel1" runat="server" Visible="false">
+                        <li class="nav-item">
+                            <a class="nav-link" href="AdminPage.aspx">Staff</a>
+                        </li>
+                    </asp:Panel>
+                    
                 </ul>
 
+                <asp:Panel ID="Panel2" runat="server" Visible="false">
                 <div class="dropdown ms-lg-3">
                     <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                         <img src="images/profile_default.png" alt="Profile" width="40" height="40" class="rounded-circle" />
@@ -217,13 +232,21 @@
                         </li>
                     </ul>
                 </div>
+                </asp:Panel>
+
+                <asp:Panel ID="Panel3" runat="server" Visible="false">
+                    <a href="Loginpage.aspx" class="btn btn-login ms-lg-3">Login</a>
+                </asp:Panel>
             </div>
         </nav>
 
         <!-- ✅ MAIN CONTENT -->
         <div>
-            <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server" />
-            <asp:ContentPlaceHolder ID="scripts" runat="server" /> <!-- ✅ This was missing -->
+            <div class="main-content" runat="server">
+                <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server" />
+            </div>
+            <asp:ContentPlaceHolder ID="scripts" runat="server" />
+            <!-- ✅ This was missing -->
         </div>
     </form>
 </body>

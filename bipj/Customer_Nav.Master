@@ -173,7 +173,7 @@
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Financial Tools</a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#">Budgeting</a></li>
+                            <li><a class="dropdown-item" href="Dashboard.aspx">Budgeting</a></li>
                             <li><a class="dropdown-item" href="#">Investment</a></li>
                             <li><a class="dropdown-item" href="#">Insurance</a></li>
                         </ul>

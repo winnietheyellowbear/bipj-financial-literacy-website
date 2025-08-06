@@ -1,6 +1,7 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Customer_Nav_loggedin.Master" AutoEventWireup="true" CodeBehind="GoalDetails.aspx.cs" Inherits="bipj.GoalDetails" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
     <style>
         .sidebar {
             width: 220px;
@@ -191,6 +192,7 @@
         <div class="d-flex justify-content-between align-items-center px-4 py-1 mb-2">
             <a href="Goals.aspx" class="text-dark text-decoration-none">
                 <h1 class="fw-bold mb-0"><i class="bi bi-arrow-left me-2"></i>MY GOALS</h1>
+
             </a>
             <div class="d-flex align-items-center gap-3">
                 <div class="custom-dropdown" id="customDropdown">

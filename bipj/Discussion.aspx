@@ -16,13 +16,11 @@
         .content-wrapper {
             display: flex;
             align-items: flex-start;
-            margin-top: 10px;
         }
 
         .main-content {
             flex: 1;
             background-color: #f8f9fa;
-            padding: 30px;
             border-radius: 10px;
             margin-left: 20px;
             max-width: 1000px;
@@ -102,7 +100,7 @@
                                             ImageUrl='<%# ResolveUrl("~/Images/" + Eval("Profile")) %>' />
                                     </div>
                                     <div class="user-info">
-                                        <div><strong><%# Eval("Name") %></strong></div>
+                                        <div><strong><%# Eval("Name") %></strong> <asp:Label runat="server" style="color: red; font-weight: bold" Visible='<%# Eval("Type").ToString() == "Staff" %>'><%# Eval("Type") %></asp:Label></div>
                                         <div><%# Eval("Post_DateTime") %> <%# Eval("Last_Update_DateTime") %></div>
                                     </div>
                                 </div>
@@ -150,7 +148,7 @@
                                                         <img src='<%# ResolveUrl("~/Images/" + Eval("User_Profile")) %>' 
                                                              class="profile-pic" />
                                                         <div class="comment-content">
-                                                            <div class="comment-author"><%# Eval("User_Name") %></div>
+                                                            <div class="comment-author"><%# Eval("User_Name") %> <asp:Label runat="server" style="color: red; font-weight: bold" Visible='<%# Eval("User_Type").ToString() == "Staff" %>'><%# Eval("User_Type") %></asp:Label></div>
                                                             <div class="comment-time"><%# Eval("Comment_DateTime", "{0:dd MMM yyyy, hh:mmtt}") %></div>
                                                             <div class="comment-text">
                                                                 <%# Eval("Text") %>

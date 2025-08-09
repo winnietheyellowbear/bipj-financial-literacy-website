@@ -1,9 +1,12 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
@@ -16,11 +19,12 @@ namespace bipj
     {
         private int PlanID => Convert.ToInt32(Request.QueryString["PlanID"]);
 
+        private static readonly string GeminiApiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=";
+
         protected void Page_Load(object sender, EventArgs e)
         {
             if (PlanID == 0)
             {
-                // UPDATED REDIRECT: Go back to the new hub page
                 Response.Redirect("InsurancePlanPage.aspx");
                 return;
             }
@@ -40,28 +44,73 @@ namespace bipj
 
             try
             {
+                // ✅ FIXED: Now calls the real API method for general recommendations
                 string generalRec = await GetOrGenerateRecommendationAsync(
                     GetRecommendationFromCache,
-                    GenerateGeneralRecommendationAsync,
+                    (prompt) => GenerateGeminiResponseAsync("Based on the following user profile, recommend suitable insurance types, desired coverage amounts for each, and a suggested budget allocation as a percentage of their income. Present it clearly with headings and paragraphs.\n\n" + prompt),
                     CacheGeneralRecommendation
                 );
                 litGeneralRecommendation.Text = generalRec;
 
+                // ✅ FIXED: Now calls the real API method for policy comparisons
                 string policyComp = await GetOrGenerateRecommendationAsync(
                     GetComparisonFromCache,
-                    GeneratePolicyComparisonAsync,
+                    (prompt) => GenerateGeminiResponseAsync("Based on the following user profile, recommend three real, existing insurance policies from well-known providers in Singapore. Compare them on key features, premiums, and benefits to explain which is the best fit. Format the output in clear sections.\n\n" + prompt),
                     CachePolicyComparison
                 );
                 litPolicyComparison.Text = policyComp;
             }
             catch (Exception ex)
             {
-                ShowError("Failed to load recommendations. The AI service might be unavailable.");
+                ShowError($"Failed to load recommendations. The AI service might be unavailable or an error occurred: {ex.Message}");
             }
             finally
             {
                 pnlLoading.Visible = false;
                 pnlResults.Visible = true;
+            }
+        }
+
+        private async Task<string> GenerateGeminiResponseAsync(string fullPrompt)
+        {
+            string apiKey = "INSERT_JH_API_KEY";
+            if (string.IsNullOrEmpty(apiKey))
+            {
+                return "<p class='text-danger'>Error: The hardcoded Gemini API key is missing in InsuranceDashboardPage.aspx.cs.</p>";
+            }
+
+            string requestUrl = GeminiApiUrl + apiKey;
+
+            using (var client = new HttpClient())
+            {
+                var payload = new
+                {
+                    contents = new[]
+                    {
+                        new { parts = new[] { new { text = fullPrompt } } }
+                    }
+                };
+
+                string jsonPayload = JsonConvert.SerializeObject(payload);
+                var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+                var response = await client.PostAsync(requestUrl, content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string responseBody = await response.Content.ReadAsStringAsync();
+                    // Parse the JSON to extract the generated text
+                    var jObject = JObject.Parse(responseBody);
+                    var text = jObject["candidates"]?[0]?["content"]?["parts"]?[0]?["text"]?.ToString();
+                    // Simple conversion from markdown-like text to HTML
+                    return text?.Replace("\n", "<br />").Replace("**", "<strong>").Replace("</strong>", "</strong>");
+                }
+                else
+                {
+                    // Return the error message from the API if available
+                    string errorBody = await response.Content.ReadAsStringAsync();
+                    return $"<p class='text-danger'>API Error: {response.ReasonPhrase}. Details: {errorBody}</p>";
+                }
             }
         }
 
@@ -80,20 +129,6 @@ namespace bipj
             string generatedContent = await generate(prompt);
             cache(PlanID, generatedContent);
             return generatedContent;
-        }
-
-        private async Task<string> GenerateGeneralRecommendationAsync(string prompt)
-        {
-            string geminiPrompt = "Based on the following user profile, recommend suitable insurance types, desired coverage amounts for each, and a suggested budget allocation as a percentage of their income. Present it clearly.\n\n" + prompt;
-            await Task.Delay(2000);
-            return "<h3>Recommended Insurance Portfolio</h3><p><strong>Health Insurance:</strong> Given your active lifestyle and age, a comprehensive health plan with a coverage of at least $500,000 is recommended. This should cover hospitalization and critical illnesses. Budget: 8% of income.</p><p><strong>Term Life Insurance:</strong> To protect your dependents, a term life policy of $1,000,000 is advisable. This ensures their financial stability. Budget: 3% of income.</p><p><strong>Disability Insurance:</strong> To protect your income in case of an accident, long-term disability insurance covering 60% of your income is a wise choice. Budget: 2% of income.</p>";
-        }
-
-        private async Task<string> GeneratePolicyComparisonAsync(string prompt)
-        {
-            string geminiPrompt = "Based on the following user profile, recommend three real, existing insurance policies from well-known providers. Compare them on key features, premiums, and benefits to explain which is the best fit.\n\n" + prompt;
-            await Task.Delay(3000);
-            return "<h3>Top Policy Recommendations</h3><p><strong>Policy A (Global Health):</strong> Excellent coverage but higher premium. Best for frequent travelers.</p><p><strong>Policy B (SecureLife Term):</strong> Most affordable term life plan with great riders. Best for budget-conscious users.</p><p><strong>Policy C (IncomeShield Disability):</strong> Comprehensive disability coverage from a reputable provider. Best overall value.</p><p><strong>Recommendation:</strong> For your profile, <strong>Policy B</strong> offers the best balance of cost and protection for your family's needs.</p>";
         }
 
         private string BuildPromptFromForm()

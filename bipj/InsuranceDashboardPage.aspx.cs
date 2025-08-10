@@ -44,25 +44,26 @@ namespace bipj
 
             try
             {
-                // This is now a placeholder, as the main logic is handled by the new structured method.
-                // We keep it to show the policy comparison, which is still text-based.
-                string generalRecJson = await GetOrGenerateRecommendationAsync(
-                   GetRecommendationFromCache,
-                   (prompt) => GenerateGeminiJsonResponseAsync(prompt),
-                   CacheGeneralRecommendation
-               );
+                // --- ✅ FIXED: Refactored logic to prevent UI state issues ---
+                // First, get the structured JSON data for the cards and chart.
+                string structuredJsonResponse = await GetOrGenerateRecommendationAsync(
+                    GetRecommendationFromCache,
+                    GenerateGeminiJsonResponseAsync, // Pass the method directly
+                    CacheGeneralRecommendation
+                );
 
-                // Process the structured JSON response
-                ProcessStructuredRecommendations(generalRecJson);
+                // Process the structured data immediately.
+                ProcessStructuredRecommendations(structuredJsonResponse);
 
-
-                // This part remains for the second, text-based API call for policy comparisons.
-                string policyComp = await GetOrGenerateRecommendationAsync(
+                // Second, get the text-based data for the policy comparison.
+                string textResponse = await GetOrGenerateRecommendationAsync(
                     GetComparisonFromCache,
                     (prompt) => GenerateGeminiTextResponseAsync("Based on the following user profile, recommend three real, existing insurance policies from well-known providers in Singapore. Compare them on key features, premiums, and benefits to explain which is the best fit. Format the output in clear sections using markdown.\n\n" + prompt),
                     CachePolicyComparison
                 );
-                litPolicyComparison.Text = policyComp;
+
+                // Update the literal control for the policy comparison.
+                litPolicyComparison.Text = textResponse;
             }
             catch (Exception ex)
             {
@@ -86,6 +87,12 @@ namespace bipj
             try
             {
                 var recommendations = JsonConvert.DeserializeObject<List<InsuranceRecommendation>>(json);
+
+                if (recommendations == null || !recommendations.Any())
+                {
+                    ShowError("The AI returned a response, but it could not be structured into recommendation cards.");
+                    return;
+                }
 
                 // Bind the list of recommendation objects to the repeater for the cards
                 rptRecommendations.DataSource = recommendations;

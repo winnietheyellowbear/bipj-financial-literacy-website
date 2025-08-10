@@ -177,7 +177,7 @@
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="Dashboard.aspx">Budgeting</a></li>
                             <li><a class="dropdown-item" href="#">Investment</a></li>
-                            <li><a class="dropdown-item" href="#">Insurance</a></li>
+                            <li><a class="dropdown-item" href="InsurancePlanPage.aspx">Insurance</a></li>
                         </ul>
                     </li>
                     <li class="nav-item dropdown">

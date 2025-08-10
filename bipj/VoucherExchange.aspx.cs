@@ -37,11 +37,11 @@ namespace bipj
                 }
                 else if (user_point > 1) 
                 {
-                    lbl_Point.Text = "You have " + user_point.ToString() + " points";
+                    lbl_Point.Text = user_point.ToString() + " points";
                 }
                 else if (user_point == 0 || user_point == 1)
                 {
-                    lbl_Point.Text = "You have " + user_point.ToString() + " point";
+                    lbl_Point.Text = user_point.ToString() + " point";
                 }
             }
         }

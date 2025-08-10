@@ -14,6 +14,16 @@ namespace bipj
 
         protected void Page_Load(object sender, EventArgs e)
         {
+
+            ScriptManager.ScriptResourceMapping.AddDefinition("jquery",
+                new ScriptResourceDefinition
+                {
+                    Path = "https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js",
+                    DebugPath = "https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.js",
+                    CdnPath = "https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js",
+                    CdnDebugPath = "https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.js"
+                });
+
             if (Session["UserType"] != null)
             {
                 user_type = Session["UserType"].ToString();

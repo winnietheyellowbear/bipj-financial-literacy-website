@@ -291,7 +291,7 @@ namespace bipj
             SqlConnection conn = new SqlConnection(_connStr);
             SqlCommand cmd = new SqlCommand(queryStr, conn);
 
-            if (!string.IsNullOrEmpty(searchInput) && filterInput != "order")
+            if (!string.IsNullOrEmpty(searchInput))
             {
                 cmd.Parameters.AddWithValue("@searchInput", "%" + searchInput + "%");
             }
@@ -329,7 +329,7 @@ namespace bipj
         public async Task SendMessageAsync(string toPhoneNumber)
         {
             string apiUrl = "https://graph.facebook.com/v22.0/662395820298319/messages";
-            string accessToken = "EAAQJhoZCqvUQBPEteikpjtZA6GkDB5Gudunb7tEA6NotiNM9Y2ZCiISNiEFr6N3PVC4XoCa52rt8g0bWK2kRprEzUrkDGqKZCa09uQFPoRPMlElZBtSjBpsYduXXjOl5ebMHEtwMETuT7rRSWe2Ay0izgEg2FczlEEyYdVq9b2j9RGDVCRrW6VzrtQJI7LzTTFWZCzuKOh1Chqxhv4EUoWMgHbMJC5j1kBzaH01H5UcFZCR7vAZD"; // Replace with your access token
+            string accessToken = "EAAQJhoZCqvUQBPJzNbZCGhdG5VXx3rCrCoUH05FPZCiinbd3GqPZA5DrxzHBblQgnLoAH3L8y1aSAGiLZCYYUDhc4bYpUBZAOAJTjZBgMzZCTKbPyKgQnZCOlop6Ta2gfmWb5CLgpd0GShFsSzZAomeIlrWBjBcwFoH2X2u9WSnMscRGXR7vxm9e6nr0tMDteBVkfmJyrxcZAUePlv5TuobezH3A1RQN8b25gM2pfyfnrlhB2ll3wZDZD"; // Replace with your access token
 
             using (var client = new HttpClient())
             {

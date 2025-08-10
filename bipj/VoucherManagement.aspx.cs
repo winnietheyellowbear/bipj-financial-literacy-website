@@ -68,9 +68,16 @@ namespace bipj
 
         private async void WhatsApp()
         {
+            User user = new User();
+            List<string> phone_number_list = new List<string>();
+            phone_number_list = user.GetUsersPhoneNumber();
+
             Staff_Voucher staff_voucher = new Staff_Voucher();
-            string phoneNumber = "6582581110"; 
-            await staff_voucher.SendMessageAsync(phoneNumber);
+
+            foreach (string phone_number in phone_number_list)
+            {
+                await staff_voucher.SendMessageAsync(phone_number);
+            }
         }
     }
 }

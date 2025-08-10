@@ -8,7 +8,7 @@
     <style>
        
         body {
-            background-color: white !important;
+            background-color: #f8f0ff !important;
             margin: 0;
             padding: 0;
         }
@@ -21,9 +21,9 @@
         }
 
         /* Headings */
-        h2 {
+        h1 {
+            font-family: 'Titan One', cursive;
             font-size: 28px;
-            font-weight: 600;
             color: black;
             margin: 0;
         }

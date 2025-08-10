@@ -11,34 +11,34 @@ namespace bipj
 {
 
 
-    public partial class VoucherStaff
+    public partial class InsurancePlanPage
     {
 
         /// <summary>
-        /// ScriptManager control.
+        /// btnCreateNewPlan control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.ScriptManager ScriptManager;
+        protected global::System.Web.UI.WebControls.Button btnCreateNewPlan;
 
         /// <summary>
-        /// UpdatePanel control.
+        /// pnlNoPlans control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.UpdatePanel UpdatePanel;
+        protected global::System.Web.UI.WebControls.Panel pnlNoPlans;
 
         /// <summary>
-        /// Voucher control.
+        /// rptInsurancePlans control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Repeater Voucher;
+        protected global::System.Web.UI.WebControls.Repeater rptInsurancePlans;
     }
 }

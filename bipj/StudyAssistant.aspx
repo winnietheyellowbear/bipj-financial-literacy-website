@@ -6,7 +6,7 @@
     <img id="avatar" src="Images/avatar_idle.png" style="width:120px;" />
     <div style="margin-top:15px;">
         <asp:TextBox ID="txtQuestion" runat="server" CssClass="form-control" placeholder="Ask me something..." Width="400px" />
-        <asp:Button ID="btnAsk" runat="server" Text="Ask" CssClass="btn btn-primary" OnClientClick="askAI(); return false;" />
+        <asp:Button ID="btnAsk" runat="server" Text="Ask" CssClass="btn btn-primary" OnClientClick="askAI(); return false;" OnClick="btnAsk_Click" />
     </div>
     <div id="ai-response" style="margin-top:20px; font-weight:bold;"></div>
 </div>

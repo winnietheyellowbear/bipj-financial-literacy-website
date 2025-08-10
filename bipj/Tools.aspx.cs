@@ -461,23 +461,29 @@ namespace bipj
             if (Session["UserId"] == null) return;
             int userId = Convert.ToInt32(Session["UserId"]);
 
+            pnlDone.Visible = true;
+            pnlDone.CssClass = "alert alert-info mt-4";
+            litDoneMessage.Text = "Starting reset…";
+
             try
             {
-                Jar.ResetAllJarsForUserSimple_HardDelete(userId);
+                Jar.ResetAllJarsForUser_Lite(userId);  // fast & FK-safe
 
                 pnlDone.Visible = true;
-                pnlDone.CssClass = "alert alert-warning mt-4";
-                litDoneMessage.Text = "All jars have been hard-deleted and default jars recreated.";
+                pnlDone.CssClass = "alert alert-success mt-4";
+                litDoneMessage.Text = "All transactions and snapshots cleared. Jars kept.";
+
+                // hide modal after success
+                ScriptManager.RegisterStartupScript(this, GetType(), "hideModal",
+                    "var m = bootstrap.Modal.getInstance(document.getElementById('confirmRestartModal')); if(m){m.hide();}", true);
             }
             catch (Exception ex)
             {
-                // log ex as appropriate
                 pnlDone.Visible = true;
                 pnlDone.CssClass = "alert alert-danger mt-4";
-                litDoneMessage.Text = "Failed to restart jars.";
+                litDoneMessage.Text = "Failed to reset: " + Server.HtmlEncode(ex.Message);
             }
         }
-
 
     }
 }

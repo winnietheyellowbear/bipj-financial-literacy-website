@@ -1,5 +1,6 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Customer_Nav_loggedin.Master" AutoEventWireup="true" CodeBehind="InsuranceDashboardPage.aspx.cs" Inherits="bipj.InsuranceDashboardPage" Async="true" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     <div class="container mt-4">
@@ -19,29 +20,48 @@
         </asp:Panel>
 
         <asp:Panel ID="pnlResults" runat="server" Visible="true">
-             <div class="row g-4">
-                <div class="col-lg-6">
+            <div class="row g-4">
+                <!-- Section for the Pie Chart and Budget -->
+                <div class="col-lg-5">
                     <div class="card h-100 shadow-sm">
                         <div class="card-body">
-                            <h5 class="card-title">AI Recommended Insurance Strategy</h5>
+                            <h5 class="card-title">Recommended Budget Allocation</h5>
                             <hr />
-                            <asp:Literal ID="litGeneralRecommendation" runat="server"></asp:Literal>
+                            <canvas id="budgetPieChart"></canvas>
+                            <div class="mt-3 text-center">
+                                <asp:Literal ID="litBudgetNumbers" runat="server"></asp:Literal>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-lg-6">
-                    <div class="card h-100 shadow-sm">
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title">AI Recommended Policies & Comparison</h5>
-                            <hr />
-                            <asp:Literal ID="litPolicyComparison" runat="server"></asp:Literal>
-                            <div class="mt-auto text-end">
-                                 <asp:Button ID="btnViewComparison" runat="server" Text="View Full Comparison &rarr;" OnClick="btnViewComparison_Click"
-                                     CssClass="btn btn-success" />
+                <!-- Section for the Recommendation Cards -->
+                <div class="col-lg-7">
+                    <h5 class="mb-3">AI Recommended Insurance Strategy</h5>
+                    <asp:Repeater ID="rptRecommendations" runat="server">
+                        <ItemTemplate>
+                            <div class="card shadow-sm mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title"><%# Eval("Type") %></h5>
+                                    <h6 class="card-subtitle mb-2 text-muted"><%# Eval("Coverage") %></h6>
+                                    <p class="card-text"><%# Eval("Explanation") %></p>
+                                </div>
                             </div>
-                        </div>
-                    </div>
+                        </ItemTemplate>
+                    </asp:Repeater>
+                </div>
+            </div>
+             <hr class="my-4"/>
+            <!-- Section for Policy Comparison -->
+            <div class="card shadow-sm">
+                 <div class="card-body">
+                    <h5 class="card-title">AI Recommended Policies & Comparison</h5>
+                     <hr />
+                    <asp:Literal ID="litPolicyComparison" runat="server"></asp:Literal>
+                     <div class="mt-3 text-end">
+                         <asp:Button ID="btnViewComparison" runat="server" Text="View Full Comparison &rarr;" OnClick="btnViewComparison_Click"
+                             CssClass="btn btn-success" />
+                     </div>
                 </div>
             </div>
         </asp:Panel>
@@ -55,4 +75,61 @@
     </div>
 </asp:Content>
 <asp:Content ID="Content3" ContentPlaceHolderID="scripts" runat="server">
+    <script type="text/javascript">
+        // This function will be called from the C# code-behind to draw the chart
+        function drawBudgetChart(chartData) {
+            const ctx = document.getElementById('budgetPieChart');
+            if (!ctx) return;
+
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: chartData.map(d => d.label),
+                    datasets: [{
+                        label: 'Budget %',
+                        data: chartData.map(d => d.value),
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.7)',
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(255, 206, 86, 0.7)',
+                            'rgba(75, 192, 192, 0.7)',
+                            'rgba(153, 102, 255, 0.7)',
+                            'rgba(255, 159, 64, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 159, 64, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed !== null) {
+                                        label += context.parsed + '%';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
 </asp:Content>

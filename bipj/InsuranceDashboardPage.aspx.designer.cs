@@ -51,13 +51,22 @@ namespace bipj
         protected global::System.Web.UI.WebControls.Panel pnlResults;
 
         /// <summary>
-        /// litGeneralRecommendation control.
+        /// litBudgetNumbers control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal litGeneralRecommendation;
+        protected global::System.Web.UI.WebControls.Literal litBudgetNumbers;
+
+        /// <summary>
+        /// rptRecommendations control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Repeater rptRecommendations;
 
         /// <summary>
         /// litPolicyComparison control.

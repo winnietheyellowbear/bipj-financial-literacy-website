@@ -149,15 +149,18 @@
                     <div class="d-flex flex-column flex-fill justify-content-around gap-3">
                         <div class="bg-white rounded-4 text-center py-2 px-2 shadow-sm flex-fill d-flex flex-column justify-content-center">
                             <h6 class="text-muted">Total Goals</h6>
-                            <h4 class="fw-bold"><%= TotalGoals %></h4>
+                            <h4 class="fw-bold">
+                                <asp:Label ID="lblTotalGoals" runat="server" /></h4>
                         </div>
                         <div class="bg-white rounded-4 text-center py-2 px-2 shadow-sm flex-fill d-flex flex-column justify-content-center">
                             <h6 class="text-muted">Total Target</h6>
-                            <h4 class="fw-bold">$<%= TotalTargetAmount.ToString("N2") %></h4>
+                            <h4 class="fw-bold">
+                                <asp:Label ID="lblTotalTarget" runat="server" /></h4>
                         </div>
                         <div class="bg-white rounded-4 text-center py-2 px-2 shadow-sm flex-fill d-flex flex-column justify-content-center">
                             <h6 class="text-muted">Total Saved</h6>
-                            <h4 class="fw-bold text-success">$<%= TotalSavedAmount.ToString("N2") %></h4>
+                            <h4 class="fw-bold text-success">
+                                <asp:Label ID="lblTotalSaved" runat="server" /></h4>
                         </div>
                     </div>
                 </div>

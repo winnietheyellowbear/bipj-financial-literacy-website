@@ -87,6 +87,10 @@ namespace bipj
             TotalGoals = list.Count;
             TotalTargetAmount = list.Sum(g => g.TargetAmount);
             TotalSavedAmount = list.Sum(g => g.SavedAmount);
+
+            lblTotalGoals.Text = TotalGoals.ToString();
+            lblTotalTarget.Text = $"${TotalTargetAmount:N2}";
+            lblTotalSaved.Text = $"${TotalSavedAmount:N2}";
         }
 
         protected void ddlGoalFilter_SelectedIndexChanged(object sender, EventArgs e) => BindGoals();
@@ -113,9 +117,15 @@ namespace bipj
             txtEditGoalTargetDate.Text = goal.Deadline.ToString("yyyy-MM-dd");
             ddlEditJar.SelectedValue = goal.JarId?.ToString() ?? "";
 
+            var defaultJar = new Jar().GetDefaultJar(_userId);
+            hdnDeleteDefaultJar.Value = defaultJar?.JarName ?? "(Default Jar)";
+            hdnDeleteIsCompleted.Value = (goal.SavedAmount >= goal.TargetAmount).ToString().ToLower();
+            hdnDeleteGoalName.Value = goal.GoalName;
+
             ScriptManager.RegisterStartupScript(this, GetType(), "editGoalModal",
                 "new bootstrap.Modal('#editGoalModal').show();", true);
         }
+
 
         private void ShowDeleteModal(int goalId)
         {

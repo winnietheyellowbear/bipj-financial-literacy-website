@@ -147,8 +147,8 @@ namespace bipj.Models
                     // 0) Load the jar being deleted
                     var jar = bipj.Data.Db.QuerySingle(conn, tx,
                         @"SELECT JarId, UserId, COALESCE(Percentage,0) AS Pct, IsDeleted
-                  FROM Jars
-                  WHERE JarId=@JarId AND UserId=@UserId",
+                        FROM Jars
+                        WHERE JarId=@JarId AND UserId=@UserId",
                         p => { p.AddWithValue("@JarId", JarId); p.AddWithValue("@UserId", UserId); },
                         r => new
                         {
@@ -164,7 +164,7 @@ namespace bipj.Models
                     // 1) Find (or create) default jar
                     int defaultJarId = bipj.Data.Db.Scalar<int>(conn, tx,
                         @"SELECT TOP 1 JarId FROM Jars 
-                  WHERE UserId=@U AND IsDefault=1 AND IsDeleted=0",
+                        WHERE UserId=@U AND IsDefault=1 AND IsDeleted=0",
                         p => p.AddWithValue("@U", UserId), 0);
 
                     if (defaultJarId == 0)
@@ -172,7 +172,7 @@ namespace bipj.Models
                         CreateDefaultJars(UserId);
                         defaultJarId = bipj.Data.Db.Scalar<int>(conn, tx,
                             @"SELECT TOP 1 JarId FROM Jars 
-                      WHERE UserId=@U AND IsDefault=1 AND IsDeleted=0",
+                            WHERE UserId=@U AND IsDefault=1 AND IsDeleted=0",
                             p => p.AddWithValue("@U", UserId), 0);
                         if (defaultJarId == 0)
                             throw new InvalidOperationException("No default jar available.");
@@ -184,11 +184,11 @@ namespace bipj.Models
                     // 2) Move percentage to default; zero this jar
                     bipj.Data.Db.Exec(conn, tx,
                         @"UPDATE Jars 
-                    SET Percentage = COALESCE(Percentage,0) + @Pct
-                  WHERE JarId=@Def AND UserId=@U;
-                  UPDATE Jars 
-                    SET Percentage = 0
-                  WHERE JarId=@Jar AND UserId=@U;",
+                        SET Percentage = COALESCE(Percentage,0) + @Pct
+                        WHERE JarId=@Def AND UserId=@U;
+                        UPDATE Jars 
+                        SET Percentage = 0
+                        WHERE JarId=@Jar AND UserId=@U;",
                         p =>
                         {
                             p.AddWithValue("@Pct", jar.Pct);
@@ -206,9 +206,9 @@ namespace bipj.Models
                         // Outflow (negative) from the deleted jar
                         bipj.Data.Db.Exec(conn, tx,
                             @"INSERT INTO JarTransactions
-                        (UserId, JarId, Name, Amount, Date, TransactionType, Category)
-                      VALUES
-                        (@U, @FromJar, @Note, @Amt, @Dt, 'Transfer', 'Transfer');",
+                            (UserId, JarId, Name, Amount, Date, TransactionType, Category)
+                            VALUES
+                            (@U, @FromJar, @Note, @Amt, @Dt, 'Transfer', 'Transfer');",
                             p =>
                             {
                                 p.AddWithValue("@U", UserId);
@@ -221,9 +221,9 @@ namespace bipj.Models
                         // Inflow (positive) to the default jar
                         bipj.Data.Db.Exec(conn, tx,
                             @"INSERT INTO JarTransactions
-                        (UserId, JarId, Name, Amount, Date, TransactionType, Category)
-                      VALUES
-                        (@U, @ToJar, @Note, @Amt, @Dt, 'Transfer', 'Transfer');",
+                            (UserId, JarId, Name, Amount, Date, TransactionType, Category)
+                            VALUES
+                            (@U, @ToJar, @Note, @Amt, @Dt, 'Transfer', 'Transfer');",
                             p =>
                             {
                                 p.AddWithValue("@U", UserId);
@@ -240,8 +240,8 @@ namespace bipj.Models
                     // 5) Soft-delete (no DeletedAt column in your table)
                     int updated = bipj.Data.Db.Exec(conn, tx,
                         @"UPDATE Jars 
-                    SET IsDeleted=1
-                  WHERE JarId=@Jar AND UserId=@U;",
+                        SET IsDeleted=1
+                        WHERE JarId=@Jar AND UserId=@U;",
                         p => { p.AddWithValue("@Jar", JarId); p.AddWithValue("@U", UserId); });
 
                     // 6) Normalize remaining active jar percentages to 100.00%
@@ -263,9 +263,9 @@ namespace bipj.Models
         {
             var rows = bipj.Data.Db.Query(conn, tx,
                 @"SELECT JarId, COALESCE(Percentage,0) AS Pct
-          FROM Jars
-          WHERE UserId=@U AND IsDeleted=0
-          ORDER BY Position",
+                FROM Jars
+                WHERE UserId=@U AND IsDeleted=0
+                ORDER BY Position",
                 p => p.AddWithValue("@U", userId),
                 r => new { JarId = Convert.ToInt32(r["JarId"]), Pct = Convert.ToDecimal(r["Pct"]) });
 
@@ -279,14 +279,14 @@ namespace bipj.Models
                 // Make default jar 100% if everything is zeroed out
                 int defId = bipj.Data.Db.Scalar<int>(conn, tx,
                     @"SELECT TOP 1 JarId FROM Jars 
-              WHERE UserId=@U AND IsDefault=1 AND IsDeleted=0",
+                    WHERE UserId=@U AND IsDefault=1 AND IsDeleted=0",
                     p => p.AddWithValue("@U", userId), 0);
                 if (defId == 0) return;
 
                 bipj.Data.Db.Exec(conn, tx,
                     @"UPDATE Jars 
-                SET Percentage = CASE WHEN JarId=@Def THEN 100 ELSE 0 END
-              WHERE UserId=@U AND IsDeleted=0",
+                    SET Percentage = CASE WHEN JarId=@Def THEN 100 ELSE 0 END
+                    WHERE UserId=@U AND IsDeleted=0",
                     p => { p.AddWithValue("@Def", defId); p.AddWithValue("@U", userId); });
                 return;
             }
@@ -340,7 +340,7 @@ namespace bipj.Models
             using (var conn = new SqlConnection(_connStr))
             using (var cmd = new SqlCommand(@"
             SELECT JarId,
-                    ISNULL(SUM(Amount),0) AS Balance
+            ISNULL(SUM(Amount),0) AS Balance
             FROM JarTransactions
             WHERE UserID=@UserId
             GROUP BY JarId", conn))
@@ -373,16 +373,16 @@ namespace bipj.Models
 
             // if includeDeleted==true, ignore the IsDeleted filter
             string sql = includeDeleted
-                ? @"
+            ? @"
             SELECT JarId, JarName, Percentage, ColorHex, IsDefault
             FROM Jars
             WHERE UserId = @UserId
             ORDER BY Position"
-                : @"
+            : @"
             SELECT JarId, JarName, Percentage, ColorHex, IsDefault
             FROM Jars
             WHERE UserId = @UserId
-              AND IsDeleted = 0
+            AND IsDeleted = 0
             ORDER BY Position";
 
             using (var conn = new SqlConnection(_connStr))

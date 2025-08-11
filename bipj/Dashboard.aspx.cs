@@ -104,46 +104,36 @@ namespace bipj
         {
             var (from, to) = GetRange();
 
-            decimal income = 0m;
-            decimal expense = 0m;
+            decimal income = 0m, expense = 0m;
 
+            var jarsAll = new Jar().GetJarsByUser(_userId, includeDeleted: true);
             var txnMgr = new JarTransaction();
-            // includeDeleted: true so we pick up transactions from soft–deleted jars
-            var jars = new Jar().GetJarsByUser(_userId, includeDeleted: true);
-            var goals = new Goal().GetGoalsByUser(_userId, from, to);
 
-            foreach (var jar in jars)
+            foreach (var jar in jarsAll)
             {
-                // only count real Income transactions, skip transfers
-                income += txnMgr.GetTransactionSumByType(
-                               _userId,
-                               jar.JarId,
-                               "Income",
-                               from,
-                               to,
-                               includeTransfers: false);
-
-                // only count real Expense transactions, skip transfers
-                expense += txnMgr.GetTransactionSumByType(
-                               _userId,
-                               jar.JarId,
-                               "Expense",
-                               from,
-                               to,
-                               includeTransfers: false);
+                income += txnMgr.GetTransactionSumByType(_userId, jar.JarId, "Income", from, to, includeTransfers: false);
+                expense += txnMgr.GetTransactionSumByType(_userId, jar.JarId, "Expense", from, to, includeTransfers: false);
             }
 
-            // total saved toward goals in this period
-            decimal totalSavedGoals = goals.Sum(g => g.SavedAmount);
+            // add goal *top-ups* (external money) to Income
+            var goalTxn = new GoalTransaction();
+            income += goalTxn.GetSumBySourceType(_userId, from, to, "topup");
 
-            // net balance = income minus expense, plus goal savings
-            decimal balance = income - expense + totalSavedGoals;
+            // ---- Balance = live jars + live goals ----
+            var liveJars = new Jar().GetJarsByUser(_userId);
+            var jarSvc = new Jar();
+            decimal jarsBalance = liveJars.Sum(j => jarSvc.GetCurrentBalance(_userId, j.JarId));
+
+            // Goals table already has cumulative SavedAmount — just sum it
+            var allGoals = new Goal().GetGoalsByUser(_userId, DateTime.MinValue, DateTime.MaxValue);
+            decimal goalsBalance = allGoals.Sum(g => g.SavedAmount);
+
+            decimal balance = jarsBalance + goalsBalance;
 
             lblIncome.Text = income.ToString("C2");
             lblExpense.Text = expense.ToString("C2");
             lblBalance.Text = balance.ToString("C2");
         }
-
 
         private void LoadJarTotal()
         {

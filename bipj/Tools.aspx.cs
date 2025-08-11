@@ -12,9 +12,9 @@ using System.Threading.Tasks;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using bipj.Models;
-using Microsoft.VisualBasic.FileIO;    // for CSV
-using OfficeOpenXml;                   // for XLSX
-using iText.Kernel.Pdf;                // for PDF
+using Microsoft.VisualBasic.FileIO;    // CSV
+using OfficeOpenXml;                   // XLSX
+using iText.Kernel.Pdf;                // PDF
 using iText.Kernel.Pdf.Canvas.Parser;
 using iText.Kernel.Pdf.Canvas.Parser.Listener;
 using Newtonsoft.Json;
@@ -26,6 +26,11 @@ namespace bipj
     {
         private int _userId;
         private static readonly HttpClient _httpClient = new HttpClient();
+
+        // Ignore headers/footers/totals from bank PDFs
+        private static readonly Regex RxIgnore = new Regex(
+            @"^(CURRENCY:|Total\s+Balance|Balance\s+(Brought|Carried)\s+Forward|Account\s+No\.|Date\s*$|Description\s*$|Withdrawal|Deposit|Balance\s*$)",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -44,7 +49,7 @@ namespace bipj
             }
         }
 
-        // 1) UPLOAD & PREVIEW (synchronous handler)
+        // 1) UPLOAD & PREVIEW
         protected void btnParse_Click(object sender, EventArgs e)
         {
             if (!fuStatement.HasFile) return;
@@ -56,7 +61,6 @@ namespace bipj
             {
                 if (ext == ".pdf")
                 {
-                    // PDF → raw lines → GPT → fallback parser
                     var lines = ExtractLinesFromPdf(msRaw);
                     var rawText = string.Join("\n", lines);
                     var gpt = ParseWithGptAsync(rawText).GetAwaiter().GetResult();
@@ -64,7 +68,6 @@ namespace bipj
                 }
                 else if (ext == ".csv")
                 {
-                    // CSV → fallback parse → to lines → GPT → fallback
                     var fallback = ParseCsv(new MemoryStream(fuStatement.FileBytes));
                     var lines = fallback.Select(r =>
                         $"{r.Date:yyyy-MM-dd} {r.Description} {(r.Income > 0 ? r.Income : -r.Expense)}");
@@ -83,17 +86,19 @@ namespace bipj
                 }
                 else
                 {
-                    // unsupported file type
                     return;
                 }
             }
 
-            // Apply default‐jar fallback
+            // Default jar
             int defJarId = new Jar().GetDefaultJar(_userId)?.JarId ?? 0;
             foreach (var r in rows)
                 if (r.JarId == 0) r.JarId = defJarId;
 
-            // Bind to preview grid
+            // Normalize (guarantees clean desc + one-sided amount)
+            NormalizeRows(rows);
+
+            // Bind preview
             Session["importRows"] = rows;
             gvPreview.DataSource = rows;
             gvPreview.DataBind();
@@ -102,7 +107,6 @@ namespace bipj
             pnlPreview.Visible = true;
         }
 
-        // 1a) User changed default‐jar dropdown
         protected void ddlDefaultJar_SelectedIndexChanged(object sender, EventArgs e)
         {
             var rows = Session["importRows"] as List<RowVm>;
@@ -115,7 +119,6 @@ namespace bipj
             gvPreview.DataBind();
         }
 
-        // Bind per‐row jar dropdown in GridView
         protected void gvPreview_RowDataBound(object sender, GridViewRowEventArgs e)
         {
             if (e.Row.RowType != DataControlRowType.DataRow) return;
@@ -125,13 +128,12 @@ namespace bipj
             ddl.SelectedValue = vm.JarId.ToString();
         }
 
-        // 2) IMPORT SELECTED ROWS
+        // 2) IMPORT
         protected void btnImport_Click(object sender, EventArgs e)
         {
             var rows = Session["importRows"] as List<RowVm>;
             if (rows == null) return;
 
-            // Capture per‐row checkbox & jar choice
             for (int i = 0; i < gvPreview.Rows.Count; i++)
             {
                 var chk = (CheckBox)gvPreview.Rows[i].FindControl("chkImport");
@@ -163,12 +165,11 @@ namespace bipj
                 touched.Add(r.JarId);
             }
 
-            // Recalculate each touched jar’s balance
             foreach (int jarId in touched)
             {
-                decimal net = txnSvc.GetTransactionSum(_userId, jarId);
+                decimal _ = txnSvc.GetTransactionSum(_userId, jarId);
                 var jar = jarSvc.GetJarById(jarId, _userId);
-                if (jar == null) continue;                
+                if (jar == null) continue;
             }
 
             Session.Remove("importRows");
@@ -183,13 +184,13 @@ namespace bipj
             pnlUpload.Visible = true;
         }
 
-        // === GPT CALL HELPER ===
-        private async Task<List<RowVm>> ParseWithGptAsync(string rawText)
+        // === GPT PARSER ===
+        private async Task<List<RowVm>> ParseWithGptAsync(string rawTable)
         {
             try
             {
                 var apiKey = ConfigurationManager.AppSettings["OpenAI_API_Key"];
-                if (string.IsNullOrEmpty(apiKey)) return null;
+                if (string.IsNullOrWhiteSpace(apiKey)) return null;
 
                 _httpClient.DefaultRequestHeaders.Clear();
                 _httpClient.DefaultRequestHeaders.Authorization =
@@ -197,16 +198,27 @@ namespace bipj
 
                 var payload = new
                 {
-                    model = "gpt-3.5-turbo",
-                    messages = new[]
+                    model = "gpt-5",
+                    response_format = new { type = "json_object" },
+                    messages = new object[]
                     {
-                        new { role = "system", content = "You are a JSON parser for bank statements." },
-                        new { role = "user", content = "Parse into JSON array of {date,description,income,expense}:\n" + rawText }
+                        new { role = "system", content =
+                            "Parse a bank statement table into strict JSON.\n" +
+                            "Return ONLY JSON with shape: {\"rows\":[{date,description,income,expense}...]}\n" +
+                            "Rules:\n" +
+                            "- date format: yyyy-MM-dd\n" +
+                            "- description: non-empty, concise merchant/payee text (remove 'DATE : dd/MM/yyyy' etc.)\n" +
+                            "- Direction: credit>0 => income, debit>0 => expense; never set both.\n" +
+                            "- If a single signed amount exists: + => income, - => expense.\n" +
+                            "- Never return empty description; infer if unclear." },
+                        new { role = "user", content =
+                            "Here is the table (one line per transaction):\n" +
+                            rawTable + "\nOutput JSON only." }
                     },
                     temperature = 0
                 };
 
-                string body = JsonConvert.SerializeObject(payload);
+                var body = JsonConvert.SerializeObject(payload);
                 var resp = await _httpClient.PostAsync(
                     "https://api.openai.com/v1/chat/completions",
                     new StringContent(body, Encoding.UTF8, "application/json")
@@ -216,9 +228,26 @@ namespace bipj
                 var json = await resp.Content.ReadAsStringAsync();
                 var doc = JObject.Parse(json);
                 var content = doc["choices"]?[0]?["message"]?["content"]?.ToString();
-                return string.IsNullOrEmpty(content)
-                    ? null
-                    : JsonConvert.DeserializeObject<List<RowVm>>(content);
+                if (string.IsNullOrWhiteSpace(content)) return null;
+
+                var parsed = JObject.Parse(content);
+                var rows = new List<RowVm>();
+                foreach (var r in (JArray)parsed["rows"])
+                {
+                    rows.Add(new RowVm
+                    {
+                        Date = DateTime.ParseExact((string)r["date"], "yyyy-MM-dd", CultureInfo.InvariantCulture),
+                        Description = ((string)r["description"] ?? "").Trim(),
+                        Income = (decimal?)r["income"] ?? 0m,
+                        Expense = (decimal?)r["expense"] ?? 0m,
+                        JarId = 0,
+                        Import = true
+                    });
+                }
+
+                // Last line of defense
+                NormalizeRows(rows);
+                return rows;
             }
             catch
             {
@@ -226,7 +255,7 @@ namespace bipj
             }
         }
 
-        // === ORIGINAL PARSERS & HELPERS ===
+        // === PARSERS & HELPERS ===
 
         private void BindJarDropDown(DropDownList ddl)
         {
@@ -253,6 +282,7 @@ namespace bipj
                     if (row != null) list.Add(row);
                 }
             }
+            NormalizeRows(list);
             return list;
         }
 
@@ -279,77 +309,95 @@ namespace bipj
                     if (row != null) list.Add(row);
                 }
             }
+            NormalizeRows(list);
             return list;
         }
 
         private List<RowVm> ParsePdf(Stream s)
         {
-            // 1) grab raw lines
+            // 1) lines
             var rawLines = ExtractLinesFromPdf(s);
 
-            // 2) stitch multi‑line descriptions into single records
+            // 2) stitch to dated records
             var records = new List<string>();
             string current = null;
             var dateStart = new Regex(@"^\d{2}/\d{2}/\d{4}");
+
             foreach (var line in rawLines)
             {
                 if (dateStart.IsMatch(line))
                 {
-                    if (current != null) records.Add(current);
-                    current = line;
+                    if (current != null) records.Add(current.Trim());
+                    current = line.Trim();
                 }
-                else if (current != null)
+                else
                 {
-                    current += " " + line;
+                    if (current != null && !RxIgnore.IsMatch(line))
+                        current += " " + line.Trim();
                 }
             }
-            if (current != null) records.Add(current);
+            if (current != null) records.Add(current.Trim());
 
-            // 3) parse each record by finding all decimal amounts
+            // 3) parse records
             var list = new List<RowVm>();
+
             foreach (var rec in records)
             {
-                // pull date
+                if (rec.Length < 10) continue;
+
                 var dateStr = rec.Substring(0, 10);
-                if (!DateTime.TryParseExact(dateStr,
-                        "dd/MM/yyyy",
-                        CultureInfo.InvariantCulture,
-                        DateTimeStyles.None,
-                        out var date))
+                if (!DateTime.TryParseExact(dateStr, "dd/MM/yyyy",
+                        CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
                     continue;
 
-                // rest of the line after the date
                 var rest = rec.Substring(10).Trim();
+                if (RxIgnore.IsMatch(rest) || Regex.IsMatch(rest, @"\bTotal\s+Balance\b", RegexOptions.IgnoreCase))
+                    continue;
 
-                // find all "123,456.78" tokens
                 var matches = Regex.Matches(rest, @"\d{1,3}(?:,\d{3})*\.\d{2}")
-                                   .Cast<Match>()
-                                   .Select(m => m.Value)
-                                   .ToList();
-                if (matches.Count < 2)
-                    continue;     // need at least [amt, balance]
+                                   .Cast<Match>().Select(m => m.Value).ToList();
+                if (matches.Count < 2) continue; // need amount + balance
 
-                // last = balance (we won't use it here)
-                // second‑to‑last = deposit
-                // third‑to‑last (if >=3) = withdrawal
-                decimal withdraw = 0m;
-                decimal deposit = 0m;
+                decimal withdraw = 0m, deposit = 0m;
+                string lastBal = (matches.Count >= 1) ? matches[matches.Count - 1] : null;
+                string depTok = (matches.Count >= 2) ? matches[matches.Count - 2] : null;
+                string withTok = (matches.Count >= 3) ? matches[matches.Count - 3] : null;
 
-                if (matches.Count >= 3)
-                    withdraw = Decimal.Parse(matches[matches.Count - 3],
-                                NumberStyles.AllowThousands | NumberStyles.AllowDecimalPoint,
-                                CultureInfo.InvariantCulture);
+                if (withTok != null)
+                    withdraw = decimal.Parse(withTok,
+                        NumberStyles.AllowThousands | NumberStyles.AllowDecimalPoint,
+                        CultureInfo.InvariantCulture);
 
-                deposit = Decimal.Parse(matches[matches.Count - 2],
-                            NumberStyles.AllowThousands | NumberStyles.AllowDecimalPoint,
-                            CultureInfo.InvariantCulture);
+                if (depTok != null)
+                    deposit = decimal.Parse(depTok,
+                        NumberStyles.AllowThousands | NumberStyles.AllowDecimalPoint,
+                        CultureInfo.InvariantCulture);
 
-                // everything before the first amount is the description
-                var firstAmt = matches[0];
-                int idx = rest.IndexOf(firstAmt, StringComparison.Ordinal);
-                var desc = idx > 0
-                    ? rest.Substring(0, idx).Trim()
-                    : "(no description)";
+
+                // description
+                string desc;
+                int idxFirstAmt = rest.IndexOf(matches[0], StringComparison.Ordinal);
+                desc = idxFirstAmt > 0 ? rest.Substring(0, idxFirstAmt).Trim() : string.Empty;
+
+                if (string.IsNullOrWhiteSpace(desc))
+                {
+                    string tail = rest;
+
+                    string RemoveLast(string txt, string token)
+                    {
+                        int i = txt.LastIndexOf(token, StringComparison.Ordinal);
+                        return i >= 0 ? txt.Remove(i, token.Length).Trim() : txt;
+                    }
+
+                    tail = RemoveLast(tail, lastBal);
+                    if (depTok != null) tail = RemoveLast(tail, depTok);
+                    if (withTok != null) tail = RemoveLast(tail, withTok);
+
+                    tail = Regex.Replace(tail, @"VALUE\s*DATE\s*:?\s*\d{2}/\d{2}/\d{4}", "", RegexOptions.IgnoreCase);
+                    tail = Regex.Replace(tail, @"\bDATE\s*:?\s*\d{2}/\d{2}/\d{4}", "", RegexOptions.IgnoreCase);
+
+                    desc = tail.Trim();
+                }
 
                 list.Add(new RowVm
                 {
@@ -362,32 +410,37 @@ namespace bipj
                 });
             }
 
+            NormalizeRows(list);
             return list;
         }
 
         private List<string> ExtractLinesFromPdf(Stream pdfStream)
         {
             var lines = new List<string>();
-            var reader = new PdfReader(new MemoryStream(((MemoryStream)pdfStream).ToArray()));
-            var pdf = new PdfDocument(reader);
-            var strat = new SimpleTextExtractionStrategy();
 
-            for (int i = 1; i <= pdf.GetNumberOfPages(); i++)
+            var ms = pdfStream as MemoryStream ?? new MemoryStream();
+            if (!(pdfStream is MemoryStream))
+                pdfStream.CopyTo(ms);
+            else
+                ms = (MemoryStream)pdfStream;
+
+            using (var reader = new PdfReader(new MemoryStream(ms.ToArray())))
+            using (var pdf = new PdfDocument(reader))
             {
-                var pageText = PdfTextExtractor.GetTextFromPage(pdf.GetPage(i), strat);
+                var strat = new SimpleTextExtractionStrategy();
 
-                foreach (var l in pageText
-                    .Split('\n')
-                    .Select(x => x.Trim())
-                    .Where(x => !string.IsNullOrEmpty(x))
-                    // drop header row
-                    .Where(x => !x.StartsWith("Date", StringComparison.OrdinalIgnoreCase))
-                    // drop Balance Brought/Carried Forward lines
-                    .Where(x => !Regex.IsMatch(x,
-                        @"^Balance\s+(Brought|Carried)\s+Forward",
-                        RegexOptions.IgnoreCase)))
+                for (int i = 1; i <= pdf.GetNumberOfPages(); i++)
                 {
-                    lines.Add(l);
+                    var pageText = PdfTextExtractor.GetTextFromPage(pdf.GetPage(i), strat);
+
+                    foreach (var l in pageText
+                        .Split('\n')
+                        .Select(x => x.Trim())
+                        .Where(x => !string.IsNullOrWhiteSpace(x))
+                        .Where(x => !RxIgnore.IsMatch(x)))
+                    {
+                        lines.Add(l);
+                    }
                 }
             }
 
@@ -401,8 +454,7 @@ namespace bipj
             var inStr = Get(headers, vals, "Income", "Credit", "Amount In");
             var exStr = Get(headers, vals, "Expense", "Debit", "Amount Out");
 
-            if (string.IsNullOrWhiteSpace(dateStr) ||
-                string.IsNullOrWhiteSpace(desc))
+            if (string.IsNullOrWhiteSpace(dateStr))
                 return null;
 
             if (!DateTime.TryParse(dateStr, out var date))
@@ -424,7 +476,7 @@ namespace bipj
             return new RowVm
             {
                 Date = date,
-                Description = desc,
+                Description = (desc ?? "").Trim(),
                 Income = inc,
                 Expense = exp,
                 JarId = 0,
@@ -445,7 +497,49 @@ namespace bipj
             return "";
         }
 
-        // Simple VM for import
+        // Normalizer: clean desc + force one-sided amount
+        private static void NormalizeRows(List<RowVm> rows)
+        {
+            foreach (var r in rows)
+            {
+                r.Description = CleanDesc(r.Description);
+
+                if (string.IsNullOrWhiteSpace(r.Description))
+                    r.Description = r.Income > 0m ? "Deposit"
+                                  : r.Expense > 0m ? "Payment"
+                                  : "Transaction";
+
+                if (r.Income > 0m && r.Expense > 0m)
+                {
+                    if (r.Income >= r.Expense)
+                    {
+                        r.Income = Math.Round(r.Income - r.Expense, 2);
+                        r.Expense = 0m;
+                    }
+                    else
+                    {
+                        r.Expense = Math.Round(r.Expense - r.Income, 2);
+                        r.Income = 0m;
+                    }
+                }
+            }
+        }
+
+        private static string CleanDesc(string s)
+        {
+            if (string.IsNullOrWhiteSpace(s)) return "";
+
+            s = Regex.Replace(s, @"VALUE\s*DATE\s*:?\s*\d{2}/\d{2}/\d{4}", "", RegexOptions.IgnoreCase);
+            s = Regex.Replace(s, @"\bDATE\s*:?\s*\d{2}/\d{2}/\d{4}", "", RegexOptions.IgnoreCase);
+
+            if (Regex.IsMatch(s, @"Advice\s+Funds\s+Transfer", RegexOptions.IgnoreCase))
+                s = Regex.Replace(s, @"Advice\s+Funds\s+Transfer\s+\S+\s*:\s*", "Funds transfer ", RegexOptions.IgnoreCase);
+
+            s = Regex.Replace(s, @"\s{2,}", " ").Trim(' ', '-', ':');
+            return s;
+        }
+
+        // VM
         private sealed class RowVm
         {
             public DateTime Date { get; set; }
@@ -467,13 +561,12 @@ namespace bipj
 
             try
             {
-                Jar.ResetAllJarsForUser_Lite(userId);  // fast & FK-safe
+                Jar.ResetAllJarsForUser_Lite(userId);
 
                 pnlDone.Visible = true;
                 pnlDone.CssClass = "alert alert-success mt-4";
                 litDoneMessage.Text = "All transactions and snapshots cleared. Jars kept.";
 
-                // hide modal after success
                 ScriptManager.RegisterStartupScript(this, GetType(), "hideModal",
                     "var m = bootstrap.Modal.getInstance(document.getElementById('confirmRestartModal')); if(m){m.hide();}", true);
             }
@@ -484,6 +577,5 @@ namespace bipj
                 litDoneMessage.Text = "Failed to reset: " + Server.HtmlEncode(ex.Message);
             }
         }
-
     }
 }

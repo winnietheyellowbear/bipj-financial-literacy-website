@@ -112,23 +112,7 @@
     <asp:UpdatePanel ID="UpdatePanel" runat="server" UpdateMode="Conditional">
         <ContentTemplate>
 
-            <!-- Search and Filter Section -->
-            <div class="text-center">
-                <asp:TextBox ID="txtSearch" runat="server" AutoPostBack="true" placeholder=" 🔍 " class="custom" />
-
-                <asp:DropDownList ID="filterType" runat="server" AutoPostBack="true" class="custom">
-                    <asp:ListItem Text="Status" Value=""/>
-                    <asp:ListItem Text="Pending" Value=" WHERE Status = 'Pending'"/>
-                    <asp:ListItem Text="Created" Value=" WHERE Status = 'Created'"/>
-                </asp:DropDownList>
-
-                <asp:DropDownList ID="filterOrder" runat="server" AutoPostBack="true" class="custom">
-                    <asp:ListItem Text="Order" Value=""/>
-                    <asp:ListItem Text="Latest" Value=" ORDER BY Email_ID DESC" />
-                    <asp:ListItem Text="Earliest" Value=" ORDER BY Email_ID ASC" />
-                </asp:DropDownList>
-            </div>
-
+         
             <table class="sponsor-table">
                 <tr>
                     <th>ID</th>

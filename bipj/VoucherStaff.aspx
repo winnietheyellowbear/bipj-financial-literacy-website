@@ -117,22 +117,7 @@
     <br />
     <asp:UpdatePanel ID="UpdatePanel" runat="server" UpdateMode="Conditional">
         <ContentTemplate>
-            <div class="text-center">
-                <asp:TextBox ID="txtSearch" runat="server" AutoPostBack="true" placeholder=" 🔍 " class="custom"/>
-                
-                <asp:DropDownList ID="filterType" runat="server" AutoPostBack="true" class="custom">
-                    <asp:ListItem Text="Status" Value=""/>
-                    <asp:ListItem Text="Active" Value=" WHERE Status = 'Active'"/>
-                    <asp:ListItem Text="Inactive" Value=" WHERE Status = 'Inactive'"/>
-                </asp:DropDownList>
-
-                <asp:DropDownList ID="filterOrder" runat="server" AutoPostBack="true" class="custom">
-                    <asp:ListItem Text="Order" Value=""/>
-                    <asp:ListItem Text="Latest" Value=" ORDER BY Voucher_ID DESC" />
-                    <asp:ListItem Text="Earliest" Value=" ORDER BY Voucher_ID ASC" />
-                </asp:DropDownList>
-            </div>
-
+           
             <!-- Voucher Table -->
             <table class="voucher-table">
                 <tr>

@@ -290,6 +290,13 @@
     <Content Include="Images\avatar_talk3.png" />
     <Content Include="Images\piggy-icon.png" />
     <Content Include="Images\usagi.jpg" />
+    <Content Include="InsuranceComparisonPage.aspx" />
+    <Content Include="InsuranceDashboardPage.aspx" />
+    <Content Include="InsuranceFormPage.aspx" />
+    <Content Include="InsurancePlanPage.aspx" />
+    <Content Include="InvestmentDashboardPage.aspx" />
+    <Content Include="InvestmentPage.aspx" />
+    <Content Include="InvestmentPortfolioPage.aspx" />
     <Content Include="JarDetails.aspx" />
     <Content Include="Jars.aspx" />
     <Content Include="Loginpage.aspx" />
@@ -421,13 +428,6 @@
     <Compile Include="CreateVoucher.aspx.designer.cs">
       <DependentUpon>CreateVoucher.aspx</DependentUpon>
     </Compile>
-    <Compile Include="Customer_Nav.Master.cs">
-      <DependentUpon>Customer_Nav.Master</DependentUpon>
-      <SubType>ASPXCodeBehind</SubType>
-    </Compile>
-    <Compile Include="Customer_Nav.Master.designer.cs">
-      <DependentUpon>Customer_Nav.Master</DependentUpon>
-    </Compile>
     <Compile Include="Customer_Nav_loggedin.Master.cs">
       <DependentUpon>Customer_Nav_loggedin.Master</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -514,8 +514,55 @@
     <Compile Include="Home.aspx.designer.cs">
       <DependentUpon>Home.aspx</DependentUpon>
     </Compile>
-    <Compile Include="ImageUploadHandler.ashx.cs">
-      <DependentUpon>ImageUploadHandler.ashx</DependentUpon>
+    <Compile Include="InsuranceComparisonPage.aspx.cs">
+      <DependentUpon>InsuranceComparisonPage.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="InsuranceComparisonPage.aspx.designer.cs">
+      <DependentUpon>InsuranceComparisonPage.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="InsuranceDashboardPage.aspx.cs">
+      <DependentUpon>InsuranceDashboardPage.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="InsuranceDashboardPage.aspx.designer.cs">
+      <DependentUpon>InsuranceDashboardPage.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="InsuranceFormPage.aspx.cs">
+      <DependentUpon>InsuranceFormPage.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="InsuranceFormPage.aspx.designer.cs">
+      <DependentUpon>InsuranceFormPage.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="InsurancePlanPage.aspx.cs">
+      <DependentUpon>InsurancePlanPage.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="InsurancePlanPage.aspx.designer.cs">
+      <DependentUpon>InsurancePlanPage.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="InsuranceRecommendation.cs" />
+    <Compile Include="InvestmentDashboardPage.aspx.cs">
+      <DependentUpon>InvestmentDashboardPage.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="InvestmentDashboardPage.aspx.designer.cs">
+      <DependentUpon>InvestmentDashboardPage.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="InvestmentPage.aspx.cs">
+      <DependentUpon>InvestmentPage.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="InvestmentPage.aspx.designer.cs">
+      <DependentUpon>InvestmentPage.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="InvestmentPortfolioPage.aspx.cs">
+      <DependentUpon>InvestmentPortfolioPage.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="InvestmentPortfolioPage.aspx.designer.cs">
+      <DependentUpon>InvestmentPortfolioPage.aspx</DependentUpon>
     </Compile>
     <Compile Include="JarDetails.aspx.cs">
       <DependentUpon>JarDetails.aspx</DependentUpon>
@@ -773,8 +820,6 @@
     <Content Include="Facialmodels\ssd_mobilenetv1_model-weights_manifest.json" />
     <Content Include="Facialmodels\tiny_face_detector_model-shard1" />
     <Content Include="Facialmodels\tiny_face_detector_model-weights_manifest.json" />
-    <Content Include="ImageUploadHandler.ashx" />
-    <Content Include="Customer_Nav.Master" />
     <None Include="packages.config" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -787,7 +832,6 @@
     <Folder Include="Forum\Icon\" />
     <Folder Include="Forum\Images\" />
     <Folder Include="Forum\Videos\" />
-    <Folder Include="Images\education\" />
     <Folder Include="Profileuploads\" />
     <Folder Include="uploadcontents\" />
     <Folder Include="Voucher\" />

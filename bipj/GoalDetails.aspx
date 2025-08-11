@@ -347,18 +347,38 @@
                             </div>
                         </div>
 
-                        <!-- Toggle Buttons -->
+                        <!-- Toggle: Transfer from a Jar? -->
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Do you want to transfer this money from a Jar? <span class="text-danger">*</span></label>
-                            <div class="form-check">
-                                <asp:RadioButton ID="rdoTransferYes" runat="server" GroupName="TransferOption" CssClass="form-check-input" ClientIDMode="Static" />
+                            <label class="form-label fw-semibold">
+                                Do you want to transfer this money from a Jar? <span class="text-danger">*</span>
+                            </label>
+
+                            <asp:HiddenField ID="hdnBoundJarId" runat="server" ClientIDMode="Static" />
+                            <asp:HiddenField ID="hdnBoundJarName" runat="server" ClientIDMode="Static" />
+
+                            <!-- Yes -->
+                            <div class="form-check mb-2">
+                                <asp:RadioButton ID="rdoTransferYes" runat="server" GroupName="TransferOption"
+                                    CssClass="form-check-input" ClientIDMode="Static" />
                                 <label class="form-check-label" for="rdoTransferYes">Yes</label>
-                                <div id="transferJarSection" runat="server" clientidmode="Static" style="display: none;" class="mb-3">
-                                    <asp:DropDownList ID="ddlJars" runat="server" CssClass="form-select"></asp:DropDownList>
-                                </div>
+
+                                <!-- When bound: show label -->
+                                <asp:Panel ID="pnlBoundJar" runat="server" ClientIDMode="Static" CssClass="mt-2" Visible="false">
+                                    <asp:TextBox ID="txtBoundJar" runat="server"
+                                        CssClass="form-control"
+                                        ReadOnly="true" Enabled="false" />
+                                </asp:Panel>
+
+                                <!-- When NOT bound: show picker -->
+                                <asp:Panel ID="pnlJarPicker" runat="server" ClientIDMode="Static" CssClass="mt-2" Visible="true">
+                                    <asp:DropDownList ID="ddlJars" runat="server" CssClass="form-select" />
+                                </asp:Panel>
                             </div>
+
+                            <!-- No -->
                             <div class="form-check">
-                                <asp:RadioButton ID="rdoTransferNo" runat="server" GroupName="TransferOption" CssClass="form-check-input" ClientIDMode="Static" />
+                                <asp:RadioButton ID="rdoTransferNo" runat="server" GroupName="TransferOption"
+                                    CssClass="form-check-input" ClientIDMode="Static" />
                                 <label class="form-check-label" for="rdoTransferNo">No thanks</label>
                             </div>
                         </div>
@@ -492,10 +512,7 @@
     <!-- Chart.js import -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- JavaScript Section -->
-
     <script type="text/javascript">
-
         window.addEventListener('DOMContentLoaded', function () {
             const saved = parseFloat(document.getElementById('<%= hdnSaved.ClientID %>').value || 0);
             const target = parseFloat(document.getElementById('<%= hdnTarget.ClientID %>').value || 1);
@@ -505,10 +522,8 @@
 
             console.log("✅ Chart Debug — Saved:", saved, "Target:", target, "Percent:", percent);
 
-            // ✅ Update circular overlay value
             document.getElementById('progressTextOverlayValue').innerText = percent + "%";
 
-            // ✅ Render Chart.js
             const ctx = document.getElementById('progressCircle').getContext('2d');
             new Chart(ctx, {
                 type: 'doughnut',
@@ -522,20 +537,15 @@
                 options: {
                     cutout: '80%',
                     responsive: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: { enabled: false }
-                    }
+                    plugins: { legend: { display: false }, tooltip: { enabled: false } }
                 }
             });
 
-            // ✅ Show insufficient funds modal if needed
             const flag = document.getElementById('<%= hdnInsufficientFunds.ClientID %>').value;
             if (flag === "true") {
                 new bootstrap.Modal(document.getElementById('insufficientFundsModal')).show();
             }
         });
-
 
         document.addEventListener('DOMContentLoaded', function () {
             const dropdown = document.getElementById('customDropdown');
@@ -576,7 +586,6 @@
                 const selectedImg = selected.querySelector('img');
                 const selectedSpan = selected.querySelector('span:not(.dropdown-arrow)');
 
-                // Set icon
                 if (img) {
                     if (!selectedImg) {
                         const newImg = document.createElement('img');
@@ -593,7 +602,6 @@
                 selectedSpan.innerText = text;
                 periodField.value = value;
 
-                // Set default date
                 const today = new Date();
                 let defaultDate = "";
 
@@ -603,8 +611,8 @@
                         break;
                     case "week":
                         const current = new Date();
-                        const day = current.getDay(); // 0 = Sun, 1 = Mon, ..., 6 = Sat
-                        const mondayOffset = (day === 0) ? -6 : 1 - day; // shift Sunday back to previous Monday
+                        const day = current.getDay();
+                        const mondayOffset = (day === 0) ? -6 : 1 - day;
                         const monday = new Date(current.getFullYear(), current.getMonth(), current.getDate() + mondayOffset);
 
                         const jan1 = new Date(monday.getFullYear(), 0, 1);
@@ -614,26 +622,20 @@
                         const weekStr = week.toString().padStart(2, '0');
                         defaultDate = `${monday.getFullYear()}-W${weekStr}`;
                         break;
-
                     case "month":
                         defaultDate = today.toISOString().slice(0, 7);
                         break;
                     case "year":
                         defaultDate = today.getFullYear();
                         break;
-                    default:
-                        defaultDate = "";
                 }
 
                 dateField.value = defaultDate;
-
                 updateVisibleInput();
                 optionsContainer.style.display = 'none';
-
                 document.getElementById('<%= btnPeriodChange.ClientID %>').click();
             }
 
-            // Toggle dropdown
             selected.addEventListener('click', e => {
                 e.stopPropagation();
                 const isOpen = optionsContainer.style.display === 'block';
@@ -641,49 +643,37 @@
                 optionsContainer.style.display = isOpen ? 'none' : 'block';
             });
 
-            // Click outside to close
             document.addEventListener('click', e => {
-                if (!dropdown.contains(e.target)) {
-                    optionsContainer.style.display = 'none';
-                }
+                if (!dropdown.contains(e.target)) optionsContainer.style.display = 'none';
             });
 
-            // Attach option logic
             optionsList.forEach(option => {
                 option.addEventListener('click', () => handleOptionClick(option));
             });
 
-            // Date change logic
             window.handleDateChange = function (input) {
                 dateField.value = input.value;
                 document.getElementById('<%= btnPeriodChange.ClientID %>').click();
             };
 
-            // Initial state on page load
             updateVisibleInput();
         });
 
-
-        // General purpose validation reset function
+        // Validation helpers
         function resetValidation(container) {
             const elements = container.querySelectorAll('input, select');
-
             elements.forEach(el => {
                 el.classList.remove("is-invalid");
-
                 const feedback = el.parentNode.querySelector('.invalid-feedback');
                 if (feedback) feedback.remove();
             });
         }
 
-        // Show invalid feedback on input
         function showInvalid(input, message) {
             input.classList.add("is-invalid");
-
             const errorDiv = document.createElement("div");
             errorDiv.className = "invalid-feedback";
             errorDiv.textContent = message;
-
             if (input.tagName.toLowerCase() === "select") {
                 input.parentNode.appendChild(errorDiv);
             } else {
@@ -691,37 +681,33 @@
             }
         }
 
-        // Reset Add Entry form inputs and validation
         function resetEntryForm() {
             const todayISODate = new Date().toISOString().split('T')[0];
-
             const nameInput = document.getElementById('<%= txtTxnName.ClientID %>');
             const amountInput = document.getElementById('<%= txtTxnAmount.ClientID %>');
             const dateInput = document.getElementById('<%= txtTxnDate.ClientID %>');
-
             if (nameInput) nameInput.value = "";
             if (amountInput) amountInput.value = "";
             if (dateInput) dateInput.value = todayISODate;
 
-            // Reset radio buttons
             const yesRadio = document.getElementById('rdoTransferYes');
             const noRadio = document.getElementById('rdoTransferNo');
             if (yesRadio) yesRadio.checked = false;
             if (noRadio) noRadio.checked = false;
 
-            // Reset dropdown
             const jarDropdown = document.getElementById('<%= ddlJars.ClientID %>');
             if (jarDropdown) jarDropdown.selectedIndex = 0;
 
-            // Hide jar section
-            const jarSection = document.getElementById('transferJarSection');
-            if (jarSection) jarSection.style.display = 'none';
+            // Hide both dropdown & bound section
+            ['pnlJarPicker', 'pnlBoundJar'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
 
-            // Clear any errors
+
             resetValidation(document.getElementById('<%= pnlAddEntry.ClientID %>'));
         }
 
-        // Validate Add Entry form inputs before submit
         function validateAddEntryForm() {
             const nameInput = document.getElementById('<%= txtTxnName.ClientID %>');
             const amountInput = document.getElementById('<%= txtTxnAmount.ClientID %>');
@@ -731,52 +717,37 @@
             const jarDropdown = document.getElementById('<%= ddlJars.ClientID %>');
 
             resetValidation(document.getElementById('<%= pnlAddEntry.ClientID %>'));
-            removeRadioGroupError(); // clear previous radio error if any
+            removeRadioGroupError();
 
             let isValid = true;
 
-            // Name validation
-            if (!nameInput.value.trim()) {
-                showInvalid(nameInput, "Please enter a name.");
-                isValid = false;
-            }
-
-            // Amount validation
+            if (!nameInput.value.trim()) { showInvalid(nameInput, "Please enter a name."); isValid = false; }
             let amt = parseFloat(amountInput.value);
-            if (isNaN(amt) || amt <= 0) {
-                showInvalid(amountInput, "Please enter a valid amount.");
-                isValid = false;
-            }
+            if (isNaN(amt) || amt <= 0) { showInvalid(amountInput, "Please enter a valid amount."); isValid = false; }
+            if (!dateInput.value) { showInvalid(dateInput, "Please select a date."); isValid = false; }
 
-            // Date validation
-            if (!dateInput.value) {
-                showInvalid(dateInput, "Please select a date.");
-                isValid = false;
-            }
-
-            // Radio button validation (Transfer Option)
             if (!yesRadio.checked && !noRadio.checked) {
                 showRadioGroupError("Please select an option.");
                 isValid = false;
             }
 
-            // Jar selection validation (only if "Yes" is selected)
+            // Only require dropdown if "Yes" and NOT bound
             if (yesRadio.checked) {
-                if (!jarDropdown.value || jarDropdown.value === "") {
-                    showInvalid(jarDropdown, "Please select a target jar.");
-                    isValid = false;
+                const hasBound = (document.getElementById('hdnBoundJarId')?.value || '').trim() !== '';
+                if (!hasBound) {
+                    if (!jarDropdown.value || jarDropdown.value === "") {
+                        showInvalid(jarDropdown, "Please select a target jar.");
+                        isValid = false;
+                    }
                 }
             }
 
             return isValid;
         }
 
-        // Show error message for radio button group
         function showRadioGroupError(message) {
-            const container = document.querySelector('.form-check').parentNode; // parent div of radio group
+            const container = document.querySelector('.form-check').parentNode;
             let existingError = container.querySelector('.invalid-feedback-radio');
-
-            // Add the invalid class to radio inputs
             const yesRadio = document.getElementById('rdoTransferYes');
             const noRadio = document.getElementById('rdoTransferNo');
             yesRadio.classList.add('is-invalid-radio');
@@ -786,7 +757,7 @@
                 const errorDiv = document.createElement("div");
                 errorDiv.className = "invalid-feedback invalid-feedback-radio";
                 errorDiv.style.display = "block";
-                errorDiv.style.color = "#dc3545"; // Bootstrap red color
+                errorDiv.style.color = "#dc3545";
                 errorDiv.style.marginTop = "0.25rem";
                 errorDiv.textContent = message;
                 container.appendChild(errorDiv);
@@ -796,124 +767,110 @@
         function removeRadioGroupError() {
             const container = document.querySelector('.form-check').parentNode;
             const existingError = container.querySelector('.invalid-feedback-radio');
-            if (existingError) {
-                existingError.remove();
-            }
-
-            // Remove the invalid class from radio inputs
+            if (existingError) existingError.remove();
             const yesRadio = document.getElementById('rdoTransferYes');
             const noRadio = document.getElementById('rdoTransferNo');
             yesRadio.classList.remove('is-invalid-radio');
             noRadio.classList.remove('is-invalid-radio');
         }
 
+        function toggleTransferUI() {
+            const yes = document.getElementById('rdoTransferYes')?.checked;
+            const boundId = (document.getElementById('hdnBoundJarId')?.value || '').trim();
+            const hasBound = boundId !== '';
 
+            const boundSec = document.getElementById('pnlBoundJar');
+            const boundName = document.getElementById('lblBoundJarName');
+            const ddSec = document.getElementById('pnlJarPicker');
+
+            if (!yes) {
+                if (boundSec) boundSec.style.display = 'none';
+                if (ddSec) ddSec.style.display = 'none';
+                return;
+            }
+
+            if (hasBound) {
+                if (boundName) boundName.textContent =
+                    document.getElementById('hdnBoundJarName')?.value || ('Jar #' + boundId);
+                if (boundSec) boundSec.style.display = '';
+                if (ddSec) ddSec.style.display = 'none';
+            } else {
+                if (boundSec) boundSec.style.display = 'none';
+                if (ddSec) ddSec.style.display = '';
+            }
+        }
 
         var addEntryModalEl = document.getElementById('addEntryModal');
-
         if (addEntryModalEl) {
             addEntryModalEl.addEventListener('show.bs.modal', function () {
                 const yesRadio = document.getElementById('rdoTransferYes');
                 const noRadio = document.getElementById('rdoTransferNo');
-                const jarSection = document.getElementById('transferJarSection');
+                if (!yesRadio || !noRadio) return;
 
-                if (!yesRadio || !noRadio || !jarSection) return;
-
-                function toggleJarDropdown() {
-                    jarSection.style.display = yesRadio.checked ? 'block' : 'none';
+                // Auto-select Yes if bound
+                const hasBound = (document.getElementById('hdnBoundJarId')?.value || '').trim() !== '';
+                if (hasBound) {
+                    yesRadio.checked = true;
+                    noRadio.checked = false;
                 }
 
-                toggleJarDropdown(); // handle default checked state<a href="Models/Goal.cs">Models/Goal.cs</a>
-
-                yesRadio.addEventListener('change', toggleJarDropdown);
-                noRadio.addEventListener('change', toggleJarDropdown);
+                toggleTransferUI();
+                yesRadio.addEventListener('change', toggleTransferUI);
+                noRadio.addEventListener('change', toggleTransferUI);
             });
         }
 
-
         function toggleEntryForm(type) {
-            const jarSection = document.getElementById('transferJarSection');
-            if (type === 'jar') {
-                jarSection.style.display = 'block';
-            } else {
-                jarSection.style.display = 'none';
-            }
+            const yesRadio = document.getElementById('rdoTransferYes');
+            if (!yesRadio) return;
+            yesRadio.checked = (type === 'jar');
+            const noRadio = document.getElementById('rdoTransferNo');
+            if (noRadio) noRadio.checked = !yesRadio.checked;
+            toggleTransferUI();
         }
 
-        // Open edit transaction modal and populate fields
+        // Edit modal
         function openEditModal(el) {
             const type = el.dataset.type;
-
-            // Do not allow editing of Transfer transactions
             if (type === "Transfer") return;
-
             document.getElementById('<%= hdnEditTxnId.ClientID %>').value = el.dataset.id || "";
             document.getElementById('<%= txtEditTxnName.ClientID %>').value = el.dataset.name || "";
             document.getElementById('<%= txtEditTxnAmount.ClientID %>').value = el.dataset.amount || "";
             document.getElementById('<%= txtEditTxnDate.ClientID %>').value = el.dataset.date || "";
-
-            const modal = new bootstrap.Modal(document.getElementById("editTxnModal"));
-            modal.show();
+            new bootstrap.Modal(document.getElementById("editTxnModal")).show();
         }
 
-
-        // Validate Edit Transaction form inputs before submit
         function validateEditTxn() {
             const name = document.getElementById('<%= txtEditTxnName.ClientID %>');
             const amount = document.getElementById('<%= txtEditTxnAmount.ClientID %>');
             const date = document.getElementById('<%= txtEditTxnDate.ClientID %>');
-
             resetValidation(document.getElementById('<%= pnlEditTxn.ClientID %>'));
 
             let isValid = true;
-
-            if (!name.value.trim()) {
-                showInvalid(name, "Please enter a name.");
-                isValid = false;
-            }
-
+            if (!name.value.trim()) { showInvalid(name, "Please enter a name."); isValid = false; }
             let amt = parseFloat(amount.value);
-            if (isNaN(amt) || amt <= 0) {
-                showInvalid(amount, "Please enter a valid amount greater than 0.");
-                isValid = false;
-            }
-
-            if (!date.value) {
-                showInvalid(date, "Please select a date.");
-                isValid = false;
-            }
-
+            if (isNaN(amt) || amt <= 0) { showInvalid(amount, "Please enter a valid amount greater than 0."); isValid = false; }
+            if (!date.value) { showInvalid(date, "Please select a date."); isValid = false; }
             return isValid;
         }
 
-
-        // Open delete transaction confirmation modal
         function openTxnDeleteModal(txnId, txnName) {
-
             let editModal = bootstrap.Modal.getInstance(document.getElementById('editTxnModal'));
-
-            if (editModal) {
-                editModal.hide();
-                editModal.dispose();
-            }
-
+            if (editModal) { editModal.hide(); editModal.dispose(); }
             document.getElementById('<%= hdnDeleteTxnId.ClientID %>').value = txnId || "";
             document.getElementById('txnNameToDelete').textContent = txnName || "";
-
             new bootstrap.Modal(document.getElementById('deleteTxnConfirmModal')).show();
         }
 
-        // Cancel delete transaction - hide delete confirm and show edit modal again
         function cancelTxnDelete() {
             bootstrap.Modal.getInstance(document.getElementById('deleteTxnConfirmModal')).hide();
             new bootstrap.Modal(document.getElementById('editTxnModal')).show();
         }
 
-        // Reset inputs and validation on Add Entry modal open
         var addEntryModal = document.getElementById('addEntryModal');
         if (addEntryModal) {
             addEntryModal.addEventListener('show.bs.modal', resetEntryForm);
         }
-
     </script>
 </asp:Content>
+

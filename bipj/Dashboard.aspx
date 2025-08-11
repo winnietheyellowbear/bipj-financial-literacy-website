@@ -302,7 +302,7 @@
                             <div class="d-flex align-items-center gap-2">
                                 <canvas id="goalProgressRing" width="30" height="30" style="display: block;"></canvas>
                                 <span class="fw-semibold" style="font-size: 14px;">
-                                    <asp:Label ID="lblOverallPercent" runat="server" />
+                                    <asp:Label ID="lblOverallPercent" runat="server" />%
                                     Done
                                 </span>
                             </div>

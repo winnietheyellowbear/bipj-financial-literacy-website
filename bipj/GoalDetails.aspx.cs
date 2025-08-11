@@ -11,6 +11,13 @@ namespace bipj
         private int _goalId;
         private int _userId;
 
+        private int? BoundJarId
+        {
+            get { return ViewState["BoundJarId"] == null ? (int?)null : (int)ViewState["BoundJarId"]; }
+            set { ViewState["BoundJarId"] = value; }
+        }
+
+
         private readonly Goal _goalModel = new Goal();
         private readonly GoalTransaction _goalTxnModel = new GoalTransaction();
 
@@ -60,47 +67,46 @@ namespace bipj
 
         protected void btnSubmitEntry_Click(object sender, EventArgs e)
         {
-            if (!decimal.TryParse(txtTxnAmount.Text.Trim(), out decimal amount) || amount <= 0)
-                return;
-            if (!DateTime.TryParse(txtTxnDate.Text.Trim(), out DateTime date))
-                return;
+            if (!decimal.TryParse(txtTxnAmount.Text.Trim(), out decimal amount) || amount <= 0) return;
+            if (!DateTime.TryParse(txtTxnDate.Text.Trim(), out DateTime date)) return;
             string name = txtTxnName.Text.Trim();
-            if (string.IsNullOrEmpty(name))
-                return;
+            if (string.IsNullOrEmpty(name)) return;
 
             string sourceType = "topup";
             int? fromJarId = null;
 
             var jarSvc = new Jar();
 
+            // Reload goal to be safe on postback
+            var goal = _goalModel.GetGoalById(_goalId, _userId);
+            BoundJarId = goal?.JarId;
+
             if (rdoTransferYes.Checked)
             {
-                if (string.IsNullOrEmpty(ddlJars.SelectedValue))
-                    return;
-
-                fromJarId = int.Parse(ddlJars.SelectedValue);
-                sourceType = "jar";
+                if (BoundJarId.HasValue)
+                {
+                    // Goal tied to a jar -> force that jar
+                    fromJarId = BoundJarId.Value;
+                    sourceType = "jar";
+                }
+                else
+                {
+                    if (string.IsNullOrEmpty(ddlJars.SelectedValue)) return;
+                    fromJarId = int.Parse(ddlJars.SelectedValue);
+                    sourceType = "jar";
+                }
 
                 var jar = jarSvc.GetJarById(fromJarId.Value, _userId);
-                if (jar == null)
-                {
-                    hdnInsufficientFunds.Value = "true";
-                    return;
-                }
+                if (jar == null) { hdnInsufficientFunds.Value = "true"; return; }
 
                 decimal jarBal = jarSvc.GetCurrentBalance(_userId, fromJarId.Value);
-                if (jarBal < amount)
-                {
-                    hdnInsufficientFunds.Value = "true";
-                    return;
-                }
+                if (jarBal < amount) { hdnInsufficientFunds.Value = "true"; return; }
             }
 
             bool ok = _goalTxnModel.InsertGoalTransaction(
                 _goalId, _userId, name, amount, date, sourceType, fromJarId, lblGoalName.Text
             );
-            if (!ok)
-                return;
+            if (!ok) return;
 
             hdnInsufficientFunds.Value = "false";
             LoadGoalDetails();
@@ -110,6 +116,7 @@ namespace bipj
             txtTxnAmount.Text = "";
             txtTxnDate.Text = DateTime.Today.ToString("yyyy-MM-dd");
         }
+
 
         protected void btnUpdateTxn_Click(object sender, EventArgs e)
         {
@@ -153,11 +160,21 @@ namespace bipj
         private void LoadJarDropdown()
         {
             var jars = new Jar().GetJarsByUser(_userId);
+
+            if (BoundJarId.HasValue)
+            {
+                jars = jars.Where(j => j.JarId == BoundJarId.Value).ToList();
+            }
+
             ddlJars.DataSource = jars;
             ddlJars.DataTextField = "JarName";
             ddlJars.DataValueField = "JarId";
             ddlJars.DataBind();
-            ddlJars.Items.Insert(0, new ListItem("-- Select Jar --", ""));
+
+            if (!BoundJarId.HasValue)
+            {
+                ddlJars.Items.Insert(0, new ListItem("-- Select Jar --", ""));
+            }
         }
 
         private void LoadGoalDetails()
@@ -169,6 +186,10 @@ namespace bipj
                 return;
             }
 
+            // cache bound jar
+            BoundJarId = goal.JarId;
+
+            // header + progress info
             lblGoalName.Text = goal.GoalName;
             lblTargetAmount.Text = goal.TargetAmount.ToString("N2");
             lblTargetDate.Text = goal.Deadline.ToString("dd MMM yyyy");
@@ -180,7 +201,36 @@ namespace bipj
 
             int daysLeft = (goal.Deadline - DateTime.Today).Days;
             lblDaysLeft.Text = daysLeft > 0 ? $"{daysLeft} days left" : "Goal date passed";
+
+            // UI for transfer source
+            rdoTransferYes.Enabled = true;   // keep both options usable
+            rdoTransferNo.Enabled = true;
+
+            if (BoundJarId.HasValue)
+            {
+                // show the bound jar as read-only
+                var jar = new Jar().GetJarById(BoundJarId.Value, _userId);
+                var jarName = jar?.JarName ?? $"Jar #{BoundJarId.Value}";
+
+                hdnBoundJarId.Value = BoundJarId.Value.ToString();
+                txtBoundJar.Text = jarName;         
+
+                pnlBoundJar.Visible = true;         
+                pnlJarPicker.Visible = false;       
+                ddlJars.Enabled = false;            
+
+                ddlJars.Items.Clear();             
+            }
+            else
+            {
+                pnlBoundJar.Visible = false;
+                pnlJarPicker.Visible = true;
+
+                ddlJars.Enabled = true;
+                LoadJarDropdown();                     
+            }
         }
+
 
         private void LoadTransactions()
         {

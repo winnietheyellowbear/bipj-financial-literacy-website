@@ -139,40 +139,191 @@ namespace bipj.Models
         {
             if (IsDefault) throw new InvalidOperationException("Cannot delete the default jar.");
 
-            using (var conn = new SqlConnection(_connStr))
+            using (var conn = bipj.Data.Db.OpenConnection())
+            using (var tx = conn.BeginTransaction())
             {
-                conn.Open();
-                using (var tran = conn.BeginTransaction())
+                try
                 {
-                    try
-                    {
-                        var defaultJar = GetDefaultJar(UserId);
-                        if (defaultJar == null)
+                    // 0) Load the jar being deleted
+                    var jar = bipj.Data.Db.QuerySingle(conn, tx,
+                        @"SELECT JarId, UserId, COALESCE(Percentage,0) AS Pct, IsDeleted
+                        FROM Jars
+                        WHERE JarId=@JarId AND UserId=@UserId",
+                        p => { p.AddWithValue("@JarId", JarId); p.AddWithValue("@UserId", UserId); },
+                        r => new
                         {
-                            CreateDefaultJars(UserId);
-                            defaultJar = GetDefaultJar(UserId) ?? throw new InvalidOperationException("Failed to create default jars.");
-                        }
+                            JarId = Convert.ToInt32(r["JarId"]),
+                            UserId = Convert.ToInt32(r["UserId"]),
+                            Pct = Convert.ToDecimal(r["Pct"]),
+                            IsDeleted = Convert.ToBoolean(r["IsDeleted"])
+                        });
 
-                        ReassignGoalTransactions(conn, tran, JarId, defaultJar.JarId);
+                    if (jar == null) throw new InvalidOperationException("Jar not found.");
+                    if (jar.IsDeleted) return 0;
 
-                        const string markSql = "UPDATE Jars SET IsDeleted=1 WHERE JarId=@JarId AND UserId=@UserId";
-                        using (var markCmd = new SqlCommand(markSql, conn, tran))
-                        {
-                            markCmd.Parameters.AddWithValue("@JarId", JarId);
-                            markCmd.Parameters.AddWithValue("@UserId", UserId);
-                            int result = markCmd.ExecuteNonQuery();
-                            tran.Commit();
-                            return result;
-                        }
-                    }
-                    catch
+                    // 1) Find (or create) default jar
+                    int defaultJarId = bipj.Data.Db.Scalar<int>(conn, tx,
+                        @"SELECT TOP 1 JarId FROM Jars 
+                        WHERE UserId=@U AND IsDefault=1 AND IsDeleted=0",
+                        p => p.AddWithValue("@U", UserId), 0);
+
+                    if (defaultJarId == 0)
                     {
-                        tran.Rollback();
-                        throw;
+                        CreateDefaultJars(UserId);
+                        defaultJarId = bipj.Data.Db.Scalar<int>(conn, tx,
+                            @"SELECT TOP 1 JarId FROM Jars 
+                            WHERE UserId=@U AND IsDefault=1 AND IsDeleted=0",
+                            p => p.AddWithValue("@U", UserId), 0);
+                        if (defaultJarId == 0)
+                            throw new InvalidOperationException("No default jar available.");
                     }
+
+                    if (defaultJarId == JarId)
+                        throw new InvalidOperationException("Default jar cannot be deleted.");
+
+                    // 2) Move percentage to default; zero this jar
+                    bipj.Data.Db.Exec(conn, tx,
+                        @"UPDATE Jars 
+                        SET Percentage = COALESCE(Percentage,0) + @Pct
+                        WHERE JarId=@Def AND UserId=@U;
+                        UPDATE Jars 
+                        SET Percentage = 0
+                        WHERE JarId=@Jar AND UserId=@U;",
+                        p =>
+                        {
+                            p.AddWithValue("@Pct", jar.Pct);
+                            p.AddWithValue("@Def", defaultJarId);
+                            p.AddWithValue("@Jar", JarId);
+                            p.AddWithValue("@U", UserId);
+                        });
+
+                    // 3) Transfer live balance to default (two rows, signed amounts)
+                    decimal bal = GetCurrentBalance(UserId, JarId);
+                    if (bal > 0m)
+                    {
+                        var now = DateTime.UtcNow;
+
+                        // Outflow (negative) from the deleted jar
+                        bipj.Data.Db.Exec(conn, tx,
+                            @"INSERT INTO JarTransactions
+                            (UserId, JarId, Name, Amount, Date, TransactionType, Category)
+                            VALUES
+                            (@U, @FromJar, @Note, @Amt, @Dt, 'Transfer', 'Transfer');",
+                            p =>
+                            {
+                                p.AddWithValue("@U", UserId);
+                                p.AddWithValue("@FromJar", JarId);
+                                p.AddWithValue("@Note", "Transfer to default (auto on delete)");
+                                p.AddWithValue("@Amt", -bal);
+                                p.AddWithValue("@Dt", now);
+                            });
+
+                        // Inflow (positive) to the default jar
+                        bipj.Data.Db.Exec(conn, tx,
+                            @"INSERT INTO JarTransactions
+                            (UserId, JarId, Name, Amount, Date, TransactionType, Category)
+                            VALUES
+                            (@U, @ToJar, @Note, @Amt, @Dt, 'Transfer', 'Transfer');",
+                            p =>
+                            {
+                                p.AddWithValue("@U", UserId);
+                                p.AddWithValue("@ToJar", defaultJarId);
+                                p.AddWithValue("@Note", "Transfer from Deleted Jar (auto)");
+                                p.AddWithValue("@Amt", bal);
+                                p.AddWithValue("@Dt", now);
+                            });
+                    }
+
+                    // 4) Reassign any goal links to default
+                    ReassignGoalTransactions(conn, tx, JarId, defaultJarId);
+
+                    // 5) Soft-delete (no DeletedAt column in your table)
+                    int updated = bipj.Data.Db.Exec(conn, tx,
+                        @"UPDATE Jars 
+                        SET IsDeleted=1
+                        WHERE JarId=@Jar AND UserId=@U;",
+                        p => { p.AddWithValue("@Jar", JarId); p.AddWithValue("@U", UserId); });
+
+                    // 6) Normalize remaining active jar percentages to 100.00%
+                    NormalizeActiveJarPercentages(conn, tx, UserId);
+
+                    tx.Commit();
+                    return updated;
+                }
+                catch
+                {
+                    tx.Rollback();
+                    throw;
                 }
             }
         }
+
+
+        private void NormalizeActiveJarPercentages(SqlConnection conn, SqlTransaction tx, int userId)
+        {
+            var rows = bipj.Data.Db.Query(conn, tx,
+                @"SELECT JarId, COALESCE(Percentage,0) AS Pct
+                FROM Jars
+                WHERE UserId=@U AND IsDeleted=0
+                ORDER BY Position",
+                p => p.AddWithValue("@U", userId),
+                r => new { JarId = Convert.ToInt32(r["JarId"]), Pct = Convert.ToDecimal(r["Pct"]) });
+
+            if (rows.Count == 0) return;
+
+            decimal sum = 0m;
+            for (int i = 0; i < rows.Count; i++) sum += rows[i].Pct;
+
+            if (sum <= 0m)
+            {
+                // Make default jar 100% if everything is zeroed out
+                int defId = bipj.Data.Db.Scalar<int>(conn, tx,
+                    @"SELECT TOP 1 JarId FROM Jars 
+                    WHERE UserId=@U AND IsDefault=1 AND IsDeleted=0",
+                    p => p.AddWithValue("@U", userId), 0);
+                if (defId == 0) return;
+
+                bipj.Data.Db.Exec(conn, tx,
+                    @"UPDATE Jars 
+                    SET Percentage = CASE WHEN JarId=@Def THEN 100 ELSE 0 END
+                    WHERE UserId=@U AND IsDeleted=0",
+                    p => { p.AddWithValue("@Def", defId); p.AddWithValue("@U", userId); });
+                return;
+            }
+
+            // Scale to 100, round down to 2dp, then distribute the leftover 0.01% to the largest fractions
+            var temp = new List<Tuple<int, decimal, decimal>>(); // (JarId, down, frac)
+            for (int i = 0; i < rows.Count; i++)
+            {
+                var exact = (rows[i].Pct / sum) * 100m;
+                var down = Math.Floor(exact * 100m) / 100m;
+                var frac = exact - down;
+                temp.Add(Tuple.Create(rows[i].JarId, down, frac));
+            }
+
+            decimal allocated = 0m;
+            for (int i = 0; i < temp.Count; i++) allocated += temp[i].Item2;
+
+            int cents = (int)Math.Round((100m - allocated) * 100m, MidpointRounding.AwayFromZero);
+
+            // sort by frac desc
+            temp.Sort((a, b) => b.Item3.CompareTo(a.Item3));
+            int take = Math.Abs(cents);
+            int sign = Math.Sign(cents);
+            for (int i = 0; i < take && i < temp.Count; i++)
+            {
+                temp[i] = Tuple.Create(temp[i].Item1, temp[i].Item2 + (sign * 0.01m), temp[i].Item3);
+            }
+
+            // persist
+            for (int i = 0; i < temp.Count; i++)
+            {
+                bipj.Data.Db.Exec(conn, tx,
+                    @"UPDATE Jars SET Percentage=@P WHERE JarId=@J",
+                    p => { p.AddWithValue("@P", temp[i].Item2); p.AddWithValue("@J", temp[i].Item1); });
+            }
+        }
+
 
         public Jar GetDefaultJar(int userId)
         {
@@ -189,7 +340,7 @@ namespace bipj.Models
             using (var conn = new SqlConnection(_connStr))
             using (var cmd = new SqlCommand(@"
             SELECT JarId,
-                    ISNULL(SUM(Amount),0) AS Balance
+            ISNULL(SUM(Amount),0) AS Balance
             FROM JarTransactions
             WHERE UserID=@UserId
             GROUP BY JarId", conn))
@@ -222,16 +373,16 @@ namespace bipj.Models
 
             // if includeDeleted==true, ignore the IsDeleted filter
             string sql = includeDeleted
-                ? @"
+            ? @"
             SELECT JarId, JarName, Percentage, ColorHex, IsDefault
             FROM Jars
             WHERE UserId = @UserId
             ORDER BY Position"
-                : @"
+            : @"
             SELECT JarId, JarName, Percentage, ColorHex, IsDefault
             FROM Jars
             WHERE UserId = @UserId
-              AND IsDeleted = 0
+            AND IsDeleted = 0
             ORDER BY Position";
 
             using (var conn = new SqlConnection(_connStr))
@@ -273,19 +424,32 @@ namespace bipj.Models
             return list.Count == 0 ? null : list[0];
         }
 
-        public List<(int JarId, decimal Percentage)> GetJarsWithPercentages(int userId)
+        public List<(int JarId, decimal Percentage)> GetJarsWithPercentages(int userId, bool includeDeleted = false)
         {
-            const string sql = "SELECT JarId, Percentage FROM Jars WHERE UserId=@UserId ORDER BY Position";
+            var sql = @"
+            SELECT JarId, COALESCE(Percentage, 0) AS Percentage
+            FROM Jars
+            WHERE UserId = @UserId
+              " + (includeDeleted ? "" : "AND (IsDeleted = 0 OR IsDeleted IS NULL)") + @"
+            ORDER BY Position";
+
             return Db.Query(sql,
                 p => p.AddWithValue("@UserId", userId),
                 r => (Convert.ToInt32(r["JarId"]), Convert.ToDecimal(r["Percentage"])));
         }
 
+
         public bool UserHasJars(int userId)
         {
-            const string sql = "SELECT COUNT(*) FROM Jars WHERE UserID=@UserID";
+            const string sql = @"
+            SELECT COUNT(*) 
+            FROM Jars 
+            WHERE UserID = @UserID
+              AND (IsDeleted = 0 OR IsDeleted IS NULL)";
+
             return Db.Scalar(sql, p => p.AddWithValue("@UserID", userId), 0) > 0;
         }
+
 
         public string GetDefaultJarName(int userId)
         {
@@ -372,35 +536,11 @@ namespace bipj.Models
             }
         }
 
-        // new internal helper that can use an existing connection+transaction
-        public void CreateDefaultJars(int userId, SqlConnection conn, SqlTransaction tx)
-        {
-            if (conn == null) throw new ArgumentNullException(nameof(conn));
-            if (tx == null) throw new ArgumentNullException(nameof(tx));
-            CreateDefaultJarsInternal(userId, conn, tx);
-        }
-
-        private void CreateDefaultJarsInternal(int userId, SqlConnection conn, SqlTransaction tx)
-        {
-            // Example: create six default jars. Adjust names/logic to match your original.
-            var defaultJarNames = new List<string> { "Jar 1", "Jar 2", "Jar 3", "Jar 4", "Jar 5", "Jar 6" };
-            foreach (var name in defaultJarNames)
-            {
-                using (var cmd = new SqlCommand(
-                    @"INSERT INTO Jars (UserId, JarName, Balance, CreatedAt)
-                      VALUES (@UserId, @Name, 0, GETDATE())", conn, tx))
-                {
-                    cmd.Parameters.AddWithValue("@UserId", userId);
-                    cmd.Parameters.AddWithValue("@Name", name);
-                    cmd.ExecuteNonQuery();
-                }
-            }
-        }
-        public static void ResetAllJarsForUserSimple_HardDelete(int userId)
+        public static void ResetAllJarsForUser_Lite(int userId)
         {
             if (userId <= 0) throw new ArgumentException(nameof(userId));
-
             string connStr = ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString;
+
             using (var conn = new SqlConnection(connStr))
             {
                 conn.Open();
@@ -408,96 +548,47 @@ namespace bipj.Models
                 {
                     try
                     {
-                        // --- before counts (for debugging) ---
-                        int beforeJars = Count("Jars", userId, conn, tx);
-                        int beforeTxns = CountJoinedTransactions(userId, conn, tx);
-                        int beforeSnapshots = Count("JarSnapshots", userId, conn, tx);
-                        System.Diagnostics.Trace.TraceInformation($"[Reset] before: jars={beforeJars}, txns={beforeTxns}, snaps={beforeSnapshots}");
-
-                        // 1. Delete transactions
-                        using (var cmd = new SqlCommand(
-                            @"DELETE T
-                      FROM JarTransactions T
-                      INNER JOIN Jars J ON T.JarId = J.JarId
-                      WHERE J.UserId = @UserId", conn, tx))
+                        // 1) Wipe ALL jar transactions for this user
+                        using (var cmd = new SqlCommand(@"
+                        DELETE T
+                        FROM JarTransactions T
+                        JOIN Jars J ON T.JarId = J.JarId
+                        WHERE J.UserId = @UserId;", conn, tx))
                         {
                             cmd.Parameters.AddWithValue("@UserId", userId);
-                            int deletedTx = cmd.ExecuteNonQuery();
-                            System.Diagnostics.Trace.TraceInformation($"[Reset] deleted transactions rows: {deletedTx}");
+                            cmd.CommandTimeout = 120;
+                            cmd.ExecuteNonQuery();
                         }
 
-                        // 2. Delete snapshots
+                        // 2) Clear snapshots
                         using (var cmd = new SqlCommand(
-                            "DELETE FROM JarSnapshots WHERE UserId = @UserId", conn, tx))
+                            "DELETE FROM JarSnapshots WHERE UserId = @UserId;", conn, tx))
                         {
                             cmd.Parameters.AddWithValue("@UserId", userId);
-                            int deletedSnap = cmd.ExecuteNonQuery();
-                            System.Diagnostics.Trace.TraceInformation($"[Reset] deleted snapshots rows: {deletedSnap}");
+                            cmd.CommandTimeout = 120;
+                            cmd.ExecuteNonQuery();
                         }
-
-                        // 3. Delete jars
-                        using (var cmd = new SqlCommand(
-                            "DELETE FROM Jars WHERE UserId = @UserId", conn, tx))
-                        {
-                            cmd.Parameters.AddWithValue("@UserId", userId);
-                            int deletedJars = cmd.ExecuteNonQuery();
-                            System.Diagnostics.Trace.TraceInformation($"[Reset] deleted jars rows: {deletedJars}");
-                        }
-
-                        // --- after deletion counts ---
-                        int midJars = Count("Jars", userId, conn, tx);
-                        System.Diagnostics.Trace.TraceInformation($"[Reset] after delete: jars={midJars}");
-
-                        // 4. Recreate default jars
-                        var jarManager = new Jar();
-                        jarManager.CreateDefaultJars(userId, conn, tx); // same tx
 
                         tx.Commit();
-                        System.Diagnostics.Trace.TraceInformation($"[Reset] committed transaction");
                     }
-                    catch (Exception ex)
+                    catch
                     {
                         try { tx.Rollback(); } catch { }
-                        System.Diagnostics.Trace.TraceError($"Reset failed for user {userId}: {ex}");
                         throw;
                     }
                 }
             }
 
-            // regen snapshots (non-critical)
+            // 3) Rebuild snapshots
             try
             {
-                var snapshot = new JarSnapshot();
-                snapshot.GenerateSnapshots(userId, "daily");
-                snapshot.GenerateSnapshots(userId, "monthly");
+                Jar.InvalidateCache();
+                var snap = new JarSnapshot();
+                snap.GenerateSnapshots(userId, "daily");
+                snap.GenerateSnapshots(userId, "monthly");
             }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Trace.TraceWarning($"Snapshot regen failed: {ex.Message}");
-            }
+            catch { }
         }
 
-        // helpers for debug counts
-        private static int Count(string table, int userId, SqlConnection conn, SqlTransaction tx)
-        {
-            using (var cmd = new SqlCommand($"SELECT COUNT(1) FROM {table} WHERE UserId = @UserId", conn, tx))
-            {
-                cmd.Parameters.AddWithValue("@UserId", userId);
-                return Convert.ToInt32(cmd.ExecuteScalar());
-            }
-        }
-
-        private static int CountJoinedTransactions(int userId, SqlConnection conn, SqlTransaction tx)
-        {
-            using (var cmd = new SqlCommand(
-                @"SELECT COUNT(1)
-          FROM JarTransactions T
-          INNER JOIN Jars J ON T.JarId = J.JarId
-          WHERE J.UserId = @UserId", conn, tx))
-            {
-                cmd.Parameters.AddWithValue("@UserId", userId);
-                return Convert.ToInt32(cmd.ExecuteScalar());
-            }
-        }
     }
 }

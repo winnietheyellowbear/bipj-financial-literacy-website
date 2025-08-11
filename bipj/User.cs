@@ -14,20 +14,12 @@ namespace bipj
         string _connStr = ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString;
 
         private string _Id;
-        private int _Point;
-        private string _Type;
+        private string _Phone_Number;
 
         public User()
         {
         }
 
-        // create like
-        public User(string id, int point, string type)
-        {
-            Id = id;
-            Point = point;
-            Type = type;
-        }
       
         public string Id
         {
@@ -35,48 +27,37 @@ namespace bipj
             set { _Id = value; }
         }
 
-        public int Point
+        public string Phone_Number
         {
-            get { return _Point; }
-            set { _Point = value; }
+            get { return _Phone_Number; }
+            set { _Phone_Number = value; }
         }
 
-        public string Type
+        public List<string> GetUsersPhoneNumber()
         {
-            get { return _Type; }
-            set { _Type = value; }
-        }
-
-        public User GetUserByPostID(string user_id)
-        {
-            string type;
-            int point;
-            User user = new User();
-
-            string queryStr = "SELECT * FROM User WHERE Id = @User_ID";
+            List<string> phone_number_list = new List<string>();
+           
+            string queryStr = "SELECT * FROM [User]";
 
             SqlConnection conn = new SqlConnection(_connStr);
             SqlCommand cmd = new SqlCommand(queryStr, conn);
-            cmd.Parameters.AddWithValue("@User_ID", user_id);
 
             conn.Open();
             SqlDataReader dr = cmd.ExecuteReader();
 
             while (dr.Read())
             {
-                type = dr["Type"].ToString();
-                point = int.Parse(dr["Point"].ToString());
-                
-                user = new User(user_id, point, type);
-                
+                if(dr["PhoneNumber"] != null)
+                {
+                    phone_number_list.Add(dr["PhoneNumber"].ToString());
+                }
             }
 
             conn.Close();
             dr.Close();
             dr.Dispose();
 
-            return user;
-
+            return phone_number_list;
         }
 
     }

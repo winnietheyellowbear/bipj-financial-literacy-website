@@ -134,20 +134,36 @@
             No topics created.
         </asp:Panel>
 
-<asp:Repeater ID="rptTopics" runat="server">
-  <ItemTemplate>
-    <div class="module-card">
-      <h4><%# Eval("Name") %></h4>
-      <p><%# Eval("BriefDescription") %></p>
-      <!-- More info if needed -->
+<asp:Panel ID="Panel1" runat="server">
+  <asp:Repeater ID="rptTopics" runat="server">
+    <HeaderTemplate>
+      <div class="edu-card-list" id="eduCardList">
+    </HeaderTemplate>
 
-      <a href='<%# "EditEducationPage.aspx?moduleId=" + Eval("Id") + "&pageId=0" %>' 
-         class="btn btn-outline-primary btn-sm">
-         Manage Module
-      </a>
-    </div>
-  </ItemTemplate>
-</asp:Repeater>
+    <ItemTemplate>
+      <div class="edu-card" tabindex="0">
+        <img alt="Module image"
+             src='<%# ResolveUrl(string.IsNullOrWhiteSpace(Eval("ImageUrl") as string) 
+                     ? "~/Images/edu-placeholder.jpg" 
+                     : Eval("ImageUrl").ToString()) %>' />
+
+        <div class="edu-title"><%# Eval("Name") %></div>
+        <div style="padding:0 14px; text-align:center; color:#666; font-size:0.95rem;">
+          <%# Eval("BriefDescription") %>
+        </div>
+
+        <a href='<%# "EditEducationPage.aspx?moduleId=" + Eval("Id") + "&pageId=0" %>'
+           class="edu-manage-btn">
+           Manage Module
+        </a>
+      </div>
+    </ItemTemplate>
+
+    <FooterTemplate>
+      </div>
+    </FooterTemplate>
+  </asp:Repeater>
+</asp:Panel>
 
 
 

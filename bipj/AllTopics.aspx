@@ -124,9 +124,9 @@
   <asp:Repeater ID="rptModules" runat="server">
         <ItemTemplate>
     <div class="topic-card">
-        <img src='<%# Eval("ImageUrl") ?? "/images/default-module.png" %>' 
-             alt='<%# Eval("Name") %>' 
-             class="topic-img" />
+        <img src='<%# GetModuleImageUrl(Eval("ImageUrl")) %>'
+     alt='<%# Eval("Name") %>'
+     class="topic-img" />
 
         <div class="topic-title"><%# Eval("Name") %></div>
         <div class="topic-desc"><%# Eval("BriefDescription") %></div>

@@ -11,6 +11,13 @@ namespace bipj
 
         protected void Page_Load(object sender, EventArgs e)
         {
+
+            if (!IsPostBack && string.Equals(Request.QueryString["msg"], "login_required", StringComparison.OrdinalIgnoreCase))
+            {
+                lblMessage.Text = "Please log in to access Education.";
+                lblMessage.CssClass = "alert alert-warning";
+                lblMessage.Visible = true;
+            }
             if (IsPostBack)
             {
                 lblMessage.CssClass = "alert alert-danger";

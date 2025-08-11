@@ -2,6 +2,7 @@
 using System.Data;
 using System.Data.SqlClient;
 using System.Configuration;
+using System.Web.UI.WebControls;
 
 namespace bipj
 {
@@ -63,5 +64,18 @@ namespace bipj
             // Redirect to delete module page (or show modal)
             Response.Redirect("DeleteEducationTopics.aspx");
         }
+
+        protected void rptTopics_ItemDataBound(object sender, RepeaterItemEventArgs e)
+        {
+            if (e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem)
+            {
+                var drv = (DataRowView)e.Item.DataItem;
+                if (drv["ImageUrl"] == DBNull.Value || string.IsNullOrWhiteSpace(drv["ImageUrl"].ToString()))
+                {
+                    drv["ImageUrl"] = "~/Images/edu-placeholder.jpg";
+                }
+            }
+        }
+
     }
 }

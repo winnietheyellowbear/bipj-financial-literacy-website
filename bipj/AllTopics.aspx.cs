@@ -29,6 +29,22 @@ namespace bipj
                 rptModules.DataBind();
             }
         }
+        protected string GetModuleImageUrl(object urlObj)
+        {
+            // default/fallback
+            var fallback = ResolveUrl("~/images/default-module.png");
+
+            if (urlObj == null || urlObj == DBNull.Value) return fallback;
+
+            var s = urlObj.ToString();
+            if (string.IsNullOrWhiteSpace(s)) return fallback;
+
+            // normalize to app-rooted and resolve
+            if (s.StartsWith("~/") || s.StartsWith("/"))
+                return ResolveUrl(s);
+
+            return ResolveUrl("~/" + s);
+        }
 
     }
 }

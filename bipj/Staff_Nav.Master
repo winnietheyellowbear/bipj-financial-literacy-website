@@ -186,7 +186,42 @@
                     </li>
                    
                 </ul>
-                <a href="Login.aspx" class="btn btn-login ms-lg-3">Login</a>
+                  <!-- Right side: toggled by login state -->
+   <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+    <ul class="navbar-nav mx-auto gap-3">
+        <!-- your existing items -->
+        <li class="nav-item">
+            <a class="nav-link" href="Profile.aspx">User</a>
+        </li>
+    </ul>
+
+    <!-- Right side -->
+    <asp:Panel ID="pnlLoggedIn" runat="server" Visible="false">
+        <div class="dropdown ms-lg-3">
+            <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle"
+               id="staffProfileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <asp:Image ID="imgStaffProfile" runat="server" Width="40" Height="40"
+                           CssClass="rounded-circle" AlternateText="Profile" />
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="staffProfileDropdown">
+                <li><a class="dropdown-item" href="Profile.aspx">Profile</a></li>
+                <li><hr class="dropdown-divider" /></li>
+                <li>
+                    <asp:LinkButton ID="btnSignOut" runat="server"
+                        CssClass="dropdown-item text-danger"
+                        CausesValidation="false"
+                        OnClick="btnSignOut_Click">
+                        Sign Out
+                    </asp:LinkButton>
+                </li>
+            </ul>
+        </div>
+    </asp:Panel>
+
+    <asp:Panel ID="pnlLoggedOut" runat="server" Visible="false">
+        <a href="Loginpage.aspx" class="btn btn-login ms-lg-3">Login</a>
+    </asp:Panel>
+</div>f
             </div>
         </nav>
         <!-- ✅ MAIN CONTENT -->

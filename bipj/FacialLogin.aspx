@@ -1,6 +1,6 @@
 ﻿<%@ Page Title="Facial Login" 
     Language="C#" 
-    MasterPageFile="~/Customer_Nav.master" 
+    MasterPageFile="~/Customer_Nav_loggedin.master" 
     AutoEventWireup="true" 
     CodeBehind="FacialLogin.aspx.cs" 
     Inherits="badpjProject.FacialLogin" %>

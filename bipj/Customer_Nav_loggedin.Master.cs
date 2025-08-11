@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Net.PeerToPeer;
 using System.Web;
@@ -39,6 +41,10 @@ namespace bipj
             {
                 Panel3.Visible = true;
             }
+            if (Panel2.Visible) // logged in
+            {
+                imgNavProfile.ImageUrl = GetUserProfileImgUrl(Session["UserId"]);
+            }
 
         }
         protected void btn_sign_out_Click(object sender, EventArgs e)
@@ -49,6 +55,26 @@ namespace bipj
             Session["UserEmail"] = null;
 
             Response.Redirect("Loginpage.aspx");
+        }
+        private string GetUserProfileImgUrl(object userIdObj)
+        {
+            var fallback = ResolveUrl("~/images/profile_default.png");
+            if (userIdObj == null) return fallback;
+
+            string url = null;
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString))
+            using (var cmd = new SqlCommand("SELECT Profile FROM [User] WHERE Id=@Id", conn))
+            {
+                cmd.Parameters.AddWithValue("@Id", Convert.ToInt32(userIdObj));
+                conn.Open();
+                var o = cmd.ExecuteScalar();
+                url = o == null ? null : o.ToString();
+            }
+            if (string.IsNullOrWhiteSpace(url)) return fallback;
+
+            // Normalize (DB might store "Profileuploads/..." without leading ~/)
+            if (url.StartsWith("~/") || url.StartsWith("/")) return ResolveUrl(url) + "?v=" + Guid.NewGuid().ToString("N");
+            return ResolveUrl("~/" + url) + "?v=" + Guid.NewGuid().ToString("N");
         }
     }
 }

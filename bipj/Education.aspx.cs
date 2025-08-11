@@ -3,6 +3,7 @@ using System.Configuration;
 using System.Data.SqlClient;
 using System.Data;
 using System.Web.UI;
+using System.Web;
 
 namespace bipj
 {
@@ -10,6 +11,13 @@ namespace bipj
     {
         protected void Page_Load(object sender, EventArgs e)
         {
+            if (Session["UserId"] == null)
+            {
+                var returnUrl = HttpUtility.UrlEncode(Request.RawUrl);
+                Response.Redirect("Loginpage.aspx?returnUrl=" + returnUrl + "&msg=login_required");
+                return;
+            }
+
             if (!IsPostBack)
             {
                 LoadRecentModules();

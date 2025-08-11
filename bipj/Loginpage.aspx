@@ -1,6 +1,8 @@
 ﻿<%@ Page Title="Login" Language="C#" MasterPageFile="~/Customer_Nav_loggedin.master"AutoEventWireup="true" CodeBehind="Loginpage.aspx.cs" Inherits="bipj.Loginpage" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
+
+
     <br />
     <br />
     <div class="container mt-5">
@@ -28,14 +30,44 @@
                             <label class="form-check-label" for="chkRememberMe">Remember me</label>
                         </div>
                         
-                        <asp:Button ID="btnLogin" runat="server" Text="Login" CssClass="btn btn-primary btn-block" OnClick="btnLogin_Click" />
-                        
-                        <div class="text-center mt-3">
-                            <asp:LinkButton ID="btnForgotPassword" runat="server" CssClass="text-muted" OnClick="btnForgotPassword_Click">Forgot password?</asp:LinkButton>
-                        </div>
+                       <div class="d-flex gap-2 mt-2 flex-wrap">
+  <asp:Button ID="btnLogin" runat="server"
+      Text="Login"
+      CssClass="btn btn-primary px-4 py-2"
+      OnClick="btnLogin_Click" />
+
+</div>
+
+                       <div class="text-center mt-3">
+    <asp:LinkButton ID="btnForgotPassword" runat="server"
+        CssClass="text-muted"
+        OnClick="btnForgotPassword_Click">
+        Forgot password?
+    </asp:LinkButton>
+
+    <div class="mt-2">
+        <asp:HyperLink ID="lnkFaceLogin" runat="server"
+            CssClass="link-primary text-decoration-none small">
+            Login with Face ID
+        </asp:HyperLink>
+    </div>
+</div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+   <script>
+       document.addEventListener('DOMContentLoaded', function () {
+           var link = document.getElementById('<%= lnkFaceLogin.ClientID %>');
+  var email = document.getElementById('<%= txtEmail.ClientID %>');
+    if (link && email) {
+        link.addEventListener('click', function () {
+            this.href = 'FacialLogin.aspx' + (email.value ? ('?email=' + encodeURIComponent(email.value)) : '');
+        });
+    }
+});
+   </script>
+
 </asp:Content>

@@ -16,12 +16,12 @@ namespace bipj
 {
     public partial class StudyAssistant : System.Web.UI.Page
     {
-        private static readonly string openaiApiKey = "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"; // Replace with secure storage in production
+        private static readonly string openaiApiKey = "replace here"; // Replace with secure storage in production
 
         [WebMethod]
         public static string GetAIResponse(string question, string topic)
         {
-            string apiKey = "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";
+            string apiKey = "replace here";
 
             string prompt = $"You are assisting a learner in the topic of \"{topic}\". " +
                             $"Only answer questions that are related to this topic. " +

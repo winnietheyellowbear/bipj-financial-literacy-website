@@ -34,7 +34,7 @@ namespace bipj
         [System.Web.Services.WebMethod]
         public static string GetAIResponse(string question, string topic)
         {
-            string apiKey = "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";
+            string apiKey = "change here replace here";
 
             string prompt = $"You are assisting a learner in the topic of \"{topic}\". " +
                             $"Only answer questions that are related to this topic. " +

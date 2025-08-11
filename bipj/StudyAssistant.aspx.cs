@@ -16,12 +16,12 @@ namespace bipj
 {
     public partial class StudyAssistant : System.Web.UI.Page
     {
-        private static readonly string openaiApiKey = "replace here"; // Replace with secure storage in production
+        private static readonly string openaiApiKey = ""; // Replace with secure storage in production
 
         [WebMethod]
         public static string GetAIResponse(string question, string topic)
         {
-            string apiKey = "replace here";
+            string apiKey = "";
 
             string prompt = $"You are assisting a learner in the topic of \"{topic}\". " +
                             $"Only answer questions that are related to this topic. " +

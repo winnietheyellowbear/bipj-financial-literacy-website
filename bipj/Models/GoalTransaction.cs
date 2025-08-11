@@ -145,14 +145,31 @@ namespace bipj.Models
             using (var cmd = new SqlCommand(@"
             SELECT COALESCE(SUM(Amount), 0)
             FROM GoalTransactions
-            WHERE UserId = @UserId
-              AND Date  >= @From AND Date < @To
-              AND LOWER(ISNULL(SourceType,'')) = @Src;", conn))
+            WHERE UserId = @U
+              AND Date  >= @F AND Date < @T
+              AND LOWER(ISNULL(SourceType,'')) = @S;", conn))
             {
-                cmd.Parameters.AddWithValue("@UserId", userId);
-                cmd.Parameters.AddWithValue("@From", from);
-                cmd.Parameters.AddWithValue("@To", to);
-                cmd.Parameters.AddWithValue("@Src", sourceType.ToLowerInvariant());
+                cmd.Parameters.AddWithValue("@U", userId);
+                cmd.Parameters.AddWithValue("@F", from);
+                cmd.Parameters.AddWithValue("@T", to);
+                cmd.Parameters.AddWithValue("@S", sourceType.ToLowerInvariant());
+                conn.Open();
+                return Convert.ToDecimal(cmd.ExecuteScalar());
+            }
+        }
+
+        public decimal GetSumAllInflows(int userId, DateTime from, DateTime to)
+        {
+            using (var conn = new SqlConnection(_connStr))
+            using (var cmd = new SqlCommand(@"
+        SELECT COALESCE(SUM(CASE WHEN Amount > 0 THEN Amount ELSE 0 END), 0)
+        FROM GoalTransactions
+        WHERE UserId = @U
+          AND Date  >= @F AND Date < @T;", conn))
+            {
+                cmd.Parameters.AddWithValue("@U", userId);
+                cmd.Parameters.AddWithValue("@F", from);
+                cmd.Parameters.AddWithValue("@T", to);
                 conn.Open();
                 return Convert.ToDecimal(cmd.ExecuteScalar());
             }

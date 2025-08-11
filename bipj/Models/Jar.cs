@@ -548,12 +548,12 @@ namespace bipj.Models
                 {
                     try
                     {
-                        // 1) Clear transactions for this user's jars
+                        // 1) Wipe ALL jar transactions for this user
                         using (var cmd = new SqlCommand(@"
-DELETE T
-FROM JarTransactions T
-JOIN Jars J ON T.JarId = J.JarId
-WHERE J.UserId = @UserId;", conn, tx))
+                        DELETE T
+                        FROM JarTransactions T
+                        JOIN Jars J ON T.JarId = J.JarId
+                        WHERE J.UserId = @UserId;", conn, tx))
                         {
                             cmd.Parameters.AddWithValue("@UserId", userId);
                             cmd.CommandTimeout = 120;
@@ -579,7 +579,7 @@ WHERE J.UserId = @UserId;", conn, tx))
                 }
             }
 
-            // Re-gen snapshots (non-critical)
+            // 3) Rebuild snapshots
             try
             {
                 Jar.InvalidateCache();
@@ -587,9 +587,8 @@ WHERE J.UserId = @UserId;", conn, tx))
                 snap.GenerateSnapshots(userId, "daily");
                 snap.GenerateSnapshots(userId, "monthly");
             }
-            catch { /* optional: log */ }
+            catch { }
         }
-
 
     }
 }

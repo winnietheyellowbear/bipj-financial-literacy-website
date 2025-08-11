@@ -126,6 +126,7 @@
                         <asp:ListItem Text="Completed" Value="completed" />
                         <asp:ListItem Text="Overdue" Value="overdue" />
                         <asp:ListItem Text="Ongoing" Value="ongoing" />
+                        <asp:ListItem Text="Archived" Value="archived" />
                     </asp:DropDownList>
                 </div>
 

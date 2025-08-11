@@ -19,10 +19,12 @@ namespace bipj.Models
         private decimal _SavedAmount;
         private DateTime _Deadline;
         private DateTime _CreatedAt;
+        private bool _IsArchived;
+
 
         public Goal() { }
 
-        public Goal(int goalId, int userId, int? jarId, string goalName, decimal targetAmount, decimal savedAmount, DateTime deadline, DateTime createdAt)
+        public Goal(int goalId, int userId, int? jarId, string goalName, decimal targetAmount, decimal savedAmount, DateTime deadline, DateTime createdAt, bool isArchived)
         {
             _GoalId = goalId;
             _UserId = userId;
@@ -32,6 +34,7 @@ namespace bipj.Models
             _SavedAmount = savedAmount;
             _Deadline = deadline;
             _CreatedAt = createdAt;
+            _IsArchived = isArchived;
         }
 
         public Goal(int userId, int? jarId, string goalName, decimal targetAmount, DateTime deadline)
@@ -62,13 +65,14 @@ namespace bipj.Models
         public decimal SavedAmount { get { return _SavedAmount; } set { _SavedAmount = value; } }
         public DateTime Deadline { get { return _Deadline; } set { _Deadline = value; } }
         public DateTime CreatedAt { get { return _CreatedAt; } set { _CreatedAt = value; } }
+        public bool IsArchived { get { return _IsArchived; } set { _IsArchived = value; } }
         public string JarName { get; set; }
 
         public int InsertGoal()
         {
             const string sql = @"INSERT INTO Goals
-(UserId, JarId, GoalName, TargetAmount, SavedAmount, Deadline, CreatedAt)
-VALUES (@UserId, @JarId, @GoalName, @TargetAmount, @SavedAmount, @Deadline, @CreatedAt)";
+            (UserId, JarId, GoalName, TargetAmount, SavedAmount, Deadline, CreatedAt)
+            VALUES (@UserId, @JarId, @GoalName, @TargetAmount, @SavedAmount, @Deadline, @CreatedAt)";
             return Db.Exec(sql, p =>
             {
                 p.AddWithValue("@UserId", UserId);
@@ -81,28 +85,30 @@ VALUES (@UserId, @JarId, @GoalName, @TargetAmount, @SavedAmount, @Deadline, @Cre
             });
         }
 
-        public List<Goal> GetGoalsByUser(int userId, DateTime? fromDate = null, DateTime? toDate = null)
+        public List<Goal> GetGoalsByUser(int userId, DateTime? fromDate = null, DateTime? toDate = null, bool includeArchived = false)
         {
-            DateTime sqlMin = SqlDateTime.MinValue.Value;
-            DateTime sqlMax = SqlDateTime.MaxValue.Value;
-            if (fromDate.HasValue && fromDate.Value < sqlMin) fromDate = sqlMin;
-            if (toDate.HasValue && toDate.Value > sqlMax) toDate = sqlMax;
+            var from = fromDate ?? SqlDateTime.MinValue.Value;
+            var to = toDate ?? SqlDateTime.MaxValue.Value;
+            if (from < SqlDateTime.MinValue.Value) from = SqlDateTime.MinValue.Value;
+            if (to > SqlDateTime.MaxValue.Value) to = SqlDateTime.MaxValue.Value;
 
             const string sql = @"
-SELECT g.*, j.JarName AS JarName
-FROM Goals g
-LEFT JOIN Jars j ON g.JarId = j.JarId
-WHERE g.UserId = @UserId
-  AND g.CreatedAt >= @FromDate
-  AND g.CreatedAt <  @ToDate
-ORDER BY g.Deadline";
+            SELECT g.*, j.JarName
+            FROM Goals g
+            LEFT JOIN Jars j ON g.JarId = j.JarId
+            WHERE g.UserId = @UserId
+              AND g.CreatedAt >= @FromDate
+              AND g.CreatedAt <  @ToDate
+              AND (@IncludeArchived = 1 OR g.IsArchived = 0)
+            ORDER BY g.Deadline;";
 
             return Db.Query(sql,
                 p =>
                 {
                     p.AddWithValue("@UserId", userId);
-                    p.AddWithValue("@FromDate", (object)fromDate ?? DBNull.Value);
-                    p.AddWithValue("@ToDate", (object)toDate ?? DBNull.Value);
+                    p.AddWithValue("@FromDate", from);
+                    p.AddWithValue("@ToDate", to);
+                    p.AddWithValue("@IncludeArchived", includeArchived ? 1 : 0);
                 },
                 r =>
                 {
@@ -114,18 +120,33 @@ ORDER BY g.Deadline";
                         Convert.ToDecimal(r["TargetAmount"]),
                         Convert.ToDecimal(r["SavedAmount"]),
                         Convert.ToDateTime(r["Deadline"]),
-                        Convert.ToDateTime(r["CreatedAt"])
+                        Convert.ToDateTime(r["CreatedAt"]),
+                        r["IsArchived"] != DBNull.Value && Convert.ToBoolean(r["IsArchived"])
                     );
+                    goal.IsArchived = r["IsArchived"] != DBNull.Value && Convert.ToBoolean(r["IsArchived"]);
                     goal.JarName = r["JarName"] == DBNull.Value ? null : r["JarName"].ToString();
                     return goal;
                 });
         }
 
+        public int ArchiveGoal(int userId, int goalId)
+        {
+            const string sql = @"UPDATE Goals SET IsArchived = 1 WHERE GoalId=@G AND UserId=@U";
+            return Db.Exec(sql, p => { p.AddWithValue("@G", goalId); p.AddWithValue("@U", userId); });
+        }
+
+        public int UnarchiveGoal(int userId, int goalId)
+        {
+            const string sql = @"UPDATE Goals SET IsArchived = 0 WHERE GoalId=@G AND UserId=@U";
+            return Db.Exec(sql, p => { p.AddWithValue("@G", goalId); p.AddWithValue("@U", userId); });
+        }
+
+
         public int UpdateGoal()
         {
             const string sql = @"UPDATE Goals
-SET JarId=@JarId, GoalName=@GoalName, TargetAmount=@TargetAmount, Deadline=@Deadline
-WHERE GoalId=@GoalId";
+            SET JarId=@JarId, GoalName=@GoalName, TargetAmount=@TargetAmount, Deadline=@Deadline
+            WHERE GoalId=@GoalId";
             return Db.Exec(sql, p =>
             {
                 p.AddWithValue("@JarId", (object)JarId ?? DBNull.Value);
@@ -145,53 +166,71 @@ WHERE GoalId=@GoalId";
                 {
                     try
                     {
-                        decimal savedAmount = new GoalTransaction().GetTotalSavedAmount(GoalId, UserId);
+                        var goal = GetGoalById(GoalId, UserId);
+                        if (goal == null) return 0;
 
-                        int? defaultJarId = null;
-                        const string getJarSql = "SELECT JarId FROM Jars WHERE UserId=@UserId AND IsDefault=1";
-                        using (var getJarCmd = new SqlCommand(getJarSql, conn, trans))
-                        {
-                            getJarCmd.Parameters.AddWithValue("@UserId", UserId);
-                            var jarResult = getJarCmd.ExecuteScalar();
-                            if (jarResult != null && jarResult != DBNull.Value) defaultJarId = Convert.ToInt32(jarResult);
-                        }
+                        bool isCompleted = goal.SavedAmount >= goal.TargetAmount;
+                        decimal savedAmount = goal.SavedAmount;
 
-                        if (savedAmount > 0 && savedAmount < TargetAmount && JarId.HasValue)
+                        if (isCompleted)
                         {
-                            const string insertTxn = @"INSERT INTO Transactions
-(UserId, JarId, Name, Amount, Date, TransactionType, Category)
-VALUES (@UserId, @JarId, @Name, @Amount, @Date, 'Income', 'Transfer In')";
-                            using (var txnCmd = new SqlCommand(insertTxn, conn, trans))
+                            using (var arch = new SqlCommand(
+                                "UPDATE Goals SET IsArchived=1 WHERE GoalId=@G AND UserId=@U", conn, trans))
                             {
-                                txnCmd.Parameters.AddWithValue("@UserId", UserId);
-                                txnCmd.Parameters.AddWithValue("@JarId", defaultJarId);
-                                txnCmd.Parameters.AddWithValue("@Name", "Transferred from Deleted Goal: " + GoalName);
-                                txnCmd.Parameters.AddWithValue("@Amount", savedAmount);
-                                txnCmd.Parameters.AddWithValue("@Date", DateTime.Now);
-                                txnCmd.ExecuteNonQuery();
+                                arch.Parameters.AddWithValue("@G", GoalId);
+                                arch.Parameters.AddWithValue("@U", UserId);
+                                arch.ExecuteNonQuery();
+                            }
+                            trans.Commit();
+                            return 1;
+                        }
+                        else
+                        {
+                            if (savedAmount > 0m)
+                            {
+                                int refundJarId;
+                                using (var cmd = new SqlCommand(@"
+                            SELECT TOP 1 JarId
+                            FROM Jars
+                            WHERE UserId=@U
+                            ORDER BY IsDefault DESC, JarId ASC;", conn, trans))
+                                {
+                                    cmd.Parameters.AddWithValue("@U", UserId);
+                                    refundJarId = Convert.ToInt32(cmd.ExecuteScalar());
+                                }
+
+                                using (var txnCmd = new SqlCommand(@"
+                            INSERT INTO JarTransactions
+                              (UserId, JarId, Name, Amount, Date, TransactionType, Category)
+                            VALUES
+                              (@U, @J, @N, @A, @D, 'Income', 'Transfer In')", conn, trans))
+                                {
+                                    txnCmd.Parameters.AddWithValue("@U", UserId);
+                                    txnCmd.Parameters.AddWithValue("@J", refundJarId);
+                                    txnCmd.Parameters.AddWithValue("@N", "Refund from deleted goal: " + goal.GoalName);
+                                    txnCmd.Parameters.AddWithValue("@A", savedAmount);
+                                    txnCmd.Parameters.AddWithValue("@D", DateTime.Now);
+                                    txnCmd.ExecuteNonQuery();
+                                }
                             }
 
-                            const string updateJar = "UPDATE Jars SET Amount = Amount + @Amount WHERE JarId=@JarId";
-                            using (var updateJarCmd = new SqlCommand(updateJar, conn, trans))
+                            using (var delTx = new SqlCommand(
+                                "DELETE FROM GoalTransactions WHERE GoalId=@G AND UserId=@U", conn, trans))
                             {
-                                updateJarCmd.Parameters.AddWithValue("@Amount", savedAmount);
-                                updateJarCmd.Parameters.AddWithValue("@JarId", defaultJarId);
-                                updateJarCmd.ExecuteNonQuery();
+                                delTx.Parameters.AddWithValue("@G", GoalId);
+                                delTx.Parameters.AddWithValue("@U", UserId);
+                                delTx.ExecuteNonQuery();
                             }
-                        }
 
-                        const string deleteTxnsSql = "DELETE FROM GoalTransactions WHERE GoalId=@GoalId";
-                        using (var deleteTxnsCmd = new SqlCommand(deleteTxnsSql, conn, trans))
-                        {
-                            deleteTxnsCmd.Parameters.AddWithValue("@GoalId", GoalId);
-                            deleteTxnsCmd.ExecuteNonQuery();
-                        }
+                            int result;
+                            using (var delGoal = new SqlCommand(
+                                "DELETE FROM Goals WHERE GoalId=@G AND UserId=@U", conn, trans))
+                            {
+                                delGoal.Parameters.AddWithValue("@G", GoalId);
+                                delGoal.Parameters.AddWithValue("@U", UserId);
+                                result = delGoal.ExecuteNonQuery();
+                            }
 
-                        const string deleteGoalSql = "DELETE FROM Goals WHERE GoalId=@GoalId";
-                        using (var deleteGoalCmd = new SqlCommand(deleteGoalSql, conn, trans))
-                        {
-                            deleteGoalCmd.Parameters.AddWithValue("@GoalId", GoalId);
-                            int result = deleteGoalCmd.ExecuteNonQuery();
                             trans.Commit();
                             return result;
                         }
@@ -204,6 +243,7 @@ VALUES (@UserId, @JarId, @Name, @Amount, @Date, 'Income', 'Transfer In')";
                 }
             }
         }
+
 
         public void ReassignGoalsToJar(int oldJarId, int newJarId, int userId)
         {
@@ -244,7 +284,8 @@ VALUES (@UserId, @JarId, @Name, @Amount, @Date, 'Income', 'Transfer In')";
                     TargetAmount = Convert.ToDecimal(r["TargetAmount"]),
                     Deadline = Convert.ToDateTime(r["Deadline"]),
                     SavedAmount = Convert.ToDecimal(r["SavedAmount"]),
-                    CreatedAt = r["CreatedAt"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(r["CreatedAt"])
+                    CreatedAt = r["CreatedAt"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(r["CreatedAt"]),
+                    IsArchived = r["IsArchived"] != DBNull.Value && Convert.ToBoolean(r["IsArchived"])
                 });
             return list.Count == 0 ? null : list[0];
         }

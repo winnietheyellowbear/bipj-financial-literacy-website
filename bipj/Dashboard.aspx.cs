@@ -106,26 +106,25 @@ namespace bipj
 
             decimal income = 0m, expense = 0m;
 
-            var jarsAll = new Jar().GetJarsByUser(_userId, includeDeleted: true);
             var txnMgr = new JarTransaction();
+            var jars = new Jar().GetJarsByUser(_userId, includeDeleted: true);
 
-            foreach (var jar in jarsAll)
+            foreach (var jar in jars)
             {
                 income += txnMgr.GetTransactionSumByType(_userId, jar.JarId, "Income", from, to, includeTransfers: false);
                 expense += txnMgr.GetTransactionSumByType(_userId, jar.JarId, "Expense", from, to, includeTransfers: false);
             }
 
-            // add goal *top-ups* (external money) to Income
+            // include ALL goal inflows (top-ups + transfers)
             var goalTxn = new GoalTransaction();
-            income += goalTxn.GetSumBySourceType(_userId, from, to, "topup");
+            income += goalTxn.GetSumAllInflows(_userId, from, to);
 
-            // ---- Balance = live jars + live goals ----
+            // balance = jars + goals
             var liveJars = new Jar().GetJarsByUser(_userId);
             var jarSvc = new Jar();
             decimal jarsBalance = liveJars.Sum(j => jarSvc.GetCurrentBalance(_userId, j.JarId));
 
-            // Goals table already has cumulative SavedAmount — just sum it
-            var allGoals = new Goal().GetGoalsByUser(_userId, DateTime.MinValue, DateTime.MaxValue);
+            var allGoals = new Goal().GetGoalsByUser(_userId, DateTime.MinValue, DateTime.MaxValue, includeArchived: true);
             decimal goalsBalance = allGoals.Sum(g => g.SavedAmount);
 
             decimal balance = jarsBalance + goalsBalance;
@@ -156,7 +155,7 @@ namespace bipj
         private void LoadGoals()
         {
             var (from, to) = GetRange();
-            var goals = new Goal().GetGoalsByUser(_userId, from, to);
+            var goals = new Goal().GetGoalsByUser(_userId, from, to, includeArchived: false);
 
             int completed = goals.Count(g => g.SavedAmount >= g.TargetAmount);
             int ongoing = goals.Count - completed;

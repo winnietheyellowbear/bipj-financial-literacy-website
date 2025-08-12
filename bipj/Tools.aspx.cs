@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web.UI;
 using System.Web.UI.WebControls;
@@ -35,10 +36,23 @@ namespace bipj
             @"^(CURRENCY:|Total\s+Balance|Balance\s+(Brought|Carried)\s+Forward|Account\s+No\.|Date\s*$|Description\s*$|Withdrawal|Deposit|Balance\s*$)",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
+        // Read API key from multiple sources
+        private static string GetOpenAiApiKey()
+        {
+            var k = ConfigurationManager.AppSettings["OpenAI_API_Key"];
+            if (!string.IsNullOrWhiteSpace(k)) return k.Trim();
+
+            k = ConfigurationManager.AppSettings["OpenAI.ApiKey"];
+            if (!string.IsNullOrWhiteSpace(k)) return k.Trim();
+
+            k = Environment.GetEnvironmentVariable("OPENAI_API_KEY")
+                ?? Environment.GetEnvironmentVariable("OpenAI_API_Key")
+                ?? Environment.GetEnvironmentVariable("OpenAI.ApiKey");
+            return k?.Trim();
+        }
 
         // ============================================================
         // PAGE LIFECYCLE + UI WIRE-UP
-        // (Controls: ddlDefaultJar, gvPreview, pnlUpload, pnlPreview, pnlDone, pnlAnalysis)
         // ============================================================
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -54,7 +68,7 @@ namespace bipj
                 BindJarDropDown(ddlDefaultJar);
                 pnlPreview.Visible = false;
                 pnlDone.Visible = false;
-                // pnlAnalysis will be turned on by Analyze handler when needed
+                // pnlAnalysis toggled by Analyze
             }
         }
 
@@ -83,15 +97,11 @@ namespace bipj
             ddl.SelectedValue = vm.JarId.ToString();
         }
 
-
         // ============================================================
         // FEATURE: UPLOAD & PREVIEW
-        // - btnParse_Click
-        // - ParseWithGptAsync (for parsing raw table text -> rows)
-        // - ParseCsv / ParseXlsx / ParsePdf / ExtractLinesFromPdf / MapRow / Get
-        // - NormalizeRows / CleanDesc
         // ============================================================
-        protected void btnParse_Click(object sender, EventArgs e)
+        // Make this async to avoid blocking the request thread
+        protected async void btnParse_Click(object sender, EventArgs e)
         {
             if (!fuStatement.HasFile) return;
 
@@ -104,25 +114,27 @@ namespace bipj
                 {
                     var lines = ExtractLinesFromPdf(msRaw);
                     var rawText = string.Join("\n", lines);
-                    // Try GPT parse first; fallback to internal PDF parser
-                    var gpt = ParseWithGptAsync(rawText).GetAwaiter().GetResult();
+
+                    // Try GPT once with a strict timeout; fallback to internal
+                    List<RowVm> gpt = null;
+                    try
+                    {
+                        using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(12)))
+                            gpt = await ParseWithGptAsync(rawText, cts.Token);
+                    }
+                    catch { /* timeout or network -> fallback below */ }
+
                     rows = gpt ?? ParsePdf(new MemoryStream(fuStatement.FileBytes));
                 }
                 else if (ext == ".csv")
                 {
-                    var fallback = ParseCsv(new MemoryStream(fuStatement.FileBytes));
-                    var lines = fallback.Select(r => $"{r.Date:yyyy-MM-dd} {r.Description} {(r.Income > 0 ? r.Income : -r.Expense)}");
-                    var rawText = string.Join("\n", lines);
-                    var gpt = ParseWithGptAsync(rawText).GetAwaiter().GetResult();
-                    rows = gpt ?? fallback;
+                    // Fast local parse (no GPT here)
+                    rows = ParseCsv(new MemoryStream(fuStatement.FileBytes));
                 }
                 else if (ext == ".xlsx")
                 {
-                    var fallback = ParseXlsx(new MemoryStream(fuStatement.FileBytes));
-                    var lines = fallback.Select(r => $"{r.Date:yyyy-MM-dd} {r.Description} {(r.Income > 0 ? r.Income : -r.Expense)}");
-                    var rawText = string.Join("\n", lines);
-                    var gpt = ParseWithGptAsync(rawText).GetAwaiter().GetResult();
-                    rows = gpt ?? fallback;
+                    // Fast local parse (no GPT here)
+                    rows = ParseXlsx(new MemoryStream(fuStatement.FileBytes));
                 }
                 else
                 {
@@ -149,11 +161,11 @@ namespace bipj
         }
 
         // --- GPT PARSER (for parsing statement text -> structured rows) ---
-        private async Task<List<RowVm>> ParseWithGptAsync(string rawTable)
+        private async Task<List<RowVm>> ParseWithGptAsync(string rawTable, CancellationToken ct = default)
         {
             try
             {
-                var apiKey = ConfigurationManager.AppSettings["OpenAI_API_Key"];
+                var apiKey = GetOpenAiApiKey();
                 if (string.IsNullOrWhiteSpace(apiKey)) return null;
 
                 _httpClient.DefaultRequestHeaders.Clear();
@@ -162,7 +174,7 @@ namespace bipj
 
                 var payload = new
                 {
-                    model = "gpt-5",
+                    model = "gpt-4o-mini",
                     response_format = new { type = "json_object" },
                     messages = new object[]
                     {
@@ -183,34 +195,34 @@ namespace bipj
                 };
 
                 var body = JsonConvert.SerializeObject(payload);
-                var resp = await _httpClient.PostAsync(
-                    "https://api.openai.com/v1/chat/completions",
-                    new StringContent(body, Encoding.UTF8, "application/json")
-                );
-                if (!resp.IsSuccessStatusCode) return null;
-
-                var json = await resp.Content.ReadAsStringAsync();
-                var doc = JObject.Parse(json);
-                var content = doc["choices"]?[0]?["message"]?["content"]?.ToString();
-                if (string.IsNullOrWhiteSpace(content)) return null;
-
-                var parsed = JObject.Parse(content);
-                var rows = new List<RowVm>();
-                foreach (var r in (JArray)parsed["rows"])
+                using (var req = new StringContent(body, Encoding.UTF8, "application/json"))
+                using (var resp = await _httpClient.PostAsync("https://api.openai.com/v1/chat/completions", req, ct))
                 {
-                    rows.Add(new RowVm
-                    {
-                        Date = DateTime.ParseExact((string)r["date"], "yyyy-MM-dd", CultureInfo.InvariantCulture),
-                        Description = ((string)r["description"] ?? "").Trim(),
-                        Income = (decimal?)r["income"] ?? 0m,
-                        Expense = (decimal?)r["expense"] ?? 0m,
-                        JarId = 0,
-                        Import = true
-                    });
-                }
+                    if (!resp.IsSuccessStatusCode) return null;
 
-                NormalizeRows(rows);
-                return rows;
+                    var json = await resp.Content.ReadAsStringAsync();
+                    var doc = JObject.Parse(json);
+                    var content = doc["choices"]?[0]?["message"]?["content"]?.ToString();
+                    if (string.IsNullOrWhiteSpace(content)) return null;
+
+                    var parsed = JObject.Parse(content);
+                    var outRows = new List<RowVm>();
+                    foreach (var r in (JArray)parsed["rows"])
+                    {
+                        outRows.Add(new RowVm
+                        {
+                            Date = DateTime.ParseExact((string)r["date"], "yyyy-MM-dd", CultureInfo.InvariantCulture),
+                            Description = ((string)r["description"] ?? "").Trim(),
+                            Income = (decimal?)r["income"] ?? 0m,
+                            Expense = (decimal?)r["expense"] ?? 0m,
+                            JarId = 0,
+                            Import = true
+                        });
+                    }
+
+                    NormalizeRows(outRows);
+                    return outRows;
+                }
             }
             catch
             {
@@ -481,14 +493,8 @@ namespace bipj
             return s;
         }
 
-
         // ============================================================
-        // FEATURE: ANALYZE (HYBRID = LOCAL CRUNCH + GPT CATEGORIZATION/ADVICE)
-        // - btnAnalyze_Click
-        // - DTOs: SimpleTxn, GptHybridOut, RecurringVm
-        // - Helpers: CanonicalMerchant, KeywordToCategory, LocalKeywordCategory
-        // - Aggregations: AggregateByCategory, DetectRecurring
-        // - GPT: CallGptHybridAsync + FallbackHybrid
+        // FEATURE: ANALYZE (HYBRID = LOCAL + GPT)
         // ============================================================
         protected async void btnAnalyze_Click(object sender, EventArgs e)
         {
@@ -500,7 +506,7 @@ namespace bipj
                 return;
             }
 
-            // ✅ Apply current selections from the grid
+            // Apply current selections from the grid
             for (int i = 0; i < gvPreview.Rows.Count; i++)
             {
                 var chk = (CheckBox)gvPreview.Rows[i].FindControl("chkImport");
@@ -509,7 +515,6 @@ namespace bipj
                 if (ddl != null) rows[i].JarId = int.Parse(ddl.SelectedValue);
             }
 
-            // ✅ Only analyze rows user ticked for import
             var working = rows.Where(r => r.Import).ToList();
             if (working.Count == 0)
             {
@@ -518,7 +523,7 @@ namespace bipj
                 return;
             }
 
-            // ✅ Pick latest month in the selected data
+            // Derive month from data (latest expense month)
             var latestMonth = working
                 .Where(r => r.Expense > 0m)
                 .OrderByDescending(r => r.Date)
@@ -531,12 +536,11 @@ namespace bipj
             var monthStart = latestMonth;
             var monthEnd = monthStart.AddMonths(1);
 
-            // ✅ This-month subset for charts and category totals
             var thisMonthRows = working
                 .Where(r => r.Date >= monthStart && r.Date < monthEnd && r.Expense > 0m)
                 .ToList();
 
-            // ✅ Compact summary for GPT (last 120 days from selected data)
+            // Compact summary for GPT (last 120 days)
             var cutoff = DateTime.Today.AddDays(-120);
             var sample = working
                 .Where(r => r.Date >= cutoff)
@@ -550,12 +554,11 @@ namespace bipj
                 .Take(400)
                 .ToList();
 
-            // ✅ GPT semantic categories + advice (fallback to local if API not set or fails)
             var gpt = await CallGptHybridAsync(sample);
 
             var sb = new StringBuilder();
 
-            // Advice
+            // Advice (with diagnostics)
             if (gpt != null && gpt.advice != null && gpt.advice.Count > 0)
             {
                 sb.Append("<div class='mb-3'><h6 class='fw-semibold'>Top Suggestions</h6><ol class='mb-0'>");
@@ -566,11 +569,12 @@ namespace bipj
             else
             {
                 if (gpt != null && gpt.aiRan)
-                    sb.Append("<div class='mb-3 text-muted fst-italic'>AI analyzed your data but had no suggestions to add.</div>");
+                    sb.Append("<div class='mb-3 text-muted fst-italic'>AI analyzed your data but returned no suggestions.</div>");
                 else
-                    sb.Append("<div class='mb-3 text-muted fst-italic'>No AI-powered suggestions available (service unavailable).</div>");
+                    sb.Append("<div class='mb-3 text-muted fst-italic'>No AI-powered suggestions (")
+                      .Append(Server.HtmlEncode(gpt?.aiError ?? "service unavailable"))
+                      .Append(").</div>");
             }
-
 
             // Category totals (prefer GPT merchant->category map)
             sb.Append($"<div class='mb-2'><h6 class='fw-semibold'>By Category — {monthStart:MMM yyyy}</h6>");
@@ -628,9 +632,10 @@ namespace bipj
 
         private sealed class GptHybridOut
         {
-            public Dictionary<string, string> categories { get; set; } // merchant -> category
+            public Dictionary<string, string> categories { get; set; }
             public List<string> advice { get; set; }
-            public bool aiRan { get; set; } // true when GPT succeeded
+            public bool aiRan { get; set; }      // true if GPT succeeded
+            public string aiError { get; set; }  // reason when it didn’t
         }
 
         private sealed class RecurringVm
@@ -650,35 +655,8 @@ namespace bipj
             return string.IsNullOrWhiteSpace(s) ? "UNKNOWN" : s;
         }
 
-        private static readonly Dictionary<string, string> KeywordToCategory =
-    new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-    {
-        { "FAIRPRICE", "Groceries" },
-        { "NTUC", "Groceries" },
-        { "COLD STORAGE", "Groceries" },
-        { "GRAB", "Transport" },
-        { "GOJEK", "Transport" },
-        { "MRT", "Transport" },
-        { "EZLINK", "Transport" },
-        { "STARHUB", "Subscriptions" },
-        { "SINGTEL", "Subscriptions" },
-        { "SPOTIFY", "Subscriptions" },
-        { "NETFLIX", "Subscriptions" },
-        { "AMAZON", "Shopping" },
-        { "LAZADA", "Shopping" },
-        { "SHOPEE", "Shopping" },
-        { "STARBUCKS", "Dining" },
-        { "MCDONALD", "Dining" },
-        { "KOPITIAM", "Dining" },
-        { "DIN TAI FUNG", "Dining" },
-        { "CLINIC", "Health" },
-        { "PHARMACY", "Health" },
-        { "INTEREST", "Fees" },
-        { "FEE", "Fees" }
-    };
-
         private static readonly (Regex rx, string cat)[] CategoryPatterns = new (Regex, string)[]
-            {
+        {
             (new Regex(@"\b(GROCERY|GROCER|SUPERMARKET|FAIRPRICE|COLD STORAGE|NTUC|MARKET)\b", RegexOptions.IgnoreCase), "Groceries"),
             (new Regex(@"\b(COFFEE|CAF[ÉE]|CAFE|TEA|BOBA|STARBUCKS|KOPITIAM|MCDONALD|DIN TAI FUNG)\b", RegexOptions.IgnoreCase), "Dining"),
             (new Regex(@"\b(GRAB|GOJEK|MRT|EZ[- ]?LINK|BUS|TAXI|RIDE[- ]?HAIL)\b", RegexOptions.IgnoreCase), "Transport"),
@@ -687,7 +665,8 @@ namespace bipj
             (new Regex(@"\b(FEE|FEES|CHARGE|INTEREST|ANNUAL|LATE)\b", RegexOptions.IgnoreCase), "Fees"),
             (new Regex(@"\b(CLINIC|PHARMACY|DENTAL)\b", RegexOptions.IgnoreCase), "Health"),
             (new Regex(@"\b(AMAZON|LAZADA|SHOPEE)\b", RegexOptions.IgnoreCase), "Shopping")
-            };
+        };
+
         private static string LocalKeywordCategory(string desc)
         {
             if (string.IsNullOrWhiteSpace(desc)) return "Misc";
@@ -697,9 +676,7 @@ namespace bipj
         }
 
         // --- Aggregations for Analyze UI ---
-        private static Dictionary<string, decimal> AggregateByCategory(
-        List<RowVm> monthRows,
-        Dictionary<string, string> gptMap)
+        private static Dictionary<string, decimal> AggregateByCategory(List<RowVm> monthRows, Dictionary<string, string> gptMap)
         {
             var totals = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
 
@@ -707,7 +684,7 @@ namespace bipj
             {
                 var merch = CanonicalMerchant(r.Description ?? "");
 
-                // 1) Prefer GPT category if present and not Misc/Unknown
+                // GPT-first, ignore Misc/Unknown
                 string cat = null;
                 if (gptMap != null &&
                     gptMap.TryGetValue(merch, out var gptCat) &&
@@ -719,8 +696,7 @@ namespace bipj
                 }
                 else
                 {
-                    // 2) Lightweight local fallback (kept small on purpose)
-                    cat = LocalKeywordCategory(merch); // returns "Misc" if nothing matches
+                    cat = LocalKeywordCategory(merch); // small, regex-based fallback
                 }
 
                 if (!totals.ContainsKey(cat)) totals[cat] = 0m;
@@ -729,7 +705,6 @@ namespace bipj
 
             return totals;
         }
-
 
         private static List<RecurringVm> DetectRecurring(List<RowVm> monthRows, Dictionary<string, string> gptMap)
         {
@@ -746,54 +721,45 @@ namespace bipj
         {
             try
             {
-                var apiKey = ConfigurationManager.AppSettings["OpenAI_API_Key"];
-                if (string.IsNullOrWhiteSpace(apiKey)) return FallbackHybrid(sample);
+                var apiKey = GetOpenAiApiKey();
+                if (string.IsNullOrWhiteSpace(apiKey))
+                    return new GptHybridOut { categories = BuildLocalMap(sample), advice = new List<string>(), aiRan = false, aiError = "Missing OpenAI_API_Key" };
 
                 _httpClient.DefaultRequestHeaders.Clear();
-                _httpClient.DefaultRequestHeaders.Authorization =
-                    new AuthenticationHeaderValue("Bearer", apiKey);
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
 
                 var userContent = JsonConvert.SerializeObject(new { txns = sample });
 
                 var payload = new
                 {
-                    model = "gpt-5",
+                    model = "gpt-4o-mini",
                     response_format = new { type = "json_object" },
                     temperature = 0.1,
                     messages = new object[]
                     {
-                new { role = "system", content =
+                        new { role = "system", content =
 @"You are a precise personal finance classifier and coach.
 
-INPUT: Recent consumer transactions with merchant-like descriptions and signed amounts (+ = expense, - = income).
+OUTPUT JSON ONLY:
+{ ""categories"": { ""<merchant>"": ""<category>"" }, ""advice"": [""...""] }
 
-OUTPUT: ONLY JSON:
-{
-  ""categories"": { ""<merchant>"": ""<category>"" },
-  ""advice"": [""..."", ""...""]
-}
+Categories (choose one): Groceries, Dining, Transport, Shopping, Entertainment, Subscriptions, Utilities, Fees, Health, Education, Rent, Travel, Income, Misc.
 
-CATEGORIES (choose one per merchant): Groceries, Dining, Transport, Shopping, Entertainment, Subscriptions, Utilities, Fees, Health, Education, Rent, Travel, Income, Misc.
-
-CLASSIFICATION RULES
-- Prefer best-fit category; use Misc only if truly unclassifiable.
-- Cafe/coffee/tea/boba terms → Dining.
-- Grocery/supermarket/market terms → Groceries.
-- Telcos/utilities providers → Utilities.
-- Streaming/music services → Subscriptions.
+Classification rules:
+- Grocery/supermarket/market → Groceries.
+- Cafe/coffee/tea/boba → Dining.
+- Telcos/utilities → Utilities.
+- Streaming/music → Subscriptions.
 - Ride-hail/public transport → Transport.
-- Salary/Payroll/Paycheck/Client payment with negative amount → Income.
-- Be consistent across similar merchants.
+- Salary/Payroll/Client payment with negative amount → Income.
+- Prefer best-fit; use Misc only if truly unclassifiable.
 
-ADVICE RULES
-- ALWAYS produce 3–6 concrete, actionable suggestions (never empty).
-- Base tips on patterns you infer (spend spikes, recurring charges, category bias).
-- Blend immediate actions with literacy concepts (e.g., 50/30/20, zero-based budget, sinking funds, emergency fund 3–6 months, automate savings, unit pricing, subscription audits).
-- Make each tip specific and outcome-focused; no clichés; no scolding; avoid product endorsements."
-                },
+Advice rules:
+- Return 3–6 concrete, actionable suggestions tied to the pattern you see (caps, audits, automation, 50/30/20, zero-based budget, sinking funds, emergency fund, unit pricing).
+- Never return an empty advice list." },
 
-                // Few-shot with non-empty advice to prevent empty lists
-                new { role = "user", content =
+                        // Non-empty few-shot to bias advice presence
+                        new { role = "user", content =
 @"Recent transactions JSON:
 { ""txns"": [
   { ""date"": ""2025-06-01"", ""description"": ""GROCERY SHOPPING"", ""amount"": 120.50 },
@@ -801,62 +767,48 @@ ADVICE RULES
   { ""date"": ""2025-06-05"", ""description"": ""COFFEE"", ""amount"": 5.75 },
   { ""date"": ""2025-06-07"", ""description"": ""GRAB"", ""amount"": 12.40 }
 ]}" },
+                        new { role = "assistant", content =
+@"{""categories"":{""GROCERY SHOPPING"":""Groceries"",""SALARY"":""Income"",""COFFEE"":""Dining"",""GRAB"":""Transport""},
+  ""advice"":[""Set a weekly grocery cap and use unit pricing to trim 5–10%."",""Auto-move 20% of income on payday (50/30/20). "",""Batch rides or swap short trips to public transport to cut Transport 20%.""]}" },
 
-                new { role = "assistant", content =
-@"{
-  ""categories"": {
-    ""GROCERY SHOPPING"": ""Groceries"",
-    ""SALARY"": ""Income"",
-    ""COFFEE"": ""Dining"",
-    ""GRAB"": ""Transport""
-  },
-  ""advice"": [
-    ""Set a weekly grocery cap and use a list; compare unit pricing to cut 5–10%."",
-    ""Adopt 50/30/20 this month: auto-transfer 20% of income on payday to savings."",
-    ""Bundle trips or switch short rides to public transport to trim Transport by 20%.""
-  ]
-}" },
-
-                // Your actual data
-                new { role = "user", content = "Recent transactions JSON:\n" + userContent + "\nReturn JSON only." }
+                        // Real data
+                        new { role = "user", content = "Recent transactions JSON:\n" + userContent + "\nReturn JSON only." }
                     }
                 };
 
                 var body = JsonConvert.SerializeObject(payload);
-                var resp = await _httpClient.PostAsync(
-                    "https://api.openai.com/v1/chat/completions",
-                    new StringContent(body, Encoding.UTF8, "application/json")
-                );
-
+                var resp = await _httpClient.PostAsync("https://api.openai.com/v1/chat/completions",
+                                new StringContent(body, Encoding.UTF8, "application/json"));
                 var raw = await resp.Content.ReadAsStringAsync();
+
                 if (!resp.IsSuccessStatusCode)
-                {
-                    System.Diagnostics.Debug.WriteLine($"GPT HTTP {(int)resp.StatusCode}: {raw}");
-                    return FallbackHybrid(sample);
-                }
+                    return new GptHybridOut { categories = BuildLocalMap(sample), advice = new List<string>(), aiRan = false, aiError = $"HTTP {(int)resp.StatusCode} {resp.ReasonPhrase}" };
 
                 var doc = JObject.Parse(raw);
                 var content = doc["choices"]?[0]?["message"]?["content"]?.ToString();
-                if (string.IsNullOrWhiteSpace(content))
-                {
-                    System.Diagnostics.Debug.WriteLine("GPT returned empty content.");
-                    return FallbackHybrid(sample);
-                }
 
-                var parsed = JObject.Parse(content);
+                if (string.IsNullOrWhiteSpace(content))
+                    return new GptHybridOut { categories = BuildLocalMap(sample), advice = new List<string>(), aiRan = false, aiError = "Empty content from model" };
+
+                JObject parsed;
+                try { parsed = JObject.Parse(content); }
+                catch
+                {
+                    return new GptHybridOut { categories = BuildLocalMap(sample), advice = new List<string>(), aiRan = false, aiError = "Bad JSON from model" };
+                }
 
                 var outObj = new GptHybridOut
                 {
                     categories = parsed["categories"]?.ToObject<Dictionary<string, string>>()
-                 ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase),
-                    advice = parsed.TryGetValue("advice", out var adviceToken) && adviceToken is JArray
-                 ? adviceToken.ToObject<List<string>>()
-                 : new List<string>(),
-                    aiRan = true
+                                 ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase),
+                    advice = (parsed.TryGetValue("advice", out var advTok) && advTok is JArray)
+                                ? advTok.ToObject<List<string>>() ?? new List<string>()
+                                : new List<string>(),
+                    aiRan = true,
+                    aiError = null
                 };
 
-
-                // Normalize merchant keys for lookup consistency
+                // normalize merchant keys
                 if (outObj.categories.Count > 0)
                 {
                     outObj.categories = outObj.categories
@@ -864,8 +816,8 @@ ADVICE RULES
                         .ToDictionary(g => g.Key, g => g.Last().Value, StringComparer.OrdinalIgnoreCase);
                 }
 
-                // Guardrail: never allow empty advice if AI ran—re-ask once, strictly
-                if (outObj.aiRan && (outObj.advice == null || outObj.advice.Count == 0))
+                // nudge once if advice empty
+                if (outObj.advice.Count == 0)
                 {
                     var nudgePayload = new
                     {
@@ -874,29 +826,29 @@ ADVICE RULES
                         temperature = 0.1,
                         messages = new object[]
                         {
-                    new { role = "system", content = "Return ONLY JSON with key \"advice\" as a list of 3–6 concrete personal finance suggestions; no other keys." },
-                    new { role = "user", content = "Generate 3–6 specific, actionable suggestions to improve spending habits and financial literacy for the prior dataset. Return JSON only." }
+                            new { role = "system", content = "Return ONLY JSON with key \"advice\" containing 3–6 specific personal finance suggestions tailored to the dataset. No other keys." },
+                            new { role = "user", content = "Generate 3–6 concrete tips (caps, audits, automation, 50/30/20, zero-based budget, sinking funds, emergency fund, unit pricing). Return JSON only." }
                         }
                     };
-                    var nudgeResp = await _httpClient.PostAsync(
-                        "https://api.openai.com/v1/chat/completions",
-                        new StringContent(JsonConvert.SerializeObject(nudgePayload), Encoding.UTF8, "application/json")
-                    );
-                    var nudgeRaw = await nudgeResp.Content.ReadAsStringAsync();
-                    if (nudgeResp.IsSuccessStatusCode)
+                    var nudge = await _httpClient.PostAsync("https://api.openai.com/v1/chat/completions",
+                                    new StringContent(JsonConvert.SerializeObject(nudgePayload), Encoding.UTF8, "application/json"));
+                    var nRaw = await nudge.Content.ReadAsStringAsync();
+                    if (nudge.IsSuccessStatusCode)
                     {
                         try
                         {
-                            var nudgeDoc = JObject.Parse(nudgeRaw);
-                            var nudgeContent = nudgeDoc["choices"]?[0]?["message"]?["content"]?.ToString();
-                            if (!string.IsNullOrWhiteSpace(nudgeContent))
+                            var nDoc = JObject.Parse(nRaw);
+                            var nContent = nDoc["choices"]?[0]?["message"]?["content"]?.ToString();
+                            if (!string.IsNullOrWhiteSpace(nContent))
                             {
-                                var nudgeParsed = JObject.Parse(nudgeContent);
-                                var tips = nudgeParsed["advice"]?.ToObject<List<string>>() ?? new List<string>();
+                                var nParsed = JObject.Parse(nContent);
+                                var tips = (nParsed.TryGetValue("advice", out var tTok) && tTok is JArray)
+                                            ? tTok.ToObject<List<string>>() ?? new List<string>()
+                                            : new List<string>();
                                 if (tips.Count > 0) outObj.advice = tips;
                             }
                         }
-                        catch { /* best-effort */ }
+                        catch { /* ignore */ }
                     }
                 }
 
@@ -904,37 +856,33 @@ ADVICE RULES
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine("GPT call failed: " + ex);
-                return FallbackHybrid(sample);
+                return new GptHybridOut { categories = BuildLocalMap(sample), advice = new List<string>(), aiRan = false, aiError = ex.GetType().Name };
             }
         }
 
-        // --- Fallback if GPT unavailable ---
-        private GptHybridOut FallbackHybrid(List<SimpleTxn> sample)
+        private static string Trim(string s, int max = 300) => string.IsNullOrEmpty(s) ? s : (s.Length <= max ? s : s.Substring(0, max) + "…");
+
+        // local map builder used when AI unavailable
+        private Dictionary<string, string> BuildLocalMap(List<SimpleTxn> sample)
         {
             var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-
-            foreach (var t in sample.Where(t => t.amount > 0)) // expenses only
+            foreach (var t in sample.Where(x => x.amount > 0)) // expenses only
             {
                 var merch = CanonicalMerchant(t.description ?? "");
-                if (!map.ContainsKey(merch))
-                    map[merch] = LocalKeywordCategory(merch);
+                if (!map.ContainsKey(merch)) map[merch] = LocalKeywordCategory(merch);
             }
-
-            // Honest fallback: no suggestions if AI unavailable
-            return new GptHybridOut
-            {
-                categories = map,
-                advice = new List<string>(),
-                aiRan = false
-            };
+            return map;
         }
 
+        // --- Honest fallback (kept for completeness; not used directly now) ---
+        private GptHybridOut FallbackHybrid(List<SimpleTxn> sample)
+        {
+            var map = BuildLocalMap(sample);
+            return new GptHybridOut { categories = map, advice = new List<string>(), aiRan = false, aiError = "Service unavailable" };
+        }
 
         // ============================================================
         // FEATURE: IMPORT / CANCEL
-        // - btnImport_Click
-        // - btnCancel_Click
         // ============================================================
         protected void btnImport_Click(object sender, EventArgs e)
         {
@@ -995,10 +943,8 @@ ADVICE RULES
             pnlAnalysis.Visible = false;
         }
 
-
         // ============================================================
         // FEATURE: RESTART ALL JARS (LITE)
-        // - btnRestartAllJars_Click
         // ============================================================
         protected void btnRestartAllJars_Click(object sender, EventArgs e)
         {
@@ -1027,7 +973,6 @@ ADVICE RULES
                 litDoneMessage.Text = "Failed to reset: " + Server.HtmlEncode(ex.Message);
             }
         }
-
 
         // ============================================================
         // INTERNAL VIEW MODEL (preview/import rows)

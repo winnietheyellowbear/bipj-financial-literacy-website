@@ -1,4 +1,4 @@
-﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Customer_Nav_loggedin.Master" AutoEventWireup="true" CodeBehind="Tools.aspx.cs" Inherits="bipj.Tools" %>
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Customer_Nav_loggedin.Master" AutoEventWireup="true" CodeBehind="Tools.aspx.cs" Inherits="bipj.Tools" Async="true" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
@@ -197,12 +197,24 @@
                             </asp:GridView>
                         </div>
 
-                        <div class="mt-3">
+                        <div class="mt-3 d-flex flex-wrap gap-2">
+                            <asp:Button ID="btnAnalyze" runat="server" Text="Analyze Only" CssClass="btn btn-outline-primary" OnClick="btnAnalyze_Click" />
                             <asp:Button ID="btnImport" runat="server" Text="Import Selected" CssClass="btn btn-success" OnClick="btnImport_Click" />
-                            <asp:Button ID="btnCancel" runat="server" Text="Cancel" CssClass="btn btn-secondary ms-2" CausesValidation="false" OnClick="btnCancel_Click" />
+                            <asp:Button ID="btnCancel" runat="server" Text="Cancel" CssClass="btn btn-secondary" CausesValidation="false" OnClick="btnCancel_Click" />
                         </div>
                     </div>
                 </asp:Panel>
+
+                <!-- Analysis Output -->
+                <asp:Panel ID="pnlAnalysis" runat="server" Visible="false" CssClass="card shadow-sm border-0 mb-3">
+                    <div class="card-header bg-white border-0">
+                        <h3 class="h5 fw-semibold mb-0">Spending Analysis</h3>
+                    </div>
+                    <div class="card-body">
+                        <asp:Literal ID="litAnalysisHtml" runat="server" />
+                    </div>
+                </asp:Panel>
+
             </div>
         </div>
     </div>

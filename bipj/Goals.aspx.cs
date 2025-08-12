@@ -1,8 +1,10 @@
-﻿using System;
+﻿using bipj.Models;
+using System;
+using System.Configuration;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using bipj.Models;
 
 namespace bipj
 {
@@ -93,6 +95,43 @@ namespace bipj
             lblTotalGoals.Text = TotalGoals.ToString();
             lblTotalTarget.Text = $"${TotalTargetAmount:N2}";
             lblTotalSaved.Text = $"${TotalSavedAmount:N2}";
+
+            // --- Redeemed stats (from reporting entries) ---
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString))
+            using (var cmd = new SqlCommand(@"
+            SELECT 
+                COUNT(*)                           AS Cnt,
+                COALESCE(SUM(CASE WHEN Amount < 0 THEN -Amount ELSE 0 END), 0) AS Total
+            FROM JarTransactions
+            WHERE UserId = @User
+              AND TransactionType = 'Expense'
+              AND Category = 'Goal Purchase';", conn))
+            {
+                cmd.Parameters.AddWithValue("@User", _userId);
+                conn.Open();
+                using (var r = cmd.ExecuteReader())
+                {
+                    if (r.Read())
+                    {
+                        var cnt = r.IsDBNull(0) ? 0 : r.GetInt32(0);
+                        var total = r.IsDBNull(1) ? 0m : r.GetDecimal(1);
+
+                        if (cnt > 0)
+                        {
+                            // simple pluralisation
+                            var noun = cnt == 1 ? "goal" : "goals";
+                            lblRedeemedMeta.Text = $"(You have also redeemed <b>{cnt}</b> {noun} worth <b>${total:N2}</b>)";
+                            lblRedeemedMeta.Visible = true;
+                        }
+                        else
+                        {
+                            lblRedeemedMeta.Visible = false;
+                            lblRedeemedMeta.Text = string.Empty;
+                        }
+                    }
+                }
+            }
+
         }
 
 

@@ -57,10 +57,27 @@
                  <div class="card-body">
                     <h5 class="card-title">AI Recommended Policies & Comparison</h5>
                      <hr />
-                    <asp:Literal ID="litPolicyComparison" runat="server"></asp:Literal>
-                     <div class="mt-3 text-end">
-                         <asp:Button ID="btnViewComparison" runat="server" Text="View Full Comparison &rarr;" OnClick="btnViewComparison_Click"
-                             CssClass="btn btn-success" />
+                     <%-- This outer repeater creates the columns --%>
+                     <div class="row row-cols-1 row-cols-md-3 row-cols-lg-5 g-4">
+                         <asp:Repeater ID="rptPolicyCategories" runat="server">
+                             <ItemTemplate>
+                                 <div class="col policy-column">
+                                     <h6 class="text-center fw-bold mb-3"><%# Eval("InsuranceType") %></h6>
+                                     <%-- This nested repeater creates the cards within each column --%>
+                                     <asp:Repeater ID="rptPolicies" runat="server" DataSource='<%# Eval("RecommendedPolicies") %>'>
+                                         <ItemTemplate>
+                                             <div class="card shadow-sm mb-3 policy-card">
+                                                 <div class="card-body">
+                                                     <h6 class="card-title small fw-bold"><%# Eval("PolicyName") %></h6>
+                                                     <p class="card-subtitle mb-2 text-muted small"><%# Eval("Provider") %></p>
+                                                     <p class="card-text small"><%# Eval("Details") %></p>
+                                                 </div>
+                                             </div>
+                                         </ItemTemplate>
+                                     </asp:Repeater>
+                                 </div>
+                             </ItemTemplate>
+                         </asp:Repeater>
                      </div>
                 </div>
             </div>

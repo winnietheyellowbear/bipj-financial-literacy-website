@@ -42,6 +42,15 @@ namespace bipj
         protected global::System.Web.UI.WebControls.Label lblTotalGoals;
 
         /// <summary>
+        /// lblRedeemedMeta control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label lblRedeemedMeta;
+
+        /// <summary>
         /// lblTotalTarget control.
         /// </summary>
         /// <remarks>

@@ -69,22 +69,13 @@ namespace bipj
         protected global::System.Web.UI.WebControls.Repeater rptRecommendations;
 
         /// <summary>
-        /// litPolicyComparison control.
+        /// rptPolicyCategories control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal litPolicyComparison;
-
-        /// <summary>
-        /// btnViewComparison control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnViewComparison;
+        protected global::System.Web.UI.WebControls.Repeater rptPolicyCategories;
 
         /// <summary>
         /// pnlError control.

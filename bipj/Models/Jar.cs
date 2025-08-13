@@ -589,6 +589,30 @@ namespace bipj.Models
             }
             catch { }
         }
+        public int GetOrCreateReportingJarId(int userId, SqlConnection conn, SqlTransaction tx)
+        {
+            // 1) Try to find it
+            using (var find = new SqlCommand(@"
+            SELECT TOP 1 JarId
+            FROM Jars
+            WHERE UserId=@U AND JarName='Reporting (Non-cash)'", conn, tx))
+            {
+                find.Parameters.AddWithValue("@U", userId);
+                var existing = find.ExecuteScalar();
+                if (existing != null && existing != DBNull.Value)
+                    return Convert.ToInt32(existing);
+            }
+
+            // 2) Create it with IsDeleted=1 so it won’t appear in cash views
+            using (var insert = new SqlCommand(@"
+            INSERT INTO Jars (UserId, JarName, Description, Percentage, IsDefault, Position, ColorHex, IsDeleted, CreatedAt)
+            VALUES (@U, 'Reporting (Non-cash)', NULL, 0, 0, 0, '#999999', 1, GETDATE());
+            SELECT SCOPE_IDENTITY();", conn, tx))
+            {
+                insert.Parameters.AddWithValue("@U", userId);
+                return Convert.ToInt32(insert.ExecuteScalar());
+            }
+        }
 
     }
 }

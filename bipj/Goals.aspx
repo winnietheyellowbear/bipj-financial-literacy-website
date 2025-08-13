@@ -126,7 +126,6 @@
                         <asp:ListItem Text="Completed" Value="completed" />
                         <asp:ListItem Text="Overdue" Value="overdue" />
                         <asp:ListItem Text="Ongoing" Value="ongoing" />
-                        <asp:ListItem Text="Archived" Value="archived" />
                     </asp:DropDownList>
                 </div>
 
@@ -152,6 +151,9 @@
                             <h6 class="text-muted">Total Goals</h6>
                             <h4 class="fw-bold">
                                 <asp:Label ID="lblTotalGoals" runat="server" /></h4>
+                            <asp:Label ID="lblRedeemedMeta" runat="server"
+                                CssClass="text-muted small d-block mt-1"
+                                Visible="false" EnableViewState="false" />
                         </div>
                         <div class="bg-white rounded-4 text-center py-2 px-2 shadow-sm flex-fill d-flex flex-column justify-content-center">
                             <h6 class="text-muted">Total Target</h6>
@@ -493,12 +495,13 @@
 
             let warningText = "";
             if (isCompleted) {
+                // When goal is completed
                 warningText = `This action cannot be undone.<br>
-     This goal is already <strong>completed</strong>.<br>
-     Deleting it will <strong>not refund</strong> any saved amount.`;
+                Delete this goal now? We’ll add it to your <strong>Expenses</strong> to reflect the purchase.`;
             } else {
+                // When goal is not completed
                 warningText = `This action cannot be undone.<br>
-     Current money in this goal will be <strong>moved to your default jar:</strong> ${defaultJar}.`;
+                Current money in this goal will be <strong>moved to your default jar:</strong> ${defaultJar}.`;
             }
 
             document.getElementById("goalDeleteWarning").innerHTML = warningText;
@@ -506,6 +509,7 @@
             const modal = new bootstrap.Modal(document.getElementById('deleteGoalConfirmModal'));
             modal.show();
         }
+
         document.addEventListener("DOMContentLoaded", function () {
             document.querySelectorAll(".clickable-card").forEach(function (card) {
                 card.addEventListener("click", function () {

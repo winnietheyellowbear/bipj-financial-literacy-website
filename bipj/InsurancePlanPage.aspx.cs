@@ -69,6 +69,10 @@ namespace bipj
                 // UPDATED REDIRECT: Go to the details/dashboard page
                 Response.Redirect($"InsuranceDashboardPage.aspx?PlanID={planId}");
             }
+            else if (e.CommandName == "Edit")
+            {
+                Response.Redirect($"InsuranceFormPage.aspx?PlanID={planId}");
+            }
             else if (e.CommandName == "Delete")
             {
                 DeletePlan(planId);

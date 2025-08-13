@@ -87,6 +87,15 @@ namespace bipj
         protected global::System.Web.UI.WebControls.GridView gvPreview;
 
         /// <summary>
+        /// btnAnalyze control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnAnalyze;
+
+        /// <summary>
         /// btnImport control.
         /// </summary>
         /// <remarks>
@@ -103,6 +112,24 @@ namespace bipj
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Button btnCancel;
+
+        /// <summary>
+        /// pnlAnalysis control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel pnlAnalysis;
+
+        /// <summary>
+        /// litAnalysisHtml control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Literal litAnalysisHtml;
 
         /// <summary>
         /// btnConfirmRestart control.

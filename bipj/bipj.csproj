@@ -618,6 +618,7 @@
     <Compile Include="OtpConfirmation.aspx.designer.cs">
       <DependentUpon>OtpConfirmation.aspx</DependentUpon>
     </Compile>
+    <Compile Include="PolicyCategory.cs" />
     <Compile Include="Post.aspx.cs">
       <DependentUpon>Post.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -647,6 +648,7 @@
     <Compile Include="QRCodeScanner.aspx.designer.cs">
       <DependentUpon>QRCodeScanner.aspx</DependentUpon>
     </Compile>
+    <Compile Include="RecommendPolicy.cs" />
     <Compile Include="RegisterAdvisor.aspx.cs">
       <DependentUpon>RegisterAdvisor.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>

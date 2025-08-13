@@ -15,6 +15,24 @@ namespace bipj
     {
 
         /// <summary>
+        /// hfOriginalData control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.HiddenField hfOriginalData;
+
+        /// <summary>
+        /// litFormTitle control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Literal litFormTitle;
+
+        /// <summary>
         /// txtPlanName control.
         /// </summary>
         /// <remarks>

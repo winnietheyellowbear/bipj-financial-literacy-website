@@ -1,4 +1,4 @@
-﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Customer_Nav_loggedin.Master" AutoEventWireup="true" CodeBehind="Tools.aspx.cs" Inherits="bipj.Tools" %>
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Customer_Nav_loggedin.Master" AutoEventWireup="true" CodeBehind="Tools.aspx.cs" Inherits="bipj.Tools" Async="true" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
@@ -84,6 +84,36 @@
             .btn-restart:hover {
                 background: rgba(220, 53, 69, 0.1);
             }
+
+        .tooltip-container {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+            .tooltip-container .tooltip-text {
+                visibility: hidden;
+                width: max-content;
+                max-width: 200px;
+                background-color: #333;
+                color: #fff;
+                text-align: center;
+                border-radius: 4px;
+                padding: 5px 8px;
+                position: absolute;
+                z-index: 1;
+                bottom: 125%; /* above the button */
+                left: 50%;
+                transform: translateX(-50%);
+                opacity: 0;
+                transition: opacity 0.3s;
+                white-space: normal;
+            }
+
+            .tooltip-container:hover .tooltip-text {
+                visibility: visible;
+                opacity: 1;
+            }
     </style>
 
 </asp:Content>
@@ -116,37 +146,46 @@
         </div>
 
         <!-- Import card -->
-        <div class="card shadow-sm border-0 mb-3">
-            <div class="card-header bg-white border-0 border-bottom d-flex align-items-center justify-content-between">
-                <h3 class="h5 fw-semibold mb-0">Import Bank Statement</h3>
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white border-0 border-bottom">
+                <div class=" d-flex align-items-center justify-content-between mb-1">
+                    <h3 class="h5 fw-semibold mb-0">Upload & Analyze Transactions</h3>
 
-                <!-- Download Template -->
-                <asp:Panel runat="server" CssClass="mb-0">
-                    <div class="dropdown">
-                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="downloadDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-download me-2"></i>Download Template
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="downloadDropdown">
-                            <li>
-                                <a class="dropdown-item d-flex align-items-center" href="Content/sample_import.xlsx" download>
-                                    <i class="bi bi-file-earmark-spreadsheet me-2"></i>XLSX
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item d-flex align-items-center" href="Content/sample_import.csv" download>
-                                    <i class="bi bi-file-earmark-spreadsheet me-2"></i>CSV
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </asp:Panel>
+                    <!-- Download Template -->
+                    <asp:Panel runat="server" CssClass="mb-0">
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="downloadDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-download me-2"></i>Download Template
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="downloadDropdown">
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center" href="Content/sample_import.xlsx" download>
+                                        <i class="bi bi-file-earmark-spreadsheet me-2"></i>XLSX
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center" href="Content/sample_import.csv" download>
+                                        <i class="bi bi-file-earmark-spreadsheet me-2"></i>CSV
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </asp:Panel>
+                </div>
+
+                <p class="text-muted">
+                    Upload your bank statements or transaction files in PDF, Excel (.xlsx) or CSV format.
+                    <br>
+                    You can then bulk add transactions or analyze your past spending.
+                </p>
             </div>
+
 
             <div class="card-body">
                 <!-- Upload -->
                 <asp:Panel ID="pnlUpload" runat="server" CssClass="d-flex flex-wrap align-items-center gap-2 mb-0">
                     <asp:FileUpload ID="fuStatement" runat="server" CssClass="form-control flex-grow-1" />
-                    <asp:Button ID="btnParse" runat="server" Text="Upload &amp; Preview" CssClass="btn btn-primary" OnClick="btnParse_Click" />
+                    <asp:Button ID="btnParse" runat="server" Text="Upload, Preview & Analyze" CssClass="btn btn-primary" OnClick="btnParse_Click" />
                 </asp:Panel>
 
                 <!-- Done / feedback -->
@@ -175,7 +214,7 @@
 
                         <div class="table-responsive">
                             <asp:GridView ID="gvPreview" runat="server"
-                                CssClass="table table-striped table-hover align-middle mb-0"
+                                CssClass="table table-striped table-hover align-middle"
                                 AutoGenerateColumns="False"
                                 OnRowDataBound="gvPreview_RowDataBound">
                                 <Columns>
@@ -197,12 +236,32 @@
                             </asp:GridView>
                         </div>
 
-                        <div class="mt-3">
-                            <asp:Button ID="btnImport" runat="server" Text="Import Selected" CssClass="btn btn-success" OnClick="btnImport_Click" />
-                            <asp:Button ID="btnCancel" runat="server" Text="Cancel" CssClass="btn btn-secondary ms-2" CausesValidation="false" OnClick="btnCancel_Click" />
+                        <div class="d-flex gap-3 align-items-center">
+                            <div class="tooltip-container">
+                                <asp:Button ID="btnAnalyze" runat="server" Text="Analyze Only" CssClass="btn btn-outline-primary" OnClick="btnAnalyze_Click" />
+                                <div class="tooltip-text">View spending patterns without adding transactions.</div>
+                            </div>
+
+                            <div class="tooltip-container">
+                                <asp:Button ID="btnImport" runat="server" Text="Import Selected" CssClass="btn btn-success" OnClick="btnImport_Click" />
+                                <div class="tooltip-text">Add selected transactions to your jars.</div>
+                            </div>
+
+                            <asp:Button ID="btnCancel" runat="server" Text="Cancel" CssClass="btn btn-secondary" CausesValidation="false" OnClick="btnCancel_Click" />
                         </div>
                     </div>
                 </asp:Panel>
+
+                <!-- Analysis Output -->
+                <asp:Panel ID="pnlAnalysis" runat="server" Visible="false" CssClass="card shadow-sm border-0 mb-3">
+                    <div class="card-header bg-white border-0">
+                        <h3 class="h5 fw-semibold mb-0">Spending Analysis</h3>
+                    </div>
+                    <div class="card-body">
+                        <asp:Literal ID="litAnalysisHtml" runat="server" />
+                    </div>
+                </asp:Panel>
+
             </div>
         </div>
     </div>

@@ -19,6 +19,8 @@ namespace bipj
     {
         private int PlanID => Convert.ToInt32(Request.QueryString["PlanID"]);
 
+        private List<InsuranceRecommendation> _strategyRecommendations;
+
         private static readonly string GeminiApiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=";
 
         protected void Page_Load(object sender, EventArgs e)
@@ -44,26 +46,34 @@ namespace bipj
 
             try
             {
-                // --- ✅ FIXED: Refactored logic to prevent UI state issues ---
-                // First, get the structured JSON data for the cards and chart.
-                string structuredJsonResponse = await GetOrGenerateRecommendationAsync(
+                // --- ✅ FIXED: Run both API calls concurrently and wait for them all to finish ---
+                Task<string> structuredJsonTask = GetOrGenerateRecommendationAsync(
                     GetRecommendationFromCache,
-                    GenerateGeminiJsonResponseAsync, // Pass the method directly
+                    GenerateGeminiJsonResponseAsync,
                     CacheGeneralRecommendation
                 );
 
-                // Process the structured data immediately.
+                string structuredJsonResponse = await structuredJsonTask;
                 ProcessStructuredRecommendations(structuredJsonResponse);
 
-                // Second, get the text-based data for the policy comparison.
-                string textResponse = await GetOrGenerateRecommendationAsync(
+                if (_strategyRecommendations == null || !_strategyRecommendations.Any())
+                {
+                    ShowError("Could not generate policy comparisons because the initial insurance strategy could not be determined.");
+                    return;
+                }
+
+                Task<string> policyComparisonJsonTask = GetOrGenerateRecommendationAsync(
                     GetComparisonFromCache,
-                    (prompt) => GenerateGeminiTextResponseAsync("Based on the following user profile, recommend three real, existing insurance policies from well-known providers in Singapore. Compare them on key features, premiums, and benefits to explain which is the best fit. Format the output in clear sections using markdown.\n\n" + prompt),
+                    (userProfile) => GeneratePolicyRecommendationsJsonResponseAsync(userProfile, _strategyRecommendations),
                     CachePolicyComparison
                 );
 
-                // Update the literal control for the policy comparison.
-                litPolicyComparison.Text = textResponse;
+                // This command waits for both tasks to complete before moving on.
+                await Task.WhenAll(structuredJsonTask, policyComparisonJsonTask);
+
+                // Now that we have all the data, we can safely update the UI.
+                string policyComparisonJsonResponse = await policyComparisonJsonTask;
+                ProcessPolicyRecommendations(policyComparisonJsonResponse);
             }
             catch (Exception ex)
             {
@@ -86,36 +96,96 @@ namespace bipj
 
             try
             {
-                var recommendations = JsonConvert.DeserializeObject<List<InsuranceRecommendation>>(json);
+                _strategyRecommendations = JsonConvert.DeserializeObject<List<InsuranceRecommendation>>(json);
 
-                if (recommendations == null || !recommendations.Any())
+                if (_strategyRecommendations == null || !_strategyRecommendations.Any())
                 {
                     ShowError("The AI returned a response, but it could not be structured into recommendation cards.");
                     return;
                 }
 
-                // Bind the list of recommendation objects to the repeater for the cards
-                rptRecommendations.DataSource = recommendations;
+                rptRecommendations.DataSource = _strategyRecommendations;
                 rptRecommendations.DataBind();
 
-                // Prepare data for the pie chart and budget display
-                var chartData = recommendations.Select(r => new { label = r.Type, value = r.BudgetPercentage }).ToList();
+                var chartData = _strategyRecommendations.Select(r => new { label = r.Type, value = r.BudgetPercentage }).ToList();
                 string chartDataJson = JsonConvert.SerializeObject(chartData);
 
-                // Build the simple number display for the budget
                 var budgetStringBuilder = new StringBuilder();
                 budgetStringBuilder.Append("<p class='text-muted'><strong>Budget Breakdown:</strong> ");
-                budgetStringBuilder.Append(string.Join(" | ", recommendations.Select(r => $"{r.Type}: {r.BudgetPercentage}%")));
+                budgetStringBuilder.Append(string.Join(" | ", _strategyRecommendations.Select(r => $"{r.Type}: {r.BudgetPercentage}%")));
                 budgetStringBuilder.Append("</p>");
                 litBudgetNumbers.Text = budgetStringBuilder.ToString();
 
-                // Call the JavaScript function to draw the chart
                 ScriptManager.RegisterStartupScript(this, this.GetType(), "drawChartScript", $"drawBudgetChart({chartDataJson});", true);
             }
             catch (JsonException jex)
             {
                 ShowError($"Error parsing the AI's JSON response: {jex.Message}. Raw response: <pre>{json}</pre>");
             }
+        }
+
+        private void ProcessPolicyRecommendations(string json)
+        {
+            if (string.IsNullOrEmpty(json) || json.StartsWith("<p"))
+            {
+                ShowError(json);
+                return;
+            }
+
+            try
+            {
+                var policyCategories = JsonConvert.DeserializeObject<List<PolicyCategory>>(json);
+
+                if (policyCategories == null || !policyCategories.Any())
+                {
+                    ShowError("The AI returned a response, but it could not be structured into policy recommendation columns.");
+                    return;
+                }
+
+                rptPolicyCategories.DataSource = policyCategories;
+                rptPolicyCategories.DataBind();
+            }
+            catch (JsonException jex)
+            {
+                ShowError($"Error parsing the AI's JSON response for policy recommendations: {jex.Message}.<br/><br/><strong>Raw AI Response:</strong><pre style='white-space: pre-wrap; word-wrap: break-word;'>{Server.HtmlEncode(json)}</pre>");
+            }
+        }
+
+        private async Task<string> GeneratePolicyRecommendationsJsonResponseAsync(string userProfile, List<InsuranceRecommendation> strategy)
+        {
+            // Dynamically create the list of insurance types from the first API call's results.
+            string insuranceTypes = string.Join(", ", strategy.Select(s => $"'{s.Type}'"));
+
+            string jsonPrompt = $@"
+                Based on the user profile below, and for the following specific insurance types: [{insuranceTypes}], recommend the top 3 real insurance policies available in Singapore for EACH type.
+                Return your response ONLY as a raw JSON array of objects. Do not include any introductory text, backticks, or markdown formatting.
+                Each object in the array represents an insurance category and must have two keys: 'insuranceType' (string) and 'recommendedPolicies' (an array of objects).
+                Each object in the 'recommendedPolicies' array must have these three keys: 'policyName' (string), 'provider' (string), and 'details' (a brief string explaining why it's a good fit).
+
+                Example JSON structure:
+                [
+                  {{
+                    ""insuranceType"": ""Life Insurance"",
+                    ""recommendedPolicies"": [
+                      {{ ""policyName"": ""ManuProtect Term"", ""provider"": ""Manulife"", ""details"": ""Offers high coverage at a competitive premium."" }},
+                      {{ ""policyName"": ""FWD Term Life Plus"", ""provider"": ""FWD"", ""details"": ""Known for its simple application process and digital-first approach."" }},
+                      {{ ""policyName"": ""AXA Term Protector"", ""provider"": ""AXA"", ""details"": ""Provides flexible terms and rider options."" }}
+                    ]
+                  }},
+                  {{
+                    ""insuranceType"": ""Health Insurance"",
+                    ""recommendedPolicies"": [
+                      {{ ""policyName"": ""AIA HealthShield Gold Max"", ""provider"": ""AIA"", ""details"": ""Comprehensive coverage for hospitalization and surgical expenses."" }},
+                      {{ ""policyName"": ""Great Eastern SupremeHealth"", ""provider"": ""Great Eastern"", ""details"": ""One of the most popular Integrated Shield Plans in Singapore."" }},
+                      {{ ""policyName"": ""Prudential PRUShield"", ""provider"": ""Prudential"", ""details"": ""Offers value-added services like a 24/7 medical hotline."" }}
+                    ]
+                  }}
+                ]
+
+                User Profile:
+                {userProfile}
+            ";
+            return await CallGeminiApi(jsonPrompt, isJsonOutput: true);
         }
 
         private async Task<string> GenerateGeminiJsonResponseAsync(string userProfile)
@@ -130,11 +200,6 @@ namespace bipj
                 {userProfile}
             ";
             return await CallGeminiApi(jsonPrompt, isJsonOutput: true);
-        }
-
-        private async Task<string> GenerateGeminiTextResponseAsync(string fullPrompt)
-        {
-            return await CallGeminiApi(fullPrompt, isJsonOutput: false);
         }
 
         // A single, reusable method to call the Gemini API

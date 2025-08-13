@@ -40,9 +40,9 @@ namespace bipj
 
         private async Task LoadRecommendationsAsync()
         {
-            bool isNew = Request.QueryString["new"] == "true";
-            pnlLoading.Visible = isNew;
-            pnlResults.Visible = !isNew;
+            bool forceRefresh = Request.QueryString["new"] == "true" || Request.QueryString["edited"] == "true";
+            pnlLoading.Visible = forceRefresh;
+            pnlResults.Visible = !forceRefresh;
 
             try
             {
@@ -50,7 +50,8 @@ namespace bipj
                 Task<string> structuredJsonTask = GetOrGenerateRecommendationAsync(
                     GetRecommendationFromCache,
                     GenerateGeminiJsonResponseAsync,
-                    CacheGeneralRecommendation
+                    CacheGeneralRecommendation,
+                    forceRefresh
                 );
 
                 string structuredJsonResponse = await structuredJsonTask;
@@ -65,7 +66,8 @@ namespace bipj
                 Task<string> policyComparisonJsonTask = GetOrGenerateRecommendationAsync(
                     GetComparisonFromCache,
                     (userProfile) => GeneratePolicyRecommendationsJsonResponseAsync(userProfile, _strategyRecommendations),
-                    CachePolicyComparison
+                    CachePolicyComparison,
+                    forceRefresh
                 );
 
                 // This command waits for both tasks to complete before moving on.
@@ -241,12 +243,15 @@ namespace bipj
         private delegate Task<string> GenerateContentAsync(string prompt);
         private delegate void CacheContent(int planId, string content);
 
-        private async Task<string> GetOrGenerateRecommendationAsync(Func<int, string> getFromCache, GenerateContentAsync generate, CacheContent cache)
+        private async Task<string> GetOrGenerateRecommendationAsync(Func<int, string> getFromCache, GenerateContentAsync generate, CacheContent cache, bool forceRefresh)
         {
-            string cachedContent = getFromCache(PlanID);
-            if (!string.IsNullOrEmpty(cachedContent))
+            if (!forceRefresh)
             {
-                return cachedContent;
+                string cachedContent = getFromCache(PlanID);
+                if (!string.IsNullOrEmpty(cachedContent))
+                {
+                    return cachedContent;
+                }
             }
 
             string prompt = BuildPromptFromForm();

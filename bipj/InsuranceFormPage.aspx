@@ -7,8 +7,11 @@
             <div class="col-lg-8">
                 <div class="card shadow-lg">
                     <div class="card-body p-5">
+                        <asp:HiddenField ID="hfOriginalData" runat="server" />
                         <div class="text-center mb-4">
-                            <h2 class="card-title h3">Create Your Insurance Profile</h2>
+                            <h2 class="card-title h3">
+                                <asp:Literal ID="litFormTitle" runat="server">Create Your Insurance Profile</asp:Literal>
+                            </h2>
                             <p class="text-muted">
                                 Fill out the details below for a personalized recommendation.
                             </p>

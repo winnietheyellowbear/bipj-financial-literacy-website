@@ -107,7 +107,7 @@
                     alert("Error: " + err);
                 });
 
-            html5QrcodeScanner.clear(); // stop scanner after successful scan
+            html5QrcodeScanner.clear();
         }
 
         let html5QrcodeScanner = new Html5QrcodeScanner(

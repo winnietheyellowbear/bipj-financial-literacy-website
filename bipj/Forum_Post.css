@@ -1,5 +1,4 @@
-﻿/* Button */
-/* Like & Comment Buttons */
+﻿/* Like & Comment Buttons */
 .btn-edit, .btn-delete {
     padding: 8px 14px;
     border: none;
@@ -49,20 +48,20 @@
 
 .forum-actions {
     display: flex;
-    justify-content: space-between; /* Distribute the buttons to the left and right */
-    gap: 10px; /* Space between buttons */
+    justify-content: space-between; 
+    gap: 10px;
     margin-top: 10px;
 }
 
 .like-btn-container {
     display: flex;
-    align-items: center; /* Aligns the Like button vertically */
+    align-items: center;
 }
 
 .edit-delete-btn-container {
     display: flex;
-    gap: 10px; /* Space between Edit and Delete buttons */
-    align-items: center; /* Aligns Edit and Delete buttons vertically */
+    gap: 10px; 
+    align-items: center; 
 }
 
 
@@ -106,16 +105,16 @@
 /* Post Media Container */
 .post-media {
     display: flex;
-    align-items: center; /* Aligns media properly */
-    gap: 15px; /* Adds spacing between items */
+    align-items: center; 
+    gap: 15px; 
     margin-top: 15px;
-    flex-wrap: wrap; /* Ensures responsiveness */
+    flex-wrap: wrap; 
 }
 
 /* Image Styling */
 .forum-post img {
     max-width: 100%;
-    width: 250px; /* Fixed width for consistency */
+    width: 250px; 
     height: auto;
     border-radius: 8px;
     object-fit: cover;
@@ -124,7 +123,7 @@
 /* Video Styling */
 .forum-post video {
     max-width: 100%;
-    width: 350px; /* Slightly larger for better visibility */
+    width: 350px;
     border-radius: 8px;
 }
 
@@ -138,22 +137,22 @@
 
 /* Profile Picture */
 .profile-pic {
-    width: 50px; /* Main post profile picture size */
+    width: 50px;
     height: 50px;
-    border-radius: 50%; /* Makes the image circular */
-    overflow: hidden; /* Hides any overflowing parts */
-    object-fit: cover; /* Ensures the image fills the container */
-    background-color: #ddd; /* Fallback color if image fails to load */
+    border-radius: 50%;
+    overflow: hidden; 
+    object-fit: cover; 
+    background-color: #ddd; 
 }
 
 /* Comment Profile Picture */
 .comment .profile-pic {
-    width: 32px; /* Smaller size for comments */
+    width: 32px;
     height: 32px;
     border-radius: 50%;
     overflow: hidden;
     object-fit: cover;
-    background-color: #ddd; /* Fallback color */
+    background-color: #ddd;
 }
 
 /* Comments Section */
@@ -224,13 +223,13 @@
 .btn-disabled {
     background-color: gray;
     cursor: not-allowed;
-    color: white; /* Optional: To ensure text remains visible */
+    color: white; 
 }
 
 .btn-enabled {
     background-color: #3B387E;
     cursor: pointer;
-    color: white; /* Optional: To ensure text remains visible */
+    color: white; 
 }
 
 

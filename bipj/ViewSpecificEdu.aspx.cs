@@ -9,6 +9,7 @@ namespace bipj
 {
     public partial class ViewSpecificEdu : System.Web.UI.Page
     {
+        protected string TopicForAssistant = "Financial Literacy"; // default fallback
         protected int ModuleId => int.TryParse(Request.QueryString["moduleId"], out int id) ? id : 0;
         protected int PageId => int.TryParse(Request.QueryString["pageId"], out int id) ? id : 0;
 
@@ -41,6 +42,12 @@ namespace bipj
                     pnlNoPageSelected.Visible = true;
                     pnlPageContent.Visible = false;
                 }
+
+            }
+            var moduleIdStr = Request.QueryString["moduleId"];
+            if (int.TryParse(moduleIdStr, out int moduleId))
+            {
+                TopicForAssistant = GetModuleName(moduleId) ?? TopicForAssistant;
             }
         }
 
@@ -213,6 +220,19 @@ ELSE
 
             // Highlight the current page
             if (id == PageId) link.CssClass += " active";
+        }
+        private string GetModuleName(int moduleId)
+        {
+            string connStr = System.Configuration.ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString;
+            using (var conn = new System.Data.SqlClient.SqlConnection(connStr))
+            using (var cmd = new System.Data.SqlClient.SqlCommand(
+                "SELECT Name FROM EducationModules WHERE Id = @Id", conn))
+            {
+                cmd.Parameters.AddWithValue("@Id", moduleId);
+                conn.Open();
+                var obj = cmd.ExecuteScalar();
+                return obj == null ? null : obj.ToString();
+            }
         }
     }
 }

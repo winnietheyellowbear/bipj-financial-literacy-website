@@ -16,7 +16,6 @@ namespace bipj
 {
     public partial class StudyAssistant : System.Web.UI.Page
     {
-        private static readonly string openaiApiKey = ""; // Replace with secure storage in production
 
         [WebMethod]
         public static string GetAIResponse(string question, string topic)

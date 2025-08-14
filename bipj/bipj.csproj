@@ -321,7 +321,7 @@
     <Content Include="ViewEducationPage.aspx" />
     <Content Include="ViewSpecificEdu.aspx" />
     <Content Include="ViewSpecificProfile.aspx" />
-    <Content Include="VoucherActive.aspx" />
+    <Content Include="MyVoucher.aspx" />
     <Content Include="VoucherExchange.aspx" />
     <Content Include="VoucherManagement.aspx" />
     <Content Include="VoucherRedemption.aspx" />
@@ -428,6 +428,13 @@
     </Compile>
     <Compile Include="CreateVoucher.aspx.designer.cs">
       <DependentUpon>CreateVoucher.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Customer_Nav.Master.cs">
+      <DependentUpon>Customer_Nav.Master</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Customer_Nav.Master.designer.cs">
+      <DependentUpon>Customer_Nav.Master</DependentUpon>
     </Compile>
     <Compile Include="Customer_Nav_loggedin.Master.cs">
       <DependentUpon>Customer_Nav_loggedin.Master</DependentUpon>
@@ -764,12 +771,12 @@
     <Compile Include="User_Notification.cs" />
     <Compile Include="User_Post.cs" />
     <Compile Include="User_Voucher.cs" />
-    <Compile Include="VoucherActive.aspx.cs">
-      <DependentUpon>VoucherActive.aspx</DependentUpon>
+    <Compile Include="MyVoucher.aspx.cs">
+      <DependentUpon>MyVoucher.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
-    <Compile Include="VoucherActive.aspx.designer.cs">
-      <DependentUpon>VoucherActive.aspx</DependentUpon>
+    <Compile Include="MyVoucher.aspx.designer.cs">
+      <DependentUpon>MyVoucher.aspx</DependentUpon>
     </Compile>
     <Compile Include="VoucherExchange.aspx.cs">
       <DependentUpon>VoucherExchange.aspx</DependentUpon>
@@ -831,6 +838,7 @@
     <Content Include="Facialmodels\ssd_mobilenetv1_model-weights_manifest.json" />
     <Content Include="Facialmodels\tiny_face_detector_model-shard1" />
     <Content Include="Facialmodels\tiny_face_detector_model-weights_manifest.json" />
+    <Content Include="Customer_Nav.Master" />
     <None Include="packages.config" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>

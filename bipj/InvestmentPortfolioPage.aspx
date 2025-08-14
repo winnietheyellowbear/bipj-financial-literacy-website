@@ -1,4 +1,4 @@
-﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Customer_Nav_loggedin.Master" AutoEventWireup="true" CodeBehind="InvestmentPortfolioPage.aspx.cs" Inherits="bipj.InvestmentPortfolioPage" Async="true" %>
+﻿<%@ Page Title="Portfolio Builder" Language="C#" MasterPageFile="~/Customer_Nav_loggedin.Master" AutoEventWireup="true" CodeBehind="InvestmentPortfolioPage.aspx.cs" Inherits="bipj.InvestmentPortfolioPage" Async="true" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -19,9 +19,7 @@
                 <hr />
             </div>
         </div>
-
         <div class="row">
-            <%-- Left Column: Search, Details, and Chart --%>
             <div class="col-lg-7">
                 <h4><i class="fa fa-search"></i> Find an Asset</h4>
                 <div class="input-group mb-3">
@@ -29,7 +27,6 @@
                     <asp:Button ID="btnSearch" runat="server" Text="Search" OnClick="btnSearch_Click" CssClass="btn btn-primary" />
                 </div>
                 <asp:Label ID="lblSearchStatus" runat="server" ForeColor="Red"></asp:Label>
-
                 <asp:Panel ID="pnlAssetDetails" runat="server" Visible="false" CssClass="card mt-3">
                     <div class="card-body">
                         <h4 class="card-title">
@@ -43,8 +40,6 @@
                             <div class="col-md-6"><span class="asset-detail-label">Asset Type:</span> <asp:Literal ID="litAssetType" runat="server"></asp:Literal></div>
                             <div class="col-md-6"><span class="asset-detail-label">Geography:</span> <asp:Literal ID="litGeography" runat="server"></asp:Literal></div>
                         </div>
-
-                        <%-- Chart Area --%>
                         <div class="mt-4">
                             <canvas id="priceChart"></canvas>
                         </div>
@@ -53,8 +48,6 @@
                             <button type="button" id="btn1y" class="btn btn-sm btn-outline-secondary">1 Year</button>
                             <button type="button" id="btnForecast" class="btn btn-sm btn-outline-primary">Toggle 7-Day Forecast</button>
                         </div>
-
-                        <%-- Add to Portfolio Section --%>
                         <div class="input-group mt-4">
                             <span class="input-group-text">Quantity</span>
                             <asp:TextBox ID="txtQuantity" runat="server" CssClass="form-control" TextMode="Number" step="0.0001" Text="1"></asp:TextBox>
@@ -64,17 +57,16 @@
                     </div>
                 </asp:Panel>
             </div>
-
-            <%-- Right Column: Current Portfolio --%>
             <div class="col-lg-5">
                 <h4><i class="fa fa-briefcase"></i> Current Portfolio</h4>
-                <asp:GridView ID="gvPortfolioAssets" runat="server" AutoGenerateColumns="false" CssClass="table table-hover portfolio-grid" GridLines="None">
+                <asp:GridView ID="gvPortfolioAssets" runat="server" AutoGenerateColumns="false" CssClass="table table-hover portfolio-grid" GridLines="None" OnRowDeleting="gvPortfolioAssets_RowDeleting">
                     <Columns>
                         <asp:BoundField DataField="Symbol" HeaderText="Symbol" />
                         <asp:BoundField DataField="AssetName" HeaderText="Name" />
                         <asp:BoundField DataField="Quantity" HeaderText="Quantity" DataFormatString="{0:N4}" />
                         <asp:BoundField DataField="PurchasedPrice" HeaderText="Purchase Price" DataFormatString="{0:C}" />
                         <asp:BoundField DataField="PurchasedAt" HeaderText="Date Added" DataFormatString="{0:g}" />
+                        <asp:CommandField ShowDeleteButton="true" DeleteText="Remove" ControlStyle-CssClass="btn btn-danger btn-sm" />
                     </Columns>
                     <EmptyDataTemplate>
                         <div class="alert alert-info">This portfolio is empty. Use the search tool to add assets.</div>
@@ -86,10 +78,10 @@
             </div>
         </div>
     </div>
-
-    <%-- Hidden field to store the currently searched symbol for JavaScript --%>
     <asp:HiddenField ID="hfCurrentSymbol" runat="server" />
 </asp:Content>
+
+<%-- ✅ FIX 1: The entire JavaScript block has been moved to the 'scripts' ContentPlaceHolder. --%>
 <asp:Content ID="Content3" ContentPlaceHolderID="scripts" runat="server">
     <script type="text/javascript">
         // Global chart variable
@@ -98,17 +90,21 @@
 
         // Function to call C# WebMethod and get chart data
         function loadChartData(symbol, timePeriod, includeForecast) {
-            PageMethods.GetChartData(symbol, timePeriod, includeForecast, function (response) {
+            // The PageMethods object will now exist because this script loads after the ScriptManager's scripts.
+            PageMethods.GetChartData(symbol, timePeriod, includeForecast, function (responseString) {
+                // We need to parse the JSON string that comes back from the server
+                const response = JSON.parse(responseString);
                 renderChart(response);
             }, function (error) {
                 console.error("Error loading chart data: " + error.responseText);
+                alert('Could not load chart data. Please check the console for errors.');
             });
         }
 
         // Function to render the chart using Chart.js
         function renderChart(data) {
             const ctx = document.getElementById('priceChart').getContext('2d');
-            
+
             if (priceChart) {
                 priceChart.destroy(); // Clear previous chart instance
             }
@@ -161,10 +157,9 @@
                 }
             });
         }
-        
+
         // Event Listeners for buttons
         document.addEventListener('DOMContentLoaded', function () {
-            // These event listeners will be active after a postback as well
             const btn30d = document.getElementById('btn30d');
             const btn1y = document.getElementById('btn1y');
             const btnForecast = document.getElementById('btnForecast');
@@ -190,7 +185,6 @@
                 btnForecast.addEventListener('click', function () {
                     if (symbolField.value) {
                         showForecast = !showForecast; // Toggle the state
-                        // Reload the chart with the last used time period
                         loadChartData(symbolField.value, '30d', showForecast);
                     }
                 });
@@ -200,10 +194,9 @@
         // This function is called from C# to initialize the chart after a search
         function initializeChart(symbol) {
              const symbolField = document.getElementById('<%= hfCurrentSymbol.ClientID %>');
-             symbolField.value = symbol;
-             showForecast = false; // Reset forecast view on new search
-             loadChartData(symbol, '30d', false);
+            symbolField.value = symbol;
+            showForecast = false; // Reset forecast view on new search
+            loadChartData(symbol, '30d', false);
         }
-
     </script>
 </asp:Content>

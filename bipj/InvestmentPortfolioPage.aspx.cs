@@ -36,7 +36,7 @@ namespace bipj
                 if (int.TryParse(Request.QueryString["id"], out int portfolioId))
                 {
                     PortfolioID = portfolioId;
-                    LoadPortfolioData();
+                    RegisterAsyncTask(new PageAsyncTask(LoadPortfolioDataAsync));
                 }
                 else
                 {
@@ -45,36 +45,44 @@ namespace bipj
             }
         }
 
-        private void LoadPortfolioData()
+        // ✅ FIXED: Restructured to use a single connection and removed the non-existent 'CloseAsync' call.
+        private async Task LoadPortfolioDataAsync()
         {
             using (SqlConnection con = new SqlConnection(DbConstr))
             {
+                await con.OpenAsync();
+
                 // Get Portfolio Name
                 string nameQuery = "SELECT PortfolioName FROM Portfolios WHERE PortfolioID = @PortfolioID";
-                SqlCommand nameCmd = new SqlCommand(nameQuery, con);
-                nameCmd.Parameters.AddWithValue("@PortfolioID", PortfolioID);
-                con.Open();
-                object result = nameCmd.ExecuteScalar();
-                if (result != null)
+                using (SqlCommand nameCmd = new SqlCommand(nameQuery, con))
                 {
-                    lblPortfolioName.Text = result.ToString();
+                    nameCmd.Parameters.AddWithValue("@PortfolioID", PortfolioID);
+                    object result = await nameCmd.ExecuteScalarAsync();
+                    if (result != null)
+                    {
+                        lblPortfolioName.Text = result.ToString();
+                    }
                 }
-                con.Close();
 
-                // Get Assets in Portfolio
+                // Get Assets in Portfolio (reusing the same open connection)
                 string assetsQuery = @"
-                    SELECT a.Symbol, a.AssetName, pa.Quantity, pa.PurchasedPrice, pa.PurchasedAt
+                    SELECT pa.PortfolioAssetID, a.Symbol, a.AssetName, pa.Quantity, pa.PurchasedPrice, pa.PurchasedAt
                     FROM PortfolioAssets pa
                     JOIN Assets a ON pa.AssetID = a.AssetID
                     WHERE pa.PortfolioID = @PortfolioID
                     ORDER BY pa.PurchasedAt DESC";
-                SqlDataAdapter sda = new SqlDataAdapter(assetsQuery, con);
-                sda.SelectCommand.Parameters.AddWithValue("@PortfolioID", PortfolioID);
-                DataTable dt = new DataTable();
-                sda.Fill(dt);
-                gvPortfolioAssets.DataSource = dt;
-                gvPortfolioAssets.DataBind();
-            }
+
+                using (SqlDataAdapter sda = new SqlDataAdapter(assetsQuery, con))
+                {
+                    sda.SelectCommand.Parameters.AddWithValue("@PortfolioID", PortfolioID);
+                    DataTable dt = new DataTable();
+                    sda.Fill(dt);
+
+                    gvPortfolioAssets.DataKeyNames = new string[] { "PortfolioAssetID" };
+                    gvPortfolioAssets.DataSource = dt;
+                    gvPortfolioAssets.DataBind();
+                }
+            } // The connection is automatically closed here by the 'using' statement.
         }
 
         protected async void btnSearch_Click(object sender, EventArgs e)
@@ -101,26 +109,27 @@ namespace bipj
                     litAssetType.Text = asset.AssetType;
                     litGeography.Text = asset.Geography;
                     hfCurrentSymbol.Value = asset.Symbol;
+                    ViewState["CurrentAsset"] = asset;
 
-                    // Use ScriptManager to call the JS function to initialize the chart
                     ScriptManager.RegisterStartupScript(this, this.GetType(), "initChart", $"initializeChart('{asset.Symbol}');", true);
                 }
                 else
                 {
                     pnlAssetDetails.Visible = false;
                     lblSearchStatus.Text = "Asset not found or API error.";
+                    ViewState["CurrentAsset"] = null;
                 }
             }
             catch (Exception ex)
             {
                 pnlAssetDetails.Visible = false;
                 lblSearchStatus.Text = "An error occurred: " + ex.Message;
+                ViewState["CurrentAsset"] = null;
             }
         }
 
         private async Task<AssetData> GetAssetData(string symbol)
         {
-            // 1. Check Cache
             using (var con = new SqlConnection(DbConstr))
             {
                 string query = "SELECT AssetID, AssetName, Symbol, AssetType, Description, Sector, Geography, LastApiUpdate FROM Assets WHERE Symbol = @Symbol";
@@ -128,10 +137,9 @@ namespace bipj
                 cmd.Parameters.AddWithValue("@Symbol", symbol);
                 await con.OpenAsync();
                 var reader = await cmd.ExecuteReaderAsync();
-                if (reader.Read())
+                if (await reader.ReadAsync())
                 {
                     var lastUpdate = reader["LastApiUpdate"] as DateTime?;
-                    // Use cache if updated within the last 4 hours
                     if (lastUpdate.HasValue && lastUpdate > DateTime.UtcNow.AddHours(-4))
                     {
                         var asset = new AssetData
@@ -144,7 +152,6 @@ namespace bipj
                             Sector = reader["Sector"].ToString(),
                             Geography = reader["Geography"].ToString(),
                         };
-                        // Still need to fetch the real-time price
                         string priceUrl = $"https://api.twelvedata.com/quote?symbol={symbol}&apikey={ApiKey}";
                         var priceResponse = await client.GetStringAsync(priceUrl);
                         var priceData = JsonConvert.DeserializeObject<QuoteResponse>(priceResponse);
@@ -154,7 +161,6 @@ namespace bipj
                 }
             }
 
-            // 2. Not in cache or stale, call API
             string profileUrl = $"https://api.twelvedata.com/profile?symbol={symbol}&apikey={ApiKey}";
             string quoteUrl = $"https://api.twelvedata.com/quote?symbol={symbol}&apikey={ApiKey}";
 
@@ -165,7 +171,7 @@ namespace bipj
             var profile = JsonConvert.DeserializeObject<ProfileResponse>(await profileTask);
             var quote = JsonConvert.DeserializeObject<QuoteResponse>(await quoteTask);
 
-            if (profile == null || quote == null) return null;
+            if (profile == null || quote == null || string.IsNullOrEmpty(profile.Name)) return null;
 
             var newAsset = new AssetData
             {
@@ -178,7 +184,6 @@ namespace bipj
                 CurrentPrice = quote.Close
             };
 
-            // 3. Update Cache
             using (var con = new SqlConnection(DbConstr))
             {
                 string upsertQuery = @"
@@ -207,45 +212,37 @@ namespace bipj
             return newAsset;
         }
 
+
         [WebMethod]
         public static string GetChartData(string symbol, string timePeriod, bool includeForecast)
         {
-            // Fetch historical data (from cache or API)
             List<HistoricalPrice> prices = GetHistoricalPrices(symbol).Result;
-
             var chartData = new ChartData();
             var pricesToChart = new List<HistoricalPrice>();
-
-            // Filter data based on time period
             DateTime startDate = timePeriod == "1y" ? DateTime.Today.AddYears(-1) : DateTime.Today.AddDays(-30);
             pricesToChart = prices.Where(p => p.Date >= startDate).OrderBy(p => p.Date).ToList();
 
             chartData.Labels = pricesToChart.Select(p => p.Date.ToString("MMM dd")).ToList();
             chartData.HistoricalPrices = pricesToChart.Select(p => p.Price).ToList();
 
-            if (includeForecast)
+            if (includeForecast && pricesToChart.Any())
             {
-                // Calculate forecast and add to the chart data
                 var forecast = CalculateForecast(pricesToChart, 7);
-                // Pad historical data with nulls so forecast starts where history ends
                 int historyCount = chartData.HistoricalPrices.Count;
                 chartData.ForecastPrices = new List<decimal?>();
                 for (int i = 0; i < historyCount - 1; i++)
                 {
                     chartData.ForecastPrices.Add(null);
                 }
-                // Add the last historical price as the starting point for the forecast line
                 chartData.ForecastPrices.Add(chartData.HistoricalPrices.LastOrDefault());
                 chartData.ForecastPrices.AddRange(forecast.Select(p => (decimal?)p.Price));
 
-                // Add future dates to labels
                 DateTime lastDate = pricesToChart.Last().Date;
                 for (int i = 1; i <= 7; i++)
                 {
                     chartData.Labels.Add(lastDate.AddDays(i).ToString("MMM dd"));
                 }
             }
-
             return new JavaScriptSerializer().Serialize(chartData);
         }
 
@@ -256,87 +253,87 @@ namespace bipj
 
             using (var con = new SqlConnection(DbConstr))
             {
-                // Get AssetID and check if we need to fetch new data
-                string assetQuery = "SELECT AssetID FROM Assets WHERE Symbol = @Symbol";
-                var assetCmd = new SqlCommand(assetQuery, con);
-                assetCmd.Parameters.AddWithValue("@Symbol", symbol);
                 await con.OpenAsync();
-                object assetIdResult = await assetCmd.ExecuteScalarAsync();
-
-                if (assetIdResult == null) return prices; // Should not happen if search was done first
-                assetId = (int)assetIdResult;
-
-                // Check for most recent price date in cache
-                string latestDateQuery = "SELECT MAX(PriceDate) FROM AssetPriceHistory WHERE AssetID = @AssetID";
-                var dateCmd = new SqlCommand(latestDateQuery, con);
-                dateCmd.Parameters.AddWithValue("@AssetID", assetId);
-                object lastDateResult = await dateCmd.ExecuteScalarAsync();
-
-                // Fetch from API if cache is empty or stale (more than a day old)
-                if (lastDateResult == DBNull.Value || ((DateTime)lastDateResult) < DateTime.Today.AddDays(-1))
+                string assetQuery = "SELECT AssetID FROM Assets WHERE Symbol = @Symbol";
+                using (var assetCmd = new SqlCommand(assetQuery, con))
                 {
-                    string url = $"https://api.twelvedata.com/time_series?symbol={symbol}&interval=1day&outputsize=365&apikey={ApiKey}";
-                    var response = await client.GetStringAsync(url);
-                    var apiData = JsonConvert.DeserializeObject<TimeSeriesResponse>(response);
+                    assetCmd.Parameters.AddWithValue("@Symbol", symbol);
+                    object assetIdResult = await assetCmd.ExecuteScalarAsync();
 
-                    if (apiData?.Values != null)
+                    if (assetIdResult == null) return prices;
+                    assetId = (int)assetIdResult;
+                }
+
+                string latestDateQuery = "SELECT MAX(PriceDate) FROM AssetPriceHistory WHERE AssetID = @AssetID";
+                using (var dateCmd = new SqlCommand(latestDateQuery, con))
+                {
+                    dateCmd.Parameters.AddWithValue("@AssetID", assetId);
+                    object lastDateResult = await dateCmd.ExecuteScalarAsync();
+
+                    if (lastDateResult == DBNull.Value || ((DateTime)lastDateResult) < DateTime.Today.AddDays(-1))
                     {
-                        var mergeQuery = @"
-                            MERGE AssetPriceHistory AS target
-                            USING (SELECT @AssetID AS AssetID, @PriceDate AS PriceDate) AS source
-                            ON (target.AssetID = source.AssetID AND target.PriceDate = source.PriceDate)
-                            WHEN NOT MATCHED THEN
-                                INSERT (AssetID, PriceDate, ClosePrice) VALUES (@AssetID, @PriceDate, @ClosePrice);";
+                        string url = $"https://api.twelvedata.com/time_series?symbol={symbol}&interval=1day&outputsize=365&apikey={ApiKey}";
+                        var response = await client.GetStringAsync(url);
+                        var apiData = JsonConvert.DeserializeObject<TimeSeriesResponse>(response);
 
-                        foreach (var value in apiData.Values)
+                        if (apiData?.Values != null)
                         {
-                            var mergeCmd = new SqlCommand(mergeQuery, con);
-                            mergeCmd.Parameters.AddWithValue("@AssetID", assetId);
-                            mergeCmd.Parameters.AddWithValue("@PriceDate", value.Datetime);
-                            mergeCmd.Parameters.AddWithValue("@ClosePrice", value.Close);
-                            await mergeCmd.ExecuteNonQueryAsync();
+                            var mergeQuery = @"
+                                MERGE AssetPriceHistory AS target
+                                USING (SELECT @AssetID AS AssetID, @PriceDate AS PriceDate) AS source
+                                ON (target.AssetID = source.AssetID AND target.PriceDate = source.PriceDate)
+                                WHEN NOT MATCHED THEN
+                                    INSERT (AssetID, PriceDate, ClosePrice) VALUES (@AssetID, @PriceDate, @ClosePrice);";
+
+                            foreach (var value in apiData.Values)
+                            {
+                                using (var mergeCmd = new SqlCommand(mergeQuery, con))
+                                {
+                                    mergeCmd.Parameters.AddWithValue("@AssetID", assetId);
+                                    mergeCmd.Parameters.AddWithValue("@PriceDate", value.Datetime);
+                                    mergeCmd.Parameters.AddWithValue("@ClosePrice", value.Close);
+                                    await mergeCmd.ExecuteNonQueryAsync();
+                                }
+                            }
                         }
                     }
                 }
 
-                // Read all cached prices
                 string selectQuery = "SELECT PriceDate, ClosePrice FROM AssetPriceHistory WHERE AssetID = @AssetID ORDER BY PriceDate";
-                var selectCmd = new SqlCommand(selectQuery, con);
-                selectCmd.Parameters.AddWithValue("@AssetID", assetId);
-                using (var reader = await selectCmd.ExecuteReaderAsync())
+                using (var selectCmd = new SqlCommand(selectQuery, con))
                 {
-                    while (await reader.ReadAsync())
+                    selectCmd.Parameters.AddWithValue("@AssetID", assetId);
+                    using (var reader = await selectCmd.ExecuteReaderAsync())
                     {
-                        prices.Add(new HistoricalPrice { Date = (DateTime)reader["PriceDate"], Price = (decimal)reader["ClosePrice"] });
+                        while (await reader.ReadAsync())
+                        {
+                            prices.Add(new HistoricalPrice { Date = (DateTime)reader["PriceDate"], Price = (decimal)reader["ClosePrice"] });
+                        }
                     }
                 }
             }
             return prices;
         }
 
-        // This is a simplified but realistic forecasting model
         private static List<HistoricalPrice> CalculateForecast(List<HistoricalPrice> historicalData, int daysToForecast)
         {
             var forecast = new List<HistoricalPrice>();
-            if (historicalData.Count < 20) return forecast; // Need enough data for a meaningful trend
+            if (historicalData.Count < 20) return forecast;
 
-            // ✅ FIX 1: Replaced TakeLast(20) with a more compatible method.
             var recentPrices = historicalData.Skip(Math.Max(0, historicalData.Count - 20)).Select(p => p.Price).ToList();
-            decimal alpha = 2.0m / (recentPrices.Count + 1); // Smoothing factor
+            decimal alpha = 2.0m / (recentPrices.Count + 1);
             decimal ema = recentPrices[0];
             for (int i = 1; i < recentPrices.Count; i++)
             {
                 ema = (recentPrices[i] * alpha) + (ema * (1 - alpha));
             }
             decimal lastPrice = historicalData.Last().Price;
-
-            // ✅ FIX 2: Added parentheses to Average() to execute the method.
-            decimal dailyTrend = (ema - recentPrices.Average()) / recentPrices.Count; // Simple trend direction
+            decimal dailyTrend = (ema - recentPrices.Average()) / recentPrices.Count;
 
             DateTime lastDate = historicalData.Last().Date;
             for (int i = 1; i <= daysToForecast; i++)
             {
-                lastPrice += dailyTrend; // Project next price based on trend
+                lastPrice += dailyTrend;
                 forecast.Add(new HistoricalPrice { Date = lastDate.AddDays(i), Price = lastPrice });
             }
             return forecast;
@@ -350,13 +347,11 @@ namespace bipj
                 return;
             }
 
-            try
-            {
-                // We need AssetId, CurrentPrice, and PortfolioID
-                string symbol = hfCurrentSymbol.Value;
-                var assetData = await GetAssetData(symbol); // Re-fetch to ensure we have ID and latest price
+            var assetData = ViewState["CurrentAsset"] as AssetData;
 
-                if (assetData != null)
+            if (assetData != null)
+            {
+                try
                 {
                     using (var con = new SqlConnection(DbConstr))
                     {
@@ -377,13 +372,33 @@ namespace bipj
                     }
                     lblAddStatus.Text = "";
                     txtQuantity.Text = "1";
-                    LoadPortfolioData(); // Refresh the grid view
+                    await LoadPortfolioDataAsync();
+                }
+                catch (Exception ex)
+                {
+                    lblAddStatus.Text = "Error adding asset: " + ex.Message;
                 }
             }
-            catch (Exception ex)
+            else
             {
-                lblAddStatus.Text = "Error adding asset: " + ex.Message;
+                lblAddStatus.Text = "Could not add asset. Please search for an asset again.";
             }
+        }
+
+        protected async void gvPortfolioAssets_RowDeleting(object sender, GridViewDeleteEventArgs e)
+        {
+            int portfolioAssetId = Convert.ToInt32(gvPortfolioAssets.DataKeys[e.RowIndex].Value);
+
+            using (var con = new SqlConnection(DbConstr))
+            {
+                string query = "DELETE FROM PortfolioAssets WHERE PortfolioAssetID = @PortfolioAssetID";
+                var cmd = new SqlCommand(query, con);
+                cmd.Parameters.AddWithValue("@PortfolioAssetID", portfolioAssetId);
+                await con.OpenAsync();
+                await cmd.ExecuteNonQueryAsync();
+            }
+
+            await LoadPortfolioDataAsync();
         }
 
         protected void btnGoToDashboard_Click(object sender, EventArgs e)
@@ -392,6 +407,7 @@ namespace bipj
         }
 
         #region Helper Classes
+        [Serializable]
         public class AssetData
         {
             public int AssetId { get; set; }
@@ -404,20 +420,21 @@ namespace bipj
             public decimal CurrentPrice { get; set; }
         }
 
+        [Serializable]
         public class ChartData
         {
             public List<string> Labels { get; set; }
             public List<decimal> HistoricalPrices { get; set; }
-            public List<decimal?> ForecastPrices { get; set; } // Nullable for gaps in data series
+            public List<decimal?> ForecastPrices { get; set; }
         }
 
+        [Serializable]
         public class HistoricalPrice
         {
             public DateTime Date { get; set; }
             public decimal Price { get; set; }
         }
 
-        // Classes for deserializing TwelveData API responses
         public class ProfileResponse
         {
             public string Name { get; set; }

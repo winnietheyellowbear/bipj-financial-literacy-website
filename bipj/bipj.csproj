@@ -429,6 +429,13 @@
     <Compile Include="CreateVoucher.aspx.designer.cs">
       <DependentUpon>CreateVoucher.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Customer_Nav.Master.cs">
+      <DependentUpon>Customer_Nav.Master</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Customer_Nav.Master.designer.cs">
+      <DependentUpon>Customer_Nav.Master</DependentUpon>
+    </Compile>
     <Compile Include="Customer_Nav_loggedin.Master.cs">
       <DependentUpon>Customer_Nav_loggedin.Master</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -831,6 +838,7 @@
     <Content Include="Facialmodels\ssd_mobilenetv1_model-weights_manifest.json" />
     <Content Include="Facialmodels\tiny_face_detector_model-shard1" />
     <Content Include="Facialmodels\tiny_face_detector_model-weights_manifest.json" />
+    <Content Include="Customer_Nav.Master" />
     <None Include="packages.config" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>

@@ -58,7 +58,7 @@ namespace bipj
         {
             if (Session["UserId"] == null)
             {
-                Response.Redirect("Login.aspx");
+                Response.Redirect("LoginPage.aspx");
                 return;
             }
             _userId = Convert.ToInt32(Session["UserId"]);

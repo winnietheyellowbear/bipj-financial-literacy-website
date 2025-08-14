@@ -470,17 +470,19 @@
 
     <!-- Move Funds Modal -->
     <div class="modal fade" id="moveFundsModal" tabindex="-1" aria-labelledby="moveFundsLabel" aria-hidden="true">
-        <asp:HiddenField ID="hdnCurrentJarBalance" runat="server" />
-        <asp:HiddenField ID="hdnCurrentJarId" runat="server" />
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
+                <!-- keep hidden fields INSIDE modal-content (or inside the panel) -->
+                <asp:HiddenField ID="hdnCurrentJarBalance" runat="server" />
+                <asp:HiddenField ID="hdnCurrentJarId" runat="server" />
+
                 <div class="modal-header">
                     <h5 class="modal-title" id="moveFundsLabel">Move Funds</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
+
                 <div class="modal-body">
                     <asp:Panel ID="panelMoveFunds" runat="server" DefaultButton="btnMoveFunds">
-
                         <div class="mb-3">
                             <label class="form-label">To Jar <span class="text-danger">*</span></label>
                             <asp:DropDownList ID="ddlTargetJar" runat="server" CssClass="form-select" AppendDataBoundItems="true">
@@ -492,7 +494,9 @@
                             <label class="form-label">Amount <span class="text-danger">*</span></label>
                             <asp:TextBox ID="txtMoveAmount" runat="server" CssClass="form-control" TextMode="Number" />
                         </div>
-                        <asp:Button ID="btnMoveFunds" runat="server" Text="Confirm Move" CssClass="btn btn-primary w-100"
+
+                        <asp:Button ID="btnMoveFunds" runat="server" Text="Confirm Move"
+                            CssClass="btn btn-primary w-100"
                             OnClick="btnMoveFunds_Click"
                             UseSubmitBehavior="true"
                             OnClientClick="return validateAndSwapModal();" />
@@ -867,7 +871,6 @@
 
                 // If you have hoistToBody() from earlier, use it (prevents stacking-context issues)
                 if (typeof hoistToBody === 'function') {
-                    hoistToBody(moveEl);
                     hoistToBody(insuffEl);
                 }
 
@@ -969,8 +972,8 @@
                         return false; // cancel postback
                     }
 
-                    if (btnEl) btnEl.disabled = true; // prevent double submit
-                    return true; // allow postback -> server will execute transfer
+                    if (btnEl) setTimeout(() => { btnEl.disabled = true; }, 0);
+                    return true;
                 };
             })();
         });

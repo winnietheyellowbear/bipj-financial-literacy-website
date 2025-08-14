@@ -1,8 +1,9 @@
-﻿using System;
+﻿using bipj.Data;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data.SqlClient;
-using bipj.Data;
+using System.Linq;
 
 namespace bipj.Models
 {
@@ -427,11 +428,12 @@ namespace bipj.Models
 
             const string sql = @"
             SELECT JarId,
-                   SUM(CASE
-                         WHEN TransactionType = 'Income'  THEN Amount
-                         WHEN TransactionType = 'Expense' THEN -Amount
-                         ELSE 0
-                       END) AS Balance
+                   SUM(
+                     CASE
+                       WHEN TransactionType = 'Expense' THEN -Amount
+                       ELSE Amount            -- Income + Transfer (+ any NULL) counted as stored
+                     END
+                   ) AS Balance
             FROM JarTransactions
             WHERE UserId = @UserId
               AND [Date] >= @From AND [Date] <= @To
@@ -536,25 +538,39 @@ namespace bipj.Models
             }
         }
 
-        public string GetNextAvailableColor(int userId)
+        public string GetNextAvailableColor(int userId, int? excludeJarId = null)
         {
-            var usedColors = Db.Query(
-                "SELECT ColorHex FROM Jars WHERE UserId=@UserId",
-                p => p.AddWithValue("@UserId", userId),
-                r => r["ColorHex"].ToString().ToLower());
+            // Get only active jars’ colors; ignore nulls/empties; normalize
+            var used = Db.Query(
+                    @"SELECT ColorHex 
+              FROM Jars 
+              WHERE UserId=@UserId 
+                AND (IsDeleted = 0 OR IsDeleted IS NULL)"
+                      + (excludeJarId.HasValue ? " AND JarId <> @Exclude" : ""),
+                    p =>
+                    {
+                        p.AddWithValue("@UserId", userId);
+                        if (excludeJarId.HasValue) p.AddWithValue("@Exclude", excludeJarId.Value);
+                    },
+                    r => (r["ColorHex"] as string) ?? string.Empty)
+                .Select(c => c.Trim().ToLowerInvariant())
+                .Where(c => !string.IsNullOrEmpty(c))
+                .Distinct()
+                .ToHashSet();
 
             string[] defaultColors =
             {
-                "#c8b6ff", "#a5d8ff", "#ff94c2", "#66a6ff", "#7f00ff", "#ff00b8",
-                "#ffc75f", "#f9f871", "#00c9a7", "#ff6f61", "#ff9671", "#c34a36"
-            };
+        "#c8b6ff", "#a5d8ff", "#ff94c2", "#66a6ff", "#7f00ff", "#ff00b8",
+        "#ffc75f", "#f9f871", "#00c9a7", "#ff6f61", "#ff9671", "#c34a36"
+    };
 
-            foreach (var color in defaultColors)
-            {
-                if (!usedColors.Contains(color.ToLower())) return color;
-            }
+            foreach (var c in defaultColors)
+                if (!used.Contains(c)) return c;
+
+            // all palette colors taken → fall back (or generate)
             return "#cccccc";
         }
+
 
         private static Jar MapJar(SqlDataReader reader)
         {

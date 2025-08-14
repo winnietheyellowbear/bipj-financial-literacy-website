@@ -364,22 +364,23 @@ namespace bipj.Models
                 : 0m;
         }
 
-
         public List<Jar> GetJarsByUser(int userId, bool includeDeleted = false)
         {
-            // pull balances from transactions
-            var balances = GetJarBalances(userId);
+            return GetJarsByUser(userId, DateTime.MinValue, DateTime.MaxValue, includeDeleted);
+        }
+
+        public List<Jar> GetJarsByUser(int userId, DateTime from, DateTime to, bool includeDeleted = false)
+        {
+            // pull balances from transactions in range
+            var balances = GetJarBalances(userId, from, to);
             var jars = new List<Jar>();
 
-            // if includeDeleted==true, ignore the IsDeleted filter
             string sql = includeDeleted
-            ? @"
-            SELECT JarId, JarName, Percentage, ColorHex, IsDefault
+                ? @"SELECT JarId, JarName, Percentage, ColorHex, IsDefault
             FROM Jars
             WHERE UserId = @UserId
             ORDER BY Position"
-            : @"
-            SELECT JarId, JarName, Percentage, ColorHex, IsDefault
+                : @"SELECT JarId, JarName, Percentage, ColorHex, IsDefault
             FROM Jars
             WHERE UserId = @UserId
             AND IsDeleted = 0
@@ -410,6 +411,52 @@ namespace bipj.Models
 
             return jars;
         }
+
+        private Dictionary<int, decimal> GetJarBalances(int userId, DateTime from, DateTime to)
+        {
+            // Wrap into nullable so SqlDate.Clamp works
+            DateTime? f = from;
+            DateTime? t = to;
+
+            SqlDate.Clamp(ref f, ref t);
+
+            from = f ?? from;
+            to = t ?? to;
+
+            var dict = new Dictionary<int, decimal>();
+
+            const string sql = @"
+            SELECT JarId,
+                   SUM(CASE
+                         WHEN TransactionType = 'Income'  THEN Amount
+                         WHEN TransactionType = 'Expense' THEN -Amount
+                         ELSE 0
+                       END) AS Balance
+            FROM JarTransactions
+            WHERE UserId = @UserId
+              AND [Date] >= @From AND [Date] <= @To
+            GROUP BY JarId;";
+
+            using (var conn = new SqlConnection(_connStr))
+            using (var cmd = new SqlCommand(sql, conn))
+            {
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@From", from);
+                cmd.Parameters.AddWithValue("@To", to);
+
+                conn.Open();
+                using (var rdr = cmd.ExecuteReader())
+                {
+                    while (rdr.Read())
+                    {
+                        dict[rdr.GetInt32(0)] = rdr.IsDBNull(1) ? 0m : rdr.GetDecimal(1);
+                    }
+                }
+            }
+
+            return dict;
+        }
+
 
         public Jar GetJarById(int jarId, int userId)
         {

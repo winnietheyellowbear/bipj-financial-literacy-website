@@ -228,7 +228,7 @@ namespace bipj.Models
                             {
                                 p.AddWithValue("@U", UserId);
                                 p.AddWithValue("@ToJar", defaultJarId);
-                                p.AddWithValue("@Note", "Transfer from Deleted Jar (auto)");
+                                p.AddWithValue("@Note", $"Transfer from Deleted Jar ({JarName})");
                                 p.AddWithValue("@Amt", bal);
                                 p.AddWithValue("@Dt", now);
                             });
@@ -612,6 +612,55 @@ namespace bipj.Models
                 insert.Parameters.AddWithValue("@U", userId);
                 return Convert.ToInt32(insert.ExecuteScalar());
             }
+        }
+        public decimal GetBalanceAsOf(int userId, int jarId, DateTime toExclusive, bool excludeTransfers = true)
+        {
+            var cap = toExclusive.Date.AddDays(1); // exclusive upper bound; safe against time-of-day issues
+
+            using (var conn = new SqlConnection(_connStr))
+            using (var cmd = new SqlCommand(@"
+        SELECT ISNULL(SUM(Amount), 0)
+        FROM JarTransactions
+        WHERE UserID=@U
+          AND JarId=@J
+          AND [Date] < @ToExclusive
+          " + (excludeTransfers ? "AND (TransactionType <> 'Transfer' OR TransactionType IS NULL)" : "") + @"
+    ", conn))
+            {
+                cmd.Parameters.AddWithValue("@U", userId);
+                cmd.Parameters.AddWithValue("@J", jarId);
+                cmd.Parameters.AddWithValue("@ToExclusive", cap);
+                conn.Open();
+                var val = cmd.ExecuteScalar();
+                return (val == DBNull.Value) ? 0m : Convert.ToDecimal(val);
+            }
+        }
+
+        public Dictionary<int, decimal> GetJarBalancesAsOf(int userId, DateTime toExclusive, bool excludeTransfers = true)
+        {
+            var cap = toExclusive.Date.AddDays(1);
+            var balances = new Dictionary<int, decimal>();
+
+            using (var conn = new SqlConnection(_connStr))
+            using (var cmd = new SqlCommand(@"
+        SELECT JarId, ISNULL(SUM(Amount),0) AS Balance
+        FROM JarTransactions
+        WHERE UserID=@U
+          AND [Date] < @ToExclusive
+          " + (excludeTransfers ? "AND (TransactionType <> 'Transfer' OR TransactionType IS NULL)" : "") + @"
+        GROUP BY JarId
+    ", conn))
+            {
+                cmd.Parameters.AddWithValue("@U", userId);
+                cmd.Parameters.AddWithValue("@ToExclusive", cap);
+                conn.Open();
+                using (var rdr = cmd.ExecuteReader())
+                {
+                    while (rdr.Read())
+                        balances[rdr.GetInt32(0)] = rdr.GetDecimal(1);
+                }
+            }
+            return balances;
         }
 
     }

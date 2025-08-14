@@ -109,25 +109,14 @@ namespace bipj
             var txnMgr = new JarTransaction();
             var jars = new Jar().GetJarsByUser(_userId, includeDeleted: true);
 
+            // Month-only P&L from jars; exclude transfers
             foreach (var jar in jars)
             {
                 income += txnMgr.GetTransactionSumByType(_userId, jar.JarId, "Income", from, to, includeTransfers: false);
                 expense += txnMgr.GetTransactionSumByType(_userId, jar.JarId, "Expense", from, to, includeTransfers: false);
             }
 
-            // include ALL goal inflows (top-ups + transfers)
-            var goalTxn = new GoalTransaction();
-            income += goalTxn.GetSumAllInflows(_userId, from, to);
-
-            // balance = jars + goals
-            var liveJars = new Jar().GetJarsByUser(_userId);
-            var jarSvc = new Jar();
-            decimal jarsBalance = liveJars.Sum(j => jarSvc.GetCurrentBalance(_userId, j.JarId));
-
-            var allGoals = new Goal().GetGoalsByUser(_userId, DateTime.MinValue, DateTime.MaxValue, includeArchived: true);
-            decimal goalsBalance = allGoals.Sum(g => g.SavedAmount);
-
-            decimal balance = jarsBalance + goalsBalance;
+            decimal balance = income - expense;
 
             lblIncome.Text = income.ToString("C2");
             lblExpense.Text = expense.ToString("C2");
@@ -136,18 +125,13 @@ namespace bipj
 
         private void LoadJarTotal()
         {
-            var (_, to) = GetRange();
-
-            var jars = new Jar().GetJarsByUser(_userId);
-            var txnMgr = new JarTransaction();
+            var (_, toExclusive) = GetRange();
+            var jarSvc = new Jar();
+            var jars = jarSvc.GetJarsByUser(_userId);
 
             decimal total = 0m;
             foreach (var jar in jars)
-            {
-                decimal net = txnMgr.GetTransactionSum(_userId, jar.JarId, null, to);
-                decimal currentBalance = new Jar().GetCurrentBalance(_userId, jar.JarId);
-                total += currentBalance;
-            }
+                total += jarSvc.GetBalanceAsOf(_userId, jar.JarId, toExclusive, excludeTransfers: true);
 
             lblJarTotal.Text = total.ToString("C2");
         }

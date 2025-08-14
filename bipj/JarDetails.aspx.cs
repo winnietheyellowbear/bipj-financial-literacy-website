@@ -35,9 +35,9 @@ namespace bipj
                 LoadJarSummary();
                 LoadTransactions();
                 UpdateSelectedDateLabel();
+                LoadTargetJarDropdown();
             }
 
-            LoadTargetJarDropdown();
         }
 
         protected void btnPeriodChange_Click(object sender, EventArgs e)
@@ -85,6 +85,8 @@ namespace bipj
 
             LoadJarSummary();
             LoadTransactions();
+
+            Response.Redirect(Request.RawUrl);
         }
 
         protected void btnUpdateTxn_Click(object sender, EventArgs e)
@@ -104,6 +106,8 @@ namespace bipj
 
             LoadJarSummary();
             LoadTransactions();
+
+            Response.Redirect(Request.RawUrl);
         }
 
         protected void btnConfirmTxnDelete_Click(object sender, EventArgs e)
@@ -116,6 +120,9 @@ namespace bipj
             txn.DeleteTransaction();
             LoadJarSummary();
             LoadTransactions();
+
+            Response.Redirect(Request.RawUrl);
+
         }
 
         protected void btnMoveFunds_Click(object sender, EventArgs e)

@@ -183,7 +183,7 @@
     <!-- Main Content -->
     <div class="mainpage-content" style="height: calc(100vh - 66px); overflow: hidden">
         <!-- Header Row -->
-        <header class="d-flex justify-content-between align-items-center px-4 py-2 mb-2" style="position: sticky; top: 0;">
+        <header class="d-flex justify-content-between align-items-center px-4 py-2 mb-2" style="position: sticky; top: 0; z-index: 100;">
             <h1 class="fw-bold mb-0">OVERALL DASHBOARD</h1>
             <div class="d-flex align-items-center gap-3 col-auto">
                 <div class="custom-dropdown" id="customDropdown">
@@ -236,8 +236,9 @@
         <div class="content" style="height: calc(100vh - 155px); overflow-y: auto; overflow-x: hidden; position: relative;">
             <!-- TOTAL BALANCE Section -->
             <section class="p-4 mb-3 d-flex flex-column" style="background: linear-gradient(90deg, #dfe4ff, #f4f2fd); border-radius: 16px; min-height: 200px;">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h3 class="fw-bold mb-0">TOTAL BALANCE</h3>
+                <div class="d-flex align-items-baseline mb-3">
+                    <h3 class="fw-bold mb-0 me-2">Period Summary</h3>
+                    <small class="text-muted fst-italic">(for selected period only)</small>
                 </div>
                 <div class="d-flex gap-4 align-items-stretch flex-grow-1">
                     <!-- Expense Card -->
@@ -280,42 +281,64 @@
                         </a>
                     </div>
                     <div class="d-flex align-items-center">
-                        <img src="images/piggy-icon.png" alt="Jars" style="height: 60px;" class="me-3" />
+                        <div class="me-3">
+                            <img src="images/piggy-icon.png" alt="Jars" style="height: 50px;">
+                        </div>
                         <div>
-                            <h6 class="mb-1">Total Money (All Jars)</h6>
-                            <asp:Label ID="lblJarTotal" runat="server" CssClass="fw-bold fs-5 text-dark" Text="$0" />
+                            <div class="fw-semibold">Total Money in All Jars</div>
+                            <small class="text-muted fst-italic">(up to selected period)</small>
+                            <div class="fw-bold fs-4 text-dark mt-1">
+                                <asp:Label ID="lblJarTotal" runat="server" Text="$0" />
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- GOALS -->
                 <div class="flex-fill border p-4 rounded shadow-sm bg-white position-relative">
-                    <h3 class="fw-bold mb-3">MY GOALS</h3>
+                    <!-- Title row (baseline aligned) -->
+                    <div class="d-flex align-items-baseline mb-3">
+                        <h3 class="fw-bold mb-0 me-2">MY GOALS</h3>
+                        <small class="text-muted">(up to selected period)</small>
+                    </div>
+
                     <asp:Panel ID="pnlOngoingGoals" runat="server">
+                        <!-- Counts (keep your wording, tighten emphasis) -->
                         <p class="mb-2">
-                            <strong>
-                                <asp:Label ID="lblOngoingCount" runat="server" /></strong> Ongoing,
-            <strong>
-                <asp:Label ID="lblCompletedCount" runat="server" /></strong> Completed
+                            <strong class="me-1">
+                                <asp:Label ID="lblOngoingCount" runat="server" />
+                            </strong>
+                            Ongoing,
+      <strong class="mx-1">
+          <asp:Label ID="lblCompletedCount" runat="server" />
+      </strong>
+                            Completed
                         </p>
+
+                        <!-- Progress + Amount -->
                         <div class="d-flex align-items-center gap-3">
                             <div class="d-flex align-items-center gap-2">
-                                <canvas id="goalProgressRing" width="30" height="30" style="display: block;"></canvas>
-                                <span class="fw-semibold" style="font-size: 14px;">
-                                    <asp:Label ID="lblOverallPercent" runat="server" />%
-                                    Done
+                                <canvas id="goalProgressRing" width="28" height="28" class="d-block"></canvas>
+                                <span class="fw-semibold small">
+                                    <asp:Label ID="lblOverallPercent" runat="server" />% Done
                                 </span>
                             </div>
+
                             <span class="text-muted">|</span>
+
                             <div class="d-flex align-items-center gap-2">
-                                <img src="images/piggy-icon.png" style="height: 30px;" />
-                                <span class="fw-semibold" style="font-size: 14px;">
+                                <img src="images/piggy-icon.png" alt="Savings" height="22" class="opacity-75">
+                                <span class="fw-bold fs-5 text-dark">
                                     <asp:Label ID="lblSavedVsTarget" runat="server" />
                                 </span>
                             </div>
                         </div>
                     </asp:Panel>
-                    <asp:Label ID="lblNoOngoingGoals" runat="server" CssClass="text-muted" Visible="false" Text="No ongoing goals…" />
+
+                    <asp:Label ID="lblNoOngoingGoals" runat="server"
+                        CssClass="text-muted fst-italic"
+                        Visible="false"
+                        Text="No ongoing goals…" />
                 </div>
             </div>
 

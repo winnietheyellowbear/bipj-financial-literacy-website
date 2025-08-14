@@ -24,103 +24,76 @@ namespace bipj
         protected global::System.Web.UI.WebControls.Label lblPortfolioName;
 
         /// <summary>
-        /// txtAssetSymbol control.
+        /// btnGoToDashboard control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox txtAssetSymbol;
+        protected global::System.Web.UI.WebControls.Button btnGoToDashboard;
 
         /// <summary>
-        /// btnSearch control.
+        /// txtSymbol control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnSearch;
+        protected global::System.Web.UI.WebControls.TextBox txtSymbol;
 
         /// <summary>
-        /// lblSearchStatus control.
+        /// btnGetPrice control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblSearchStatus;
+        protected global::System.Web.UI.WebControls.Button btnGetPrice;
 
         /// <summary>
-        /// pnlAssetDetails control.
+        /// lblPrice control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Panel pnlAssetDetails;
+        protected global::System.Web.UI.WebControls.Label lblPrice;
 
         /// <summary>
-        /// litAssetName control.
+        /// lblAssetDescription control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal litAssetName;
+        protected global::System.Web.UI.WebControls.Label lblAssetDescription;
 
         /// <summary>
-        /// litAssetSymbol control.
+        /// btnViewMonth control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal litAssetSymbol;
+        protected global::System.Web.UI.WebControls.Button btnViewMonth;
 
         /// <summary>
-        /// litAssetDescription control.
+        /// btnViewYear control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal litAssetDescription;
+        protected global::System.Web.UI.WebControls.Button btnViewYear;
 
         /// <summary>
-        /// litCurrentPrice control.
+        /// btnForecast control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal litCurrentPrice;
-
-        /// <summary>
-        /// litSector control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal litSector;
-
-        /// <summary>
-        /// litAssetType control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal litAssetType;
-
-        /// <summary>
-        /// litGeography control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal litGeography;
+        protected global::System.Web.UI.WebControls.Button btnForecast;
 
         /// <summary>
         /// txtQuantity control.
@@ -141,13 +114,13 @@ namespace bipj
         protected global::System.Web.UI.WebControls.Button btnAddAsset;
 
         /// <summary>
-        /// lblAddStatus control.
+        /// litMessage control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblAddStatus;
+        protected global::System.Web.UI.WebControls.Literal litMessage;
 
         /// <summary>
         /// gvPortfolioAssets control.
@@ -159,21 +132,48 @@ namespace bipj
         protected global::System.Web.UI.WebControls.GridView gvPortfolioAssets;
 
         /// <summary>
-        /// btnGoToDashboard control.
+        /// hfPriceLabels control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnGoToDashboard;
+        protected global::System.Web.UI.WebControls.HiddenField hfPriceLabels;
 
         /// <summary>
-        /// hfCurrentSymbol control.
+        /// hfPriceData control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.HiddenField hfCurrentSymbol;
+        protected global::System.Web.UI.WebControls.HiddenField hfPriceData;
+
+        /// <summary>
+        /// hfForecastData control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.HiddenField hfForecastData;
+
+        /// <summary>
+        /// hfForecastUpper control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.HiddenField hfForecastUpper;
+
+        /// <summary>
+        /// hfForecastLower control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.HiddenField hfForecastLower;
     }
 }

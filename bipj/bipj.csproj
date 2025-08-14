@@ -618,6 +618,7 @@
     <Compile Include="OtpConfirmation.aspx.designer.cs">
       <DependentUpon>OtpConfirmation.aspx</DependentUpon>
     </Compile>
+    <Compile Include="PolicyAnalysis.cs" />
     <Compile Include="PolicyCategory.cs" />
     <Compile Include="Post.aspx.cs">
       <DependentUpon>Post.aspx</DependentUpon>

@@ -8,6 +8,8 @@
             <h1 class="h3 mb-0">
                 <asp:Literal ID="litPlanName" runat="server">Plan Dashboard</asp:Literal>
             </h1>
+            <asp:Button ID="btnViewComparison" runat="server" Text="View Detailed Analysis" OnClick="btnViewComparison_Click"
+                    CssClass="btn btn-info me-2" />
             <asp:Button ID="btnBackToPlans" runat="server" Text="&larr; Back to All Plans" OnClick="btnBackToPlans_Click"
                 CssClass="btn btn-outline-secondary" />
         </div>

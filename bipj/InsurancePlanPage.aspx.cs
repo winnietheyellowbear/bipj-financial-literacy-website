@@ -73,6 +73,10 @@ namespace bipj
             {
                 Response.Redirect($"InsuranceFormPage.aspx?PlanID={planId}");
             }
+            else if (e.CommandName == "Compare")
+            {
+                Response.Redirect($"InsuranceComparisonPage.aspx?PlanID={planId}");
+            }
             else if (e.CommandName == "Delete")
             {
                 DeletePlan(planId);

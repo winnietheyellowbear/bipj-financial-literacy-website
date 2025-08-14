@@ -1,6 +1,6 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Staff_Nav.Master" AutoEventWireup="true" CodeBehind="UpdateVoucher.aspx.cs" Inherits="bipj.UpdateVoucher" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
-        <style>
+<style>
     .form-container {
         max-width: 600px;
         margin: 20px auto;
@@ -90,16 +90,13 @@
     .back-button:hover {
         background-color: #59569E;
     }
-  
-  
-
 </style>
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
-    <br />
+  <br />
   <asp:LinkButton class="back-button" OnClick="btn_back_Click" runat="server">
     <img src="<%= ResolveUrl("~/Images/back_icon.png") %>" alt="Back" style="width: 20px; height: 20px"/> voucher
-</asp:LinkButton>
+  </asp:LinkButton>
  
     <div class="form-container">
     <h5>Create Voucher</h5>

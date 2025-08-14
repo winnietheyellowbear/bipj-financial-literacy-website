@@ -13,17 +13,18 @@
 
     <style>
         .content-wrapper {
-                display: flex;
-                align-items: flex-start;
-            }
+            display: flex;
+            align-items: flex-start;
+        }
 
-            .main-content {
-                flex: 1;
-                background-color: #f8f9fa;
-                border-radius: 10px;
-                margin-left: 20px;
-                max-width: 1000px;
-            }
+        .main-content {
+            flex: 1;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            margin-left: 20px;
+            max-width: 1000px;
+        }
+
         .search-container {
             max-width: 800px;
             background-color: white;

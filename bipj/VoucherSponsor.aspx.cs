@@ -11,7 +11,6 @@ namespace bipj
     {
         Sponsor_Voucher sponsor_voucher = new Sponsor_Voucher();
         public List<Sponsor_Voucher> sponsor_list = new List<Sponsor_Voucher>();
-
         protected void Page_Load(object sender, EventArgs e)
         {
             sponsor_voucher.RetrieveSponsorVoucherEmails();

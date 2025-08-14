@@ -142,7 +142,7 @@
 
         .action-button-wrapper {
             position: absolute;
-            bottom: 80px;
+            bottom: 30px;
             right: 20px;
             z-index: 100;
         }

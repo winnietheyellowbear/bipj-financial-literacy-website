@@ -33,6 +33,42 @@ namespace bipj
         protected global::System.Web.UI.WebControls.DropDownList ddlGoalSort;
 
         /// <summary>
+        /// lblTotalGoals control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label lblTotalGoals;
+
+        /// <summary>
+        /// lblRedeemedMeta control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label lblRedeemedMeta;
+
+        /// <summary>
+        /// lblTotalTarget control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label lblTotalTarget;
+
+        /// <summary>
+        /// lblTotalSaved control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label lblTotalSaved;
+
+        /// <summary>
         /// rptGoals control.
         /// </summary>
         /// <remarks>

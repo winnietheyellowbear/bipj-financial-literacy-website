@@ -71,7 +71,7 @@ namespace badpjProject
                 float[] storedDescriptor = JsonConvert.DeserializeObject<float[]>(storedDescriptorJson);
                 float[] newDescriptor = JsonConvert.DeserializeObject<float[]>(descriptorJson);
                 float distance = EuclideanDistance(newDescriptor, storedDescriptor);
-                float threshold = 0.6f;
+                float threshold = 0.4f;
 
                 if (distance < threshold)
                 {

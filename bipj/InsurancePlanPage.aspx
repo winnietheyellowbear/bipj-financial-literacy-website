@@ -27,6 +27,8 @@
                             <div class="mt-auto text-end">
                                  <asp:Button ID="btnViewPlan" runat="server" Text="View Details" CommandName="View" CommandArgument='<%# Eval("PlanID") %>'
                                      CssClass="btn btn-success btn-sm me-2" />
+                                <asp:Button ID="btnEditPlan" runat="server" Text="Edit" CommandName="Edit" CommandArgument='<%# Eval("PlanID") %>'
+                                     CssClass="btn btn-secondary btn-sm me-2" />
                                  <asp:Button ID="btnDeletePlan" runat="server" Text="Delete" CommandName="Delete" CommandArgument='<%# Eval("PlanID") %>'
                                      OnClientClick="return confirm('Are you sure you want to delete this plan?');"
                                      CssClass="btn btn-danger btn-sm" />

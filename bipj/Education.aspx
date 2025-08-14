@@ -92,20 +92,51 @@
             Recent Activities
             <asp:Button runat="server" ID="btnViewAllRecent" CssClass="show-all-btn" Text="View all" OnClick="btnViewAllRecent_Click" Style="margin-left:16px;" />
         </div>
-        <div class="activity-row">
-            <img src="notfound.png" class="not-found-img" alt="Not Found" />
-            <span class="activity-msg">Oops seems you haven't started on any topics yet</span>
-            <asp:Button runat="server" ID="btnSeeTopics" CssClass="see-btn" Text="See topics" OnClick="btnShowAllTopics_Click" />
+        <asp:Repeater ID="rptRecentModules" runat="server">
+    <ItemTemplate>
+        <div class="topic-card">
+            <img src='<%# Eval("ImageUrl") %>' alt='<%# Eval("Name") %>' class="topic-img" />
+            <div class="topic-title"><%# Eval("Name") %></div>
+            <div class="topic-desc"><%# Eval("BriefDescription") %></div>
+            <div class="topic-status-row">
+                <a class="details-btn" href='ViewSpecificEdu.aspx?moduleId=<%# Eval("Id") %>'>Continue</a>
+            </div>
         </div>
+    </ItemTemplate>
+</asp:Repeater>
+        <asp:Panel ID="pnlNoRecent" runat="server" Visible="false" CssClass="activity-row">
+    <img src="notfound.png" class="not-found-img" alt="Not Found" />
+    <span class="activity-msg">Oops! Looks like you haven't started any modules yet.</span>
+</asp:Panel>
     </div>
 
-    <!-- Completed topics -->
-    <div class="section completed-section">
-        <div class="section-title">
-            Completed topics
-            <asp:Button runat="server" ID="btnViewAllCompleted" CssClass="show-all-btn" Text="View all" OnClick="btnViewAllCompleted_Click" Style="margin-left:16px;" />
-        </div>
-        <img src="notfound.png" class="not-found-img" alt="Not Found" />
+   <!-- Completed topics -->
+<div class="section completed-section">
+    <div class="section-title">
+        Completed topics
+        <asp:Button runat="server" ID="btnViewAllCompleted" CssClass="show-all-btn" Text="View all" OnClick="btnViewAllCompleted_Click" Style="margin-left:16px;" />
     </div>
+
+    <asp:Repeater ID="rptCompletedModules" runat="server">
+        <ItemTemplate>
+            <div class="topic-card">
+                <img src='<%# Eval("ImageUrl") %>' alt='<%# Eval("Name") %>' class="topic-img" />
+                <div class="topic-content">
+                    <div class="topic-title"><%# Eval("Name") %></div>
+                    <div class="topic-desc"><%# Eval("BriefDescription") %></div>
+                    <a href='ViewSpecificEdu.aspx?moduleId=<%# Eval("Id") %>' class="details-btn">Review</a>
+                </div>
+            </div>
+        </ItemTemplate>
+    </asp:Repeater>
+
+    <asp:Panel ID="pnlNoCompleted" runat="server" Visible="false">
+        <div class="activity-row">
+            <img src="notfound.png" class="not-found-img" alt="Not Found" />
+            <span class="activity-msg">Oops! Looks like you haven't completed any modules yet.</span>
+        </div>
+    </asp:Panel>
+</div>
+
 
 </asp:Content>

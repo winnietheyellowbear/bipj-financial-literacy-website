@@ -81,29 +81,46 @@ namespace bipj
             {
                 try
                 {
-                    string extension = Path.GetExtension(fileProfileImage.FileName).ToLower();
-                    if (extension != ".jpg" && extension != ".jpeg" && extension != ".png" && extension != ".gif")
+                    string extension = Path.GetExtension(fileProfileImage.FileName);
+                    if (string.IsNullOrEmpty(extension)) extension = "";
+                    extension = extension.ToLowerInvariant();
+
+                    string[] allowed = { ".jpg", ".jpeg", ".png", ".gif" };
+                    if (Array.IndexOf(allowed, extension) < 0)
                     {
-                        lblError.Text = "Please upload an image file (jpg, png, gif).";
+                        lblError.Text = "Please upload a JPG, PNG or GIF image.";
                         lblError.Visible = true;
                         return;
                     }
-                    string fileName = "profile_" + CurrentUserId + extension;
-                    string folder = Server.MapPath("~/Profileuploads");
-                    if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
-                    string filePath = Path.Combine(folder, fileName);
-                    fileProfileImage.SaveAs(filePath);
-                    // Save path for DB (relative to site root)
-                    profilePicPath = "/Profileuploads/" + fileName;
 
+                    // Optional size check (see section 2)
+                    int maxBytes = 2 * 1024 * 1024; // 2 MB
+                    if (fileProfileImage.PostedFile.ContentLength > maxBytes)
+                    {
+                        lblError.Text = "Image too large. Max 2 MB.";
+                        lblError.Visible = true;
+                        return;
+                    }
+
+                    string folder = Server.MapPath("~/Profileuploads/");
+                    if (!Directory.Exists(folder))
+                        Directory.CreateDirectory(folder);
+
+                    // unique filename to prevent cache issues
+                    string uniqueName = $"profile_{CurrentUserId}_{Guid.NewGuid():N}{extension}";
+                    string filePath = Path.Combine(folder, uniqueName);
+                    fileProfileImage.SaveAs(filePath);
+
+                    profilePicPath = "/Profileuploads/" + uniqueName;
                 }
                 catch (Exception ex)
                 {
-                    lblError.Text = "Image upload failed: " + ex.Message;
+                    lblError.Text = "Image upload failed. " + ex.Message;
                     lblError.Visible = true;
                     return;
                 }
             }
+
 
             // Update user in DB
             string connStr = ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString;

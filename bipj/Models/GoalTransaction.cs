@@ -50,12 +50,15 @@ namespace bipj.Models
 
         public bool InsertGoalTransaction(int goalId, int userId, string name, decimal amount, DateTime date, string sourceType, int? sourceJarId, string goalName)
         {
-            sourceType = (sourceType ?? "").ToLower();
-            if (sourceType != "jar" && sourceType != "topup") throw new ArgumentException("sourceType must be 'jar' or 'topup'.");
+            sourceType = (sourceType ?? "").ToLowerInvariant();
+            if (sourceType != "jar" && sourceType != "topup")
+                throw new ArgumentException("sourceType must be 'jar' or 'topup'.");
 
+            // enforce bound jar if goal has one
             int? enforcedJarId = null;
             using (var conn = new SqlConnection(_connStr))
-            using (var cmd = new SqlCommand("SELECT JarID FROM Goals WHERE GoalID=@GoalId AND UserID=@UserId", conn))
+            using (var cmd = new SqlCommand(
+                "SELECT JarId FROM Goals WHERE GoalId=@GoalId AND UserId=@UserId", conn))
             {
                 cmd.Parameters.AddWithValue("@GoalId", goalId);
                 cmd.Parameters.AddWithValue("@UserId", userId);
@@ -63,8 +66,8 @@ namespace bipj.Models
                 var res = cmd.ExecuteScalar();
                 if (res != null && res != DBNull.Value) enforcedJarId = Convert.ToInt32(res);
             }
-
-            if (enforcedJarId.HasValue && sourceType == "jar" && (!sourceJarId.HasValue || sourceJarId.Value != enforcedJarId.Value))
+            if (enforcedJarId.HasValue && sourceType == "jar" &&
+                (!sourceJarId.HasValue || sourceJarId.Value != enforcedJarId.Value))
                 throw new InvalidOperationException("Source jar must match the jar assigned to the goal.");
 
             using (var conn = new SqlConnection(_connStr))
@@ -74,10 +77,12 @@ namespace bipj.Models
                 {
                     try
                     {
+                        // 1) record the goal-side transaction
                         const string insertGoalTxn = @"
-INSERT INTO GoalTransactions
-(UserID, GoalID, SourceJarID, Amount, SourceType, Name, Date, CreatedAt)
-VALUES (@UserId, @GoalId, @SourceJarId, @Amount, @SourceType, @Name, @Date, GETDATE())";
+                        INSERT INTO GoalTransactions
+                            (UserId, GoalId, SourceJarId, Amount, SourceType, Name, [Date], CreatedAt)
+                        VALUES
+                            (@UserId, @GoalId, @SourceJarId, @Amount, @SourceType, @Name, @Date, GETDATE());";
                         using (var cmd = new SqlCommand(insertGoalTxn, conn, tx))
                         {
                             cmd.Parameters.AddWithValue("@UserId", userId);
@@ -90,34 +95,33 @@ VALUES (@UserId, @GoalId, @SourceJarId, @Amount, @SourceType, @Name, @Date, GETD
                             cmd.ExecuteNonQuery();
                         }
 
-                        const string updateGoal = @"UPDATE Goals SET SavedAmount = SavedAmount + @Amount WHERE GoalID=@GoalId";
+                        // 2) update aggregate on Goals (column is SavedAmount, not Amount)
+                        const string updateGoal = @"
+                        UPDATE Goals
+                        SET SavedAmount = ISNULL(SavedAmount, 0) + @Amount
+                        WHERE GoalId = @GoalId AND UserId = @UserId;";
                         using (var cmd = new SqlCommand(updateGoal, conn, tx))
                         {
                             cmd.Parameters.AddWithValue("@Amount", amount);
                             cmd.Parameters.AddWithValue("@GoalId", goalId);
+                            cmd.Parameters.AddWithValue("@UserId", userId);
                             cmd.ExecuteNonQuery();
                         }
 
+                        // 3) if money comes from a jar, write a negative transfer in JarTransactions.
                         if (sourceType == "jar" && sourceJarId.HasValue)
                         {
-                            const string updateJar = @"UPDATE Jars SET Amount = Amount - @Amount WHERE JarID=@JarId";
-                            using (var cmd = new SqlCommand(updateJar, conn, tx))
-                            {
-                                cmd.Parameters.AddWithValue("@Amount", amount);
-                                cmd.Parameters.AddWithValue("@JarId", sourceJarId.Value);
-                                cmd.ExecuteNonQuery();
-                            }
-
-                            const string insertTxn = @"
-INSERT INTO Transactions
-(UserID, JarID, Name, Amount, Date, TransactionType, Category)
-VALUES (@UserId, @JarId, @Name, @NegativeAmount, @Date, 'Transfer', 'Goal Funding')";
-                            using (var cmd = new SqlCommand(insertTxn, conn, tx))
+                            const string insertJarTxn = @"
+                            INSERT INTO JarTransactions
+                                (UserId, JarId, Name, Amount, [Date], TransactionType, Category)
+                            VALUES
+                                (@UserId, @JarId, @Name, @NegAmount, @Date, 'Transfer', 'Goal Funding');";
+                            using (var cmd = new SqlCommand(insertJarTxn, conn, tx))
                             {
                                 cmd.Parameters.AddWithValue("@UserId", userId);
                                 cmd.Parameters.AddWithValue("@JarId", sourceJarId.Value);
                                 cmd.Parameters.AddWithValue("@Name", "Transferred to Goal: " + goalName);
-                                cmd.Parameters.AddWithValue("@NegativeAmount", -amount);
+                                cmd.Parameters.AddWithValue("@NegAmount", -amount); // outflow
                                 cmd.Parameters.AddWithValue("@Date", date);
                                 cmd.ExecuteNonQuery();
                             }
@@ -134,6 +138,43 @@ VALUES (@UserId, @JarId, @Name, @NegativeAmount, @Date, 'Transfer', 'Goal Fundin
                 }
             }
         }
+
+        public decimal GetSumBySourceType(int userId, DateTime from, DateTime to, string sourceType)
+        {
+            using (var conn = new SqlConnection(_connStr))
+            using (var cmd = new SqlCommand(@"
+            SELECT COALESCE(SUM(Amount), 0)
+            FROM GoalTransactions
+            WHERE UserId = @U
+              AND Date  >= @F AND Date < @T
+              AND LOWER(ISNULL(SourceType,'')) = @S;", conn))
+            {
+                cmd.Parameters.AddWithValue("@U", userId);
+                cmd.Parameters.AddWithValue("@F", from);
+                cmd.Parameters.AddWithValue("@T", to);
+                cmd.Parameters.AddWithValue("@S", sourceType.ToLowerInvariant());
+                conn.Open();
+                return Convert.ToDecimal(cmd.ExecuteScalar());
+            }
+        }
+
+        public decimal GetSumAllInflows(int userId, DateTime from, DateTime to)
+        {
+            using (var conn = new SqlConnection(_connStr))
+            using (var cmd = new SqlCommand(@"
+        SELECT COALESCE(SUM(CASE WHEN Amount > 0 THEN Amount ELSE 0 END), 0)
+        FROM GoalTransactions
+        WHERE UserId = @U
+          AND Date  >= @F AND Date < @T;", conn))
+            {
+                cmd.Parameters.AddWithValue("@U", userId);
+                cmd.Parameters.AddWithValue("@F", from);
+                cmd.Parameters.AddWithValue("@T", to);
+                conn.Open();
+                return Convert.ToDecimal(cmd.ExecuteScalar());
+            }
+        }
+
 
         public List<GoalTransaction> GetTransactionsByUser(int userID)
         {

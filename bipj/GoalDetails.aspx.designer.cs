@@ -186,6 +186,24 @@ namespace bipj
         protected global::System.Web.UI.WebControls.TextBox txtTxnDate;
 
         /// <summary>
+        /// hdnBoundJarId control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.HiddenField hdnBoundJarId;
+
+        /// <summary>
+        /// hdnBoundJarName control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.HiddenField hdnBoundJarName;
+
+        /// <summary>
         /// rdoTransferYes control.
         /// </summary>
         /// <remarks>
@@ -195,13 +213,31 @@ namespace bipj
         protected global::System.Web.UI.WebControls.RadioButton rdoTransferYes;
 
         /// <summary>
-        /// transferJarSection control.
+        /// pnlBoundJar control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.HtmlControls.HtmlGenericControl transferJarSection;
+        protected global::System.Web.UI.WebControls.Panel pnlBoundJar;
+
+        /// <summary>
+        /// txtBoundJar control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.TextBox txtBoundJar;
+
+        /// <summary>
+        /// pnlJarPicker control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel pnlJarPicker;
 
         /// <summary>
         /// ddlJars control.

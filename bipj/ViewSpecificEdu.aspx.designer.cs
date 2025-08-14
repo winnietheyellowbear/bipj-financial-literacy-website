@@ -60,12 +60,12 @@ namespace bipj
         protected global::System.Web.UI.WebControls.Literal ltPageTitle;
 
         /// <summary>
-        /// hfPageContent control.
+        /// ltPageContent control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.HiddenField hfPageContent;
+        protected global::System.Web.UI.WebControls.Literal ltPageContent;
     }
 }

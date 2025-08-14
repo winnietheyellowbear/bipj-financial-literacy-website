@@ -1,8 +1,10 @@
-﻿using System;
+﻿using bipj.Models;
+using System;
+using System.Configuration;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using bipj.Models;
 
 namespace bipj
 {
@@ -44,40 +46,42 @@ namespace bipj
 
         private void BindGoals()
         {
-            var goals = new Goal().GetGoalsByUser(_userId, DateTime.MinValue, DateTime.MaxValue).AsQueryable();
+            bool showArchived = ddlGoalFilter.SelectedValue == "archived";
 
-            switch (ddlGoalFilter.SelectedValue)
+            var goals = new Goal()
+                .GetGoalsByUser(_userId, DateTime.MinValue, DateTime.MaxValue, includeArchived: true)
+                .AsQueryable();
+
+            if (showArchived)
             {
-                case "completed":
-                    goals = goals.Where(g => g.SavedAmount >= g.TargetAmount);
-                    break;
-                case "overdue":
-                    goals = goals.Where(g => g.SavedAmount < g.TargetAmount && g.Deadline.Date < DateTime.Today);
-                    break;
-                case "ongoing":
-                    goals = goals.Where(g => g.SavedAmount < g.TargetAmount && g.Deadline.Date >= DateTime.Today);
-                    break;
+                goals = goals.Where(g => g.IsArchived);
+            }
+            else
+            {
+                goals = goals.Where(g => !g.IsArchived);
+
+                switch (ddlGoalFilter.SelectedValue)
+                {
+                    case "completed":
+                        goals = goals.Where(g => g.SavedAmount >= g.TargetAmount);
+                        break;
+                    case "overdue":
+                        goals = goals.Where(g => g.SavedAmount < g.TargetAmount && g.Deadline.Date < DateTime.Today);
+                        break;
+                    case "ongoing":
+                        goals = goals.Where(g => g.SavedAmount < g.TargetAmount && g.Deadline.Date >= DateTime.Today);
+                        break;
+                        // "all" -> no extra filter
+                }
             }
 
             switch (ddlGoalSort.SelectedValue)
             {
-                case "created_asc":
-                    goals = goals.OrderBy(g => g.CreatedAt);
-                    break;
-
-                case "deadline_asc":
-                    goals = goals.OrderBy(g => g.Deadline);
-                    break;
-
-                case "deadline_desc":
-                    goals = goals.OrderByDescending(g => g.Deadline);
-                    break;
-
-                default: // created_desc
-                    goals = goals.OrderByDescending(g => g.CreatedAt);
-                    break;
+                case "created_asc": goals = goals.OrderBy(g => g.CreatedAt); break;
+                case "deadline_asc": goals = goals.OrderBy(g => g.Deadline); break;
+                case "deadline_desc": goals = goals.OrderByDescending(g => g.Deadline); break;
+                default: goals = goals.OrderByDescending(g => g.CreatedAt); break;
             }
-
 
             var list = goals.ToList();
 
@@ -87,7 +91,49 @@ namespace bipj
             TotalGoals = list.Count;
             TotalTargetAmount = list.Sum(g => g.TargetAmount);
             TotalSavedAmount = list.Sum(g => g.SavedAmount);
+
+            lblTotalGoals.Text = TotalGoals.ToString();
+            lblTotalTarget.Text = $"${TotalTargetAmount:N2}";
+            lblTotalSaved.Text = $"${TotalSavedAmount:N2}";
+
+            // --- Redeemed stats (from reporting entries) ---
+            using (var conn = new SqlConnection(ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString))
+            using (var cmd = new SqlCommand(@"
+            SELECT 
+                COUNT(*)                           AS Cnt,
+                COALESCE(SUM(CASE WHEN Amount < 0 THEN -Amount ELSE 0 END), 0) AS Total
+            FROM JarTransactions
+            WHERE UserId = @User
+              AND TransactionType = 'Expense'
+              AND Category = 'Goal Purchase';", conn))
+            {
+                cmd.Parameters.AddWithValue("@User", _userId);
+                conn.Open();
+                using (var r = cmd.ExecuteReader())
+                {
+                    if (r.Read())
+                    {
+                        var cnt = r.IsDBNull(0) ? 0 : r.GetInt32(0);
+                        var total = r.IsDBNull(1) ? 0m : r.GetDecimal(1);
+
+                        if (cnt > 0)
+                        {
+                            // simple pluralisation
+                            var noun = cnt == 1 ? "goal" : "goals";
+                            lblRedeemedMeta.Text = $"(You have also redeemed <b>{cnt}</b> {noun} worth <b>${total:N2}</b>)";
+                            lblRedeemedMeta.Visible = true;
+                        }
+                        else
+                        {
+                            lblRedeemedMeta.Visible = false;
+                            lblRedeemedMeta.Text = string.Empty;
+                        }
+                    }
+                }
+            }
+
         }
+
 
         protected void ddlGoalFilter_SelectedIndexChanged(object sender, EventArgs e) => BindGoals();
         protected void ddlGoalSort_SelectedIndexChanged(object sender, EventArgs e) => BindGoals();
@@ -113,9 +159,15 @@ namespace bipj
             txtEditGoalTargetDate.Text = goal.Deadline.ToString("yyyy-MM-dd");
             ddlEditJar.SelectedValue = goal.JarId?.ToString() ?? "";
 
+            var defaultJar = new Jar().GetDefaultJar(_userId);
+            hdnDeleteDefaultJar.Value = defaultJar?.JarName ?? "(Default Jar)";
+            hdnDeleteIsCompleted.Value = (goal.SavedAmount >= goal.TargetAmount).ToString().ToLower();
+            hdnDeleteGoalName.Value = goal.GoalName;
+
             ScriptManager.RegisterStartupScript(this, GetType(), "editGoalModal",
                 "new bootstrap.Modal('#editGoalModal').show();", true);
         }
+
 
         private void ShowDeleteModal(int goalId)
         {

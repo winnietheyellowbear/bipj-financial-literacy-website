@@ -1,6 +1,6 @@
 ﻿<%@ Page Title="Facial Login" 
     Language="C#" 
-    MasterPageFile="~/Customer_Nav.master" 
+    MasterPageFile="~/Customer_Nav_loggedin.master" 
     AutoEventWireup="true" 
     CodeBehind="FacialLogin.aspx.cs" 
     Inherits="badpjProject.FacialLogin" %>
@@ -9,11 +9,12 @@
   <div class="container mt-5">
     <div class="d-flex flex-column align-items-center">
       <h2>Facial Login</h2>
-      <!-- Textbox for the user to enter their email -->
+
+      <!-- Email -->
       <asp:TextBox ID="txtEmail" runat="server" CssClass="form-control mb-3" 
-                   placeholder="Enter Email"></asp:TextBox>
+                   placeholder="Enter Email" Width="320px"></asp:TextBox>
       
-      <!-- Button to start the camera -->
+      <!-- Start camera -->
       <input type="button" value="Access Camera" onclick="startCamera();" 
              class="btn btn-primary mb-3" id="btnCamera" />
       
@@ -25,39 +26,34 @@
           <p>Initializing camera...</p>
       </div>
       
-      <!-- Video element to display the live camera feed -->
+      <!-- Live video -->
       <video id="videoElement" width="640" height="480" autoplay playsinline 
              style="border:1px solid #ccc;" class="d-none"></video>
       <br /><br />
       
-      <!-- Hidden canvas for capturing the image -->
+      <!-- Hidden canvas (no preview shown) -->
       <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
       
-      <!-- Button to capture & display the facial data -->
-      <input type="button" value="Capture & Display Facial Data" 
+      <!-- Capture button (no preview; auto-submit after capture) -->
+      <input type="button" value="Capture Face" 
              onclick="captureAndDisplay();" class="btn btn-warning" 
              id="btnCapture" disabled />
       <br /><br />
       
-      <!-- Image element to show the captured image -->
-      <img id="capturedImage" src="" alt="Captured Facial Data" 
-           style="border:1px solid #ccc; max-width:640px;" />
-      <br /><br />
-      
-      <!-- Hidden field to store the captured face descriptor (as JSON) -->
+      <!-- Hidden field for descriptor -->
       <asp:HiddenField ID="hfDescriptor" runat="server" />
       
-      <!-- Button to submit the form for facial login -->
+      <!-- Submit button (clicked programmatically after capture) -->
       <asp:Button ID="btnLogin" runat="server" Text="Login via Face" 
-                  OnClick="btnLogin_Click" CssClass="btn btn-success" />
+                  OnClick="btnLogin_Click" CssClass="btn btn-success d-none" />
       <br /><br />
       
-      <!-- Label to display the result -->
-      <asp:Label ID="lblResult" runat="server" CssClass="alert alert-info"></asp:Label>
+      <!-- Status -->
+      <asp:Label ID="lblResult" runat="server" CssClass="alert alert-info w-100 text-center"></asp:Label>
     </div>
   </div>
 
-  <!-- Include jQuery and face-api.js -->
+  <!-- jQuery and face-api.js -->
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
   <script type="text/javascript">
@@ -65,22 +61,16 @@
       let loadingAttempts = 0;
       const MAX_ATTEMPTS = 5;
 
-      // Set up global AJAX settings
-      $.ajaxSetup({
-          xhrFields: { withCredentials: true }
-      });
+      $.ajaxSetup({ xhrFields: { withCredentials: true } });
 
       async function loadModels() {
-          console.log("Trying CDN models...");
           try {
-              // Use official face-api.js CDN
               const modelUrl = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights/';
               await Promise.all([
                   faceapi.nets.ssdMobilenetv1.loadFromUri(modelUrl),
                   faceapi.nets.faceLandmark68Net.loadFromUri(modelUrl),
                   faceapi.nets.faceRecognitionNet.loadFromUri(modelUrl)
               ]);
-              console.log("CDN models loaded successfully!");
               modelsLoaded = true;
               return true;
           } catch (e) {
@@ -93,36 +83,38 @@
           while (!modelsLoaded && loadingAttempts < MAX_ATTEMPTS) {
               loadingAttempts++;
               const success = await loadModels();
-              if (!success) {
-                  // Wait 5 seconds before retrying
-                  await new Promise(resolve => setTimeout(resolve, 5000));
-              }
+              if (!success) await new Promise(resolve => setTimeout(resolve, 5000));
           }
 
+          const msg = document.getElementById('<%=lblResult.ClientID%>');
           if (!modelsLoaded) {
-              console.error("Failed to load models after", MAX_ATTEMPTS, "attempts");
-              alert("Failed to load facial recognition models. Please check console for details");
+              msg.textContent = "Failed to load facial recognition models. Try refreshing the page.";
+              msg.className = "alert alert-danger";
+              alert("Failed to load facial recognition models. Please check console for details.");
           } else {
-              console.log("Models are ready!");
-              // Update UI if needed
-              document.getElementById('<%=lblResult.ClientID%>').textContent = "Facial recognition ready! Enter email and click 'Access Camera'.";
-              document.getElementById('<%=lblResult.ClientID%>').className = "alert alert-success";
+              msg.textContent = "Facial recognition ready! Enter email and click 'Access Camera'.";
+              msg.className = "alert alert-success";
           }
       }
 
-      // Start camera function
       function startCamera() {
-          console.log("Attempting to start camera...");
+          // Require email first
+          const emailBox = document.getElementById('<%=txtEmail.ClientID%>');
+          const emailVal = (emailBox.value || '').trim();
+          if (!emailVal) {
+              alert("Please enter your email first.");
+              emailBox.focus();
+              return;
+          }
+
           if (!modelsLoaded) {
               alert("Models not loaded yet. Please wait...");
               return;
           }
-          
-          // Show loading indicator
+
           document.getElementById('cameraLoading').classList.remove('d-none');
-          
-          var video = document.getElementById('videoElement');
-          
+          const video = document.getElementById('videoElement');
+
           // Clear any previous stream
           if (video.srcObject) {
               video.srcObject.getTracks().forEach(track => track.stop());
@@ -130,28 +122,24 @@
           }
 
           if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-              navigator.mediaDevices.getUserMedia({ 
-                  video: { 
-                      facingMode: "user" // Prefer front camera
-                  } 
-              })
-              .then(function (stream) {
-                  console.log("Camera access granted");
-                  video.srcObject = stream;
-                  
-                  video.onloadedmetadata = function() {
-                      document.getElementById('cameraLoading').classList.add('d-none');
-                      video.classList.remove('d-none');
-                  };
-                  
-                  video.play()
-                      .then(() => {
-                          console.log("Video playing");
-                          // Enable capture button
-                          document.getElementById('btnCapture').disabled = false;
+              navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+                  .then(function (stream) {
+                      video.srcObject = stream;
+                      video.onloadedmetadata = function () {
+                          document.getElementById('cameraLoading').classList.add('d-none');
+                          video.classList.remove('d-none');
+                      };
+                      video.play()
+                          .then(() => {
+                              // Enable capture button
+                              document.getElementById('btnCapture').disabled = false;
+                              const msg = document.getElementById('<%=lblResult.ClientID%>');
+                          msg.textContent = "Align face in the frame, then click 'Capture Face'.";
+                          msg.className = "alert alert-info";
                       })
                       .catch(e => {
                           console.error("Video play error:", e);
+                          document.getElementById('cameraLoading').classList.add('d-none');
                           alert("Error starting video: " + e.message);
                       });
               })
@@ -165,64 +153,66 @@
           }
       }
 
-      // Capture and display function
+      // Capture (no preview) and submit
       async function captureAndDisplay() {
           if (!modelsLoaded) {
               alert("Facial models are still loading. Please wait and try again.");
               return;
           }
           
-          console.log("Attempting capture...");
-          var video = document.getElementById('videoElement');
-          var canvas = document.getElementById('canvas');
-          var context = canvas.getContext('2d');
+          const video = document.getElementById('videoElement');
+          const canvas = document.getElementById('canvas');
+          const context = canvas.getContext('2d');
 
-          // Capture frame
+          // Capture frame to canvas
           context.drawImage(video, 0, 0, canvas.width, canvas.height);
-          var imageDataUrl = canvas.toDataURL("image/png");
-          document.getElementById('capturedImage').src = imageDataUrl;
-          console.log("Captured image displayed.");
 
-          // Convert to Blob
+          // Convert to data URL -> Blob
+          const imageDataUrl = canvas.toDataURL("image/png");
           const blob = await (async () => {
-              var byteString = atob(imageDataUrl.split(',')[1]);
-              var mimeString = imageDataUrl.split(',')[0].split(':')[1].split(';')[0];
-              var ab = new ArrayBuffer(byteString.length);
-              var ia = new Uint8Array(ab);
-              for (var i = 0; i < byteString.length; i++) {
-                  ia[i] = byteString.charCodeAt(i);
-              }
+              const byteString = atob(imageDataUrl.split(',')[1]);
+              const mimeString = imageDataUrl.split(',')[0].split(':')[1].split(';')[0];
+              const ab = new ArrayBuffer(byteString.length);
+              const ia = new Uint8Array(ab);
+              for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
               return new Blob([ia], { type: mimeString });
           })();
 
           try {
               const img = await faceapi.bufferToImage(blob);
-              const detection = await faceapi.detectSingleFace(img)
-                  .withFaceLandmarks()
-                  .withFaceDescriptor();
+              const detection = await faceapi
+                    .detectSingleFace(img)
+                    .withFaceLandmarks()
+                    .withFaceDescriptor();
                   
               if (!detection) {
                   alert("No face detected. Please try again.");
                   return;
               }
               
-              // Serialize the descriptor and store in hidden field
+              // Put descriptor in hidden field
               document.getElementById('<%=hfDescriptor.ClientID%>').value = 
                   JSON.stringify(Array.from(detection.descriptor));
-              console.log("Face descriptor captured");
+
+              // Stop camera before submitting
+              if (video.srcObject) {
+                  video.srcObject.getTracks().forEach(t => t.stop());
+                  video.srcObject = null;
+              }
+              video.classList.add('d-none');
+
+              // Auto-submit for verification (2-step flow)
+              document.getElementById('<%=btnLogin.ClientID%>').click();
           } catch (e) {
               console.error("Face detection error:", e);
               alert("Error processing facial data: " + e.message);
           }
       }
 
-      // Page load handler
       window.addEventListener('load', async () => {
-          console.log("Page loaded - starting model load");
           const msgElement = document.getElementById('<%=lblResult.ClientID%>');
           msgElement.textContent = "Loading facial recognition models...";
           msgElement.className = "alert alert-warning";
-
           await loadModelsWithRetry();
       });
   </script>

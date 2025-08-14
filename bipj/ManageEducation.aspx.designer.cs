@@ -15,6 +15,15 @@ namespace bipj
     {
 
         /// <summary>
+        /// eduRoot control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.HtmlControls.HtmlGenericControl eduRoot;
+
+        /// <summary>
         /// btnAddTopic control.
         /// </summary>
         /// <remarks>
@@ -24,13 +33,31 @@ namespace bipj
         protected global::System.Web.UI.WebControls.LinkButton btnAddTopic;
 
         /// <summary>
-        /// btnDeleteTopics control.
+        /// btnEnterDelete control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.LinkButton btnDeleteTopics;
+        protected global::System.Web.UI.WebControls.LinkButton btnEnterDelete;
+
+        /// <summary>
+        /// btnConfirmDelete control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.LinkButton btnConfirmDelete;
+
+        /// <summary>
+        /// btnCancelDelete control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.LinkButton btnCancelDelete;
 
         /// <summary>
         /// pnlNoTopics control.
@@ -42,6 +69,15 @@ namespace bipj
         protected global::System.Web.UI.WebControls.Panel pnlNoTopics;
 
         /// <summary>
+        /// Panel1 control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel Panel1;
+
+        /// <summary>
         /// rptTopics control.
         /// </summary>
         /// <remarks>
@@ -49,14 +85,5 @@ namespace bipj
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Repeater rptTopics;
-
-        /// <summary>
-        /// pnlTopicsList control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Panel pnlTopicsList;
     }
 }

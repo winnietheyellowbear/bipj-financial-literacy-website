@@ -37,10 +37,11 @@
             margin-bottom: 24px;
         }
         .topics-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 32px 56px;
-        }
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 32px 40px;
+}
+
         @media (min-width: 900px) {
             .topics-grid {
                 grid-template-columns: repeat(3, 1fr);
@@ -103,6 +104,12 @@
         .details-btn:hover {
             background: #2e266e;
         }
+        .topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 32px 40px;
+}
+
     </style>
 </asp:Content>
 
@@ -114,101 +121,27 @@
                 Topics available
             </div>
             <div class="topics-grid">
-<!-- Budgeting -->
-<div class="topic-card">
-    <img src="budgeting.png" alt="Budgeting" class="topic-img" />
-    <div class="topic-title">Budgeting</div>
-    <div class="topic-desc">Learn how to create a workable budget</div>
-    <div class="topic-status-row">
-        <div class="topic-status">Not started</div>
-        <asp:Button runat="server" CssClass="details-btn" Text="View details" 
-            OnClick="btnViewDetails_Click" CommandArgument="Budgeting" />
-    </div>
-</div>
+  <asp:Repeater ID="rptModules" runat="server">
+        <ItemTemplate>
+    <div class="topic-card">
+        <img src='<%# GetModuleImageUrl(Eval("ImageUrl")) %>'
+     alt='<%# Eval("Name") %>'
+     class="topic-img" />
 
-<!-- Investing -->
-<div class="topic-card">
-    <img src="investing.png" alt="Investing" class="topic-img" />
-    <div class="topic-title">Investing</div>
-    <div class="topic-desc">Intro to investing and portfolio</div>
-    <div class="topic-status-row">
-        <div class="topic-status">Not started</div>
-        <asp:Button runat="server" CssClass="details-btn" Text="View details" 
-            OnClick="btnViewDetails_Click" CommandArgument="Investing" />
-    </div>
-</div>
+        <div class="topic-title"><%# Eval("Name") %></div>
+        <div class="topic-desc"><%# Eval("BriefDescription") %></div>
 
-<!-- Debt -->
-<div class="topic-card">
-    <img src="debt.png" alt="Debt" class="topic-img" />
-    <div class="topic-title">Debt</div>
-    <div class="topic-desc">Strategies for reducing debt</div>
-    <div class="topic-status-row">
-        <div class="topic-status">Not started</div>
-        <asp:Button runat="server" CssClass="details-btn" Text="View details" 
-            OnClick="btnViewDetails_Click" CommandArgument="Debt" />
+        <div class="topic-status-row">
+            <span class="topic-status">Available</span>
+            <a href='ViewSpecificEdu.aspx?moduleId=<%# Eval("Id") %>' class="details-btn">View</a>
+        </div>
     </div>
-</div>
+</ItemTemplate>
 
-<!-- Tax -->
-<div class="topic-card">
-    <img src="tax.png" alt="Tax" class="topic-img" />
-    <div class="topic-title">Tax</div>
-    <div class="topic-desc">Smart tips to minimize your tax bill.</div>
-    <div class="topic-status-row">
-        <div class="topic-status">Not started</div>
-        <asp:Button runat="server" CssClass="details-btn" Text="View details" 
-            OnClick="btnViewDetails_Click" CommandArgument="Tax" />
-    </div>
-</div>
+    </asp:Repeater>
 
-<!-- Credit management -->
-<div class="topic-card">
-    <img src="credit.png" alt="Credit management" class="topic-img" />
-    <div class="topic-title">Credit management</div>
-    <div class="topic-desc">Build, improve, and monitor your credit.</div>
-    <div class="topic-status-row">
-        <div class="topic-status">Not started</div>
-        <asp:Button runat="server" CssClass="details-btn" Text="View details" 
-            OnClick="btnViewDetails_Click" CommandArgument="Credit" />
-    </div>
-</div>
 
-<!-- Risk management -->
-<div class="topic-card">
-    <img src="risk.png" alt="Risk management" class="topic-img" />
-    <div class="topic-title">Risk management</div>
-    <div class="topic-desc">Safeguard your finances against unexpected events.</div>
-    <div class="topic-status-row">
-        <div class="topic-status">Not started</div>
-        <asp:Button runat="server" CssClass="details-btn" Text="View details" 
-            OnClick="btnViewDetails_Click" CommandArgument="Risk" />
-    </div>
-</div>
 
-<!-- Retirement -->
-<div class="topic-card">
-    <img src="retirement.png" alt="Retirement" class="topic-img" />
-    <div class="topic-title">Retirement</div>
-    <div class="topic-desc">Plan and invest for a secure retirement.</div>
-    <div class="topic-status-row">
-        <div class="topic-status">Not started</div>
-        <asp:Button runat="server" CssClass="details-btn" Text="View details" 
-            OnClick="btnViewDetails_Click" CommandArgument="Retirement" />
-    </div>
-</div>
-
-<!-- Financial goals -->
-<div class="topic-card">
-    <img src="financialgoals.png" alt="Financial goals" class="topic-img" />
-    <div class="topic-title">Financial goals</div>
-    <div class="topic-desc">Set and track your money milestones.</div>
-    <div class="topic-status-row">
-        <div class="topic-status">Not started</div>
-        <asp:Button runat="server" CssClass="details-btn" Text="View details" 
-            OnClick="btnViewDetails_Click" CommandArgument="Goals" />
-    </div>
-</div>
 
 
             </div>

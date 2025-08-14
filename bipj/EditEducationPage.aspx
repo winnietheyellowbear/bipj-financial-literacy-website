@@ -1,187 +1,119 @@
-﻿<%@ Page Title="Edit Education Page" Language="C#" MasterPageFile="~/Staff_Nav.Master" AutoEventWireup="true" CodeBehind="EditEducationPage.aspx.cs" Inherits="bipj.EditEducationPage" %>
+﻿<%@ Page Title="Edit Education Page" Language="C#"
+    MasterPageFile="~/Staff_Nav.Master"
+    AutoEventWireup="true"
+    CodeBehind="EditEducationPage.aspx.cs"
+    Inherits="bipj.EditEducationPage"
+    ValidateRequest="false" %>
+
 <asp:Content ID="mainContent" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
 
-<!-- Load EditorJS and all required tools -->
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.26.5"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/header@2.6.2"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/paragraph@2.8.0"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/list@1.7.0"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/simple-image@1.4.1"></script>
-<script src="https://cdn.jsdelivr.net/npm/@editorjs/embed@2.5.3"></script>
+    <!-- Permissions API shim (prevents 'Illegal invocation' from third-party libs) -->
+    <script>
+        (function () {
+            try {
+                if (navigator.permissions && typeof navigator.permissions.query === 'function') {
+                    var boundQuery = navigator.permissions.query.bind(navigator.permissions);
+                    navigator.permissions.query = function () {
+                        return boundQuery.apply(navigator.permissions, arguments);
+                    };
+                }
+            } catch (e) { /* no-op */ }
+        })();
+    </script>
 
+    <!-- CKEditor 5 Decoupled Document build -->
+    <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/decoupled-document/ckeditor.js"></script>
 
-<div class="edu-admin-container" style="display:flex;min-height:600px;">
-    <!-- Side Navigation (unchanged) -->
-    <div class="edu-sidenav" style="background:#222;color:#fff;width:220px;padding:20px 10px 20px 10px;display:flex;flex-direction:column;">
-        <a href="ManageEducation.aspx" class="btn btn-sm btn-outline-light mb-3">&larr; Back to Modules</a>
-        <asp:Repeater ID="rptTopics" runat="server" OnItemDataBound="rptTopics_ItemDataBound">
-            <ItemTemplate>
-                <div>
-                    <div style='margin-bottom:5px;font-weight:bold;background:#8576b1;color:white;padding:7px 10px;border-radius:5px;'>
-                        <%# Eval("TopicName") %>
-                        <span style="float:right;">
-                            <i class='bi bi-caret-down-fill'></i>
-                        </span>
-                    </div>
-                    <asp:Repeater ID="rptPages" runat="server">
-                        <ItemTemplate>
-                            <a href='EditEducationPage.aspx?moduleId=<%# Eval("ModuleId") %>&pageId=<%# Eval("Id") %>'
-                               style='display:block;margin-left:12px;margin-bottom:6px;color:<%# (Eval("Id").ToString() == PageId.ToString()) ? "#2be3c3" : "white" %>;'>
-                               &bull; <%# Eval("Title") %>
-                            </a>
-                        </ItemTemplate>
-                    </asp:Repeater>
-                </div>
-            </ItemTemplate>
-        </asp:Repeater>
-    </div>
+    <style>
+        .edu-admin-container { display:flex; min-height:600px; gap:0; }
+        .edu-sidenav { background:#222; color:#fff; width:240px; padding:20px 10px; display:flex; flex-direction:column; }
+        .topic-chip { margin-bottom:6px; font-weight:700; background:#8576b1; color:#fff; padding:7px 10px; border-radius:6px; }
+        .page-link { display:block; margin-left:12px; margin-bottom:6px; color:#fff; text-decoration:none; }
+        .page-link.active { color:#2be3c3; font-weight:700; }
+        .editor-wrap { flex:1; padding:40px; }
+        .document-toolbar { margin-bottom:10px; }
+        #editorjs { min-height:500px; border:1px solid #ccc; border-radius:6px; }
+        figure.media { max-width: 800px; margin: 20px auto; }
+        figure.media iframe {
+            width: 100% !important; height: auto !important; aspect-ratio: 16/9;
+            border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+    </style>
 
-  
+    <div class="edu-admin-container">
+        <!-- Side Navigation -->
+        <aside class="edu-sidenav">
+            <a href="ManageEducation.aspx" class="btn btn-sm btn-outline-light mb-3">&larr; Back to Modules</a>
 
-    <!-- Main Editor Panel -->
-    <div style="flex:1;padding:40px;">
-        <!-- Page Title -->
-        <asp:TextBox ID="txtPageTitle" runat="server" CssClass="form-control mb-3" placeholder="Page Title" />
-        
-        <!-- Toolbar -->
-        <div class="mb-3">
-            <button type="button" class="btn btn-primary" onclick="insertParagraph()">
-                <i class="bi bi-text-paragraph"></i> Add Text
-            </button>
-            <button type="button" class="btn btn-primary" onclick="insertImage()">
-                <i class="bi bi-image"></i> Add Image
-            </button>
-            <button type="button" class="btn btn-primary" onclick="insertVideo()">
-                <i class="bi bi-film"></i> Add Video
-            </button>
-            <button type="button" class="btn btn-primary" onclick="insertList()">
-                <i class="bi bi-list-ul"></i> Add List
-            </button>
-            <asp:Button ID="btnSave" runat="server" CssClass="btn btn-success" Text="Save Page" OnClick="btnSave_Click" />
-        </div>
-
-        <!-- Editor Container -->
-        <div id="editorjs" style="border:1px solid #ddd; min-height:500px;"></div>
-        
-        <!-- Hidden field to store editor content -->
-        <asp:HiddenField ID="hfEditorContent" runat="server" />
-        
-        <asp:Label ID="lblMessage" runat="server" CssClass="text-success mt-2" />
-    </div>
+            <asp:Repeater ID="rptTopics" runat="server" OnItemDataBound="rptTopics_ItemDataBound">
+                <ItemTemplate>
+                    <div>
+                        <div class="topic-chip">
+    <%# Eval("Name") %>
+    <span style="float:right;"><i class="bi bi-caret-down-fill"></i></span>
 </div>
+                        <asp:Repeater ID="rptPages" runat="server" OnItemDataBound="rptPages_ItemDataBound">
+                            <ItemTemplate>
+                                <asp:HyperLink ID="lnkPage" runat="server" CssClass="page-link" />
+                            </ItemTemplate>
+                        </asp:Repeater>
+                    </div>
+                </ItemTemplate>
+            </asp:Repeater>
+        </aside>
 
-<script>
-    // Global editor reference
-    let editor;
+        <!-- Editor Panel -->
+        <section class="editor-wrap">
+            <asp:TextBox ID="txtPageTitle" runat="server" CssClass="form-control mb-3" placeholder="Page Title" />
+            <div class="document-toolbar"></div>
+            <div id="editorjs"></div>
 
-    // Initialize EditorJS when DOM is loaded
-    document.addEventListener('DOMContentLoaded', function () {
-        // Load saved data if exists
-        let savedData = {};
-        try {
-            const savedJson = document.getElementById('<%= hfEditorContent.ClientID %>').value;
-            if (savedJson) {
-                savedData = JSON.parse(savedJson);
-            }
-        } catch (e) {
-            console.error("Error parsing saved content:", e);
-        }
+            <!-- Hidden field to sync editor HTML -->
+            <asp:HiddenField ID="hfEditorContent" runat="server" />
 
-        // Initialize the editor
-        editor = new EditorJS({
-            holder: 'editorjs',
-            tools: {
-                header: {
-                    class: window.Header,
-                    config: {
-                        placeholder: 'Enter a header...',
-                        levels: [2, 3, 4],
-                        defaultLevel: 2
+            <div class="mt-3">
+                <asp:Button ID="btnSave" runat="server" CssClass="btn btn-success" Text="Save Page" OnClick="btnSave_Click" />
+                <asp:Label ID="lblMessage" runat="server" CssClass="ms-2" />
+            </div>
+        </section>
+    </div>
+
+    <!-- CKEditor init -->
+    <script>
+    (function () {
+        const hf = document.getElementById('<%= hfEditorContent.ClientID %>');
+
+            DecoupledEditor.create(document.querySelector('#editorjs'), {
+                mediaEmbed: { previewsInData: true },
+                toolbar: {
+                    items: [
+                        'heading', '|',
+                        'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|',
+                        'insertTable', 'mediaEmbed', '|',
+                        'undo', 'redo'
+                    ]
+                },
+                image: {
+                    resizeUnit: '%',
+                    toolbar: ['imageStyle:alignLeft', 'imageStyle:alignCenter', 'imageStyle:alignRight', '|', 'imageResize', '|', 'linkImage'],
+                    styles: ['alignLeft', 'alignCenter', 'alignRight']
+                }
+            })
+                .then(editor => {
+                    window.editor = editor;
+
+                    // Load existing HTML
+                    if (hf.value) {
+                        editor.setData(hf.value);
                     }
-                },
-                paragraph: {
-                    class: window.Paragraph,
-                    inlineToolbar: true
-                },
-                list: {
-                    class: window.List,
-                    inlineToolbar: true
-                },
-                image: window.SimpleImage,
-                embed: window.Embed
-            },
-            data: savedData,
-            onChange: function() {
-                editor.save().then(output => {
-                    document.getElementById('<%= hfEditorContent.ClientID %>').value = JSON.stringify(output);
-                });
-            }
-        });
-    });
-
-    // Block insertion functions
-    function insertParagraph() {
-        if (editor) {
-            editor.blocks.insert('paragraph', {
-                text: 'Start typing your text here...'
-            });
-        }
-    }
-
-    function insertImage() {
-        if (editor) {
-            editor.blocks.insert('image', {
-                url: '',
-                caption: '',
-                withBorder: false,
-                stretched: false
-            });
-        }
-    }
-
-    function insertVideo() {
-        if (editor) {
-            editor.blocks.insert('embed', {
-                service: 'youtube',
-                source: '',
-                width: 640,
-                height: 360
-            });
-        }
-    }
-
-    function insertList() {
-        if (editor) {
-            editor.blocks.insert('list', {
-                style: 'unordered',
-                items: [
-                    'First list item',
-                    'Second list item'
-                ]
-            });
-        }
-    }
-</script>
-
-<style>
-    /* Editor styling */
-    #editorjs {
-        background: white;
-        padding: 20px;
-        border-radius: 5px;
-    }
-    
-    .ce-block--selected .ce-block__content {
-        background: rgba(43, 227, 195, 0.1);
-    }
-    
-    .ce-toolbar__plus {
-        color: #8576b1;
-    }
-    
-    .ce-toolbar__plus:hover {
-        color: #6a5a9a;
-    }
-</style>
-
+                    // Sync back to hidden field
+                    editor.model.document.on('change:data', () => {
+                        hf.value = editor.getData();
+                    });
+                    // Move toolbar into our container
+                    document.querySelector('.document-toolbar').appendChild(editor.ui.view.toolbar.element);
+                })
+                .catch(err => console.error('CKEditor init error:', err));
+        })();
+    </script>
 </asp:Content>

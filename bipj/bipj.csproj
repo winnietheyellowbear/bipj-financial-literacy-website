@@ -619,6 +619,7 @@
     <Compile Include="OtpConfirmation.aspx.designer.cs">
       <DependentUpon>OtpConfirmation.aspx</DependentUpon>
     </Compile>
+    <Compile Include="PolicyCategory.cs" />
     <Compile Include="Post.aspx.cs">
       <DependentUpon>Post.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -648,6 +649,7 @@
     <Compile Include="QRCodeScanner.aspx.designer.cs">
       <DependentUpon>QRCodeScanner.aspx</DependentUpon>
     </Compile>
+    <Compile Include="RecommendPolicy.cs" />
     <Compile Include="RegisterAdvisor.aspx.cs">
       <DependentUpon>RegisterAdvisor.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -840,6 +842,7 @@
     <Folder Include="Forum\Icon\" />
     <Folder Include="Forum\Images\" />
     <Folder Include="Forum\Videos\" />
+    <Folder Include="Images\education\" />
     <Folder Include="Profileuploads\" />
     <Folder Include="uploadcontents\" />
     <Folder Include="Voucher\" />
@@ -869,15 +872,15 @@
       </FlavorProperties>
     </VisualStudio>
   </ProjectExtensions>
-  <Import Project="..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets" Condition="Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets'))" />
     <Error Condition="!Exists('..\packages\GemBox.Email.2025.6.102\build\netstandard2.0\GemBox.Email.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\GemBox.Email.2025.6.102\build\netstandard2.0\GemBox.Email.targets'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets'))" />
   </Target>
   <Import Project="..\packages\GemBox.Email.2025.6.102\build\netstandard2.0\GemBox.Email.targets" Condition="Exists('..\packages\GemBox.Email.2025.6.102\build\netstandard2.0\GemBox.Email.targets')" />
+  <Import Project="..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets" Condition="Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Data;
+using System.Data.SqlClient;
 using System.Web.UI.WebControls;
 
 namespace bipj
@@ -7,44 +9,42 @@ namespace bipj
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-        }
-
-        protected void btnViewDetails_Click(object sender, EventArgs e)
-        {
-            var btn = sender as Button;
-            string topic = btn?.CommandArgument;
-
-            switch (topic)
+            if (!IsPostBack)
             {
-                case "Budgeting":
-                    Response.Redirect("TopicBudgeting.aspx");
-                    break;
-                case "Investing":
-                    Response.Redirect("TopicInvesting.aspx");
-                    break;
-                case "Debt":
-                    Response.Redirect("TopicDebt.aspx");
-                    break;
-                case "Tax":
-                    Response.Redirect("TopicTax.aspx");
-                    break;
-                case "Credit":
-                    Response.Redirect("TopicCredit.aspx");
-                    break;
-                case "Risk":
-                    Response.Redirect("TopicRisk.aspx");
-                    break;
-                case "Retirement":
-                    Response.Redirect("TopicRetirement.aspx");
-                    break;
-                case "Goals":
-                    Response.Redirect("TopicGoals.aspx");
-                    break;
-                default:
-                    // Optionally, handle unknown cases
-                    Response.Redirect("Education.aspx");
-                    break;
+                LoadModules();
             }
         }
+
+        private void LoadModules()
+        {
+            string connStr = System.Configuration.ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString;
+            using (SqlConnection conn = new SqlConnection(connStr))
+            {
+                string sql = "SELECT Id, Name, BriefDescription, ImageUrl FROM EducationModules";
+                SqlDataAdapter da = new SqlDataAdapter(sql, conn);
+                DataTable dt = new DataTable();
+                da.Fill(dt);
+
+                rptModules.DataSource = dt;
+                rptModules.DataBind();
+            }
+        }
+        protected string GetModuleImageUrl(object urlObj)
+        {
+            // default/fallback
+            var fallback = ResolveUrl("~/images/default-module.png");
+
+            if (urlObj == null || urlObj == DBNull.Value) return fallback;
+
+            var s = urlObj.ToString();
+            if (string.IsNullOrWhiteSpace(s)) return fallback;
+
+            // normalize to app-rooted and resolve
+            if (s.StartsWith("~/") || s.StartsWith("/"))
+                return ResolveUrl(s);
+
+            return ResolveUrl("~/" + s);
+        }
+
     }
 }

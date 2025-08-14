@@ -42,6 +42,24 @@ namespace bipj
         protected global::System.Web.UI.WebControls.Button btnParse;
 
         /// <summary>
+        /// pnlDone control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Panel pnlDone;
+
+        /// <summary>
+        /// litDoneMessage control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Literal litDoneMessage;
+
+        /// <summary>
         /// pnlPreview control.
         /// </summary>
         /// <remarks>
@@ -69,6 +87,15 @@ namespace bipj
         protected global::System.Web.UI.WebControls.GridView gvPreview;
 
         /// <summary>
+        /// btnAnalyze control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnAnalyze;
+
+        /// <summary>
         /// btnImport control.
         /// </summary>
         /// <remarks>
@@ -87,22 +114,22 @@ namespace bipj
         protected global::System.Web.UI.WebControls.Button btnCancel;
 
         /// <summary>
-        /// pnlDone control.
+        /// pnlAnalysis control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Panel pnlDone;
+        protected global::System.Web.UI.WebControls.Panel pnlAnalysis;
 
         /// <summary>
-        /// litDoneMessage control.
+        /// litAnalysisHtml control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal litDoneMessage;
+        protected global::System.Web.UI.WebControls.Literal litAnalysisHtml;
 
         /// <summary>
         /// btnConfirmRestart control.

@@ -81,9 +81,14 @@
     <div class="edit-profile-container">
         <h2>Edit Profile</h2>
         <!-- Profile Image, Click to Upload -->
-        <asp:Image ID="imgProfile" runat="server" CssClass="edit-profile-image" AlternateText="Profile Picture" onclick="document.getElementById('fileProfileImage').click(); return false;" />
+    <asp:Image ID="imgProfile" ClientIDMode="Static" runat="server"
+    CssClass="edit-profile-image"
+    AlternateText="Profile Picture"
+    onclick="document.getElementById('fileProfileImage').click(); return false;" />
 
-        <asp:FileUpload ID="fileProfileImage" runat="server" Accept="image/*" onchange="document.getElementById('imgProfile').src = window.URL.createObjectURL(this.files[0]);" />
+<asp:FileUpload ID="fileProfileImage" ClientIDMode="Static" runat="server"
+    Accept="image/*"
+    onchange="document.getElementById('imgProfile').src = window.URL.createObjectURL(this.files[0]);" />
 
         <asp:Label ID="lblMessage" runat="server" CssClass="edit-profile-success" Visible="false"></asp:Label>
         <asp:Label ID="lblError" runat="server" CssClass="edit-profile-error" Visible="false"></asp:Label>

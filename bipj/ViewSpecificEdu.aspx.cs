@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
+using System.Web;
 using System.Web.UI.WebControls;
 
 namespace bipj
@@ -12,113 +14,205 @@ namespace bipj
 
         protected void Page_Load(object sender, EventArgs e)
         {
+            // Require login
+            if (Session["UserId"] == null)
+            {
+                var returnUrl = Server.UrlEncode(Request.RawUrl);
+                Response.Redirect("Loginpage.aspx?returnUrl=" + returnUrl + "&msg=login_required");
+                return;
+            }
+
             if (!IsPostBack)
             {
-                if (ModuleId > 0)
+                if (ModuleId <= 0)
                 {
-                    LoadModuleInfo();
-                    LoadSideNav();
+                    // If moduleId missing/invalid, go back to Education
+                    Response.Redirect("Education.aspx");
+                    return;
+                }
 
-                    if (PageId > 0)
-                    {
-                        LoadPageContent();
-                    }
+                LoadModuleInfo();
+                LoadSideNav();
+
+                if (PageId > 0)
+                    LoadPageContent();
+                else
+                {
+                    pnlNoPageSelected.Visible = true;
+                    pnlPageContent.Visible = false;
                 }
             }
         }
 
+        private string ConnStr => ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString;
+
         private void LoadModuleInfo()
         {
-            string connStr = System.Configuration.ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString;
-            using (SqlConnection conn = new SqlConnection(connStr))
+            using (var conn = new SqlConnection(ConnStr))
+            using (var cmd = new SqlCommand("SELECT Name FROM EducationModules WHERE Id=@id", conn))
             {
-                string sql = "SELECT Name FROM EducationModules WHERE Id = @ModuleId";
-                SqlCommand cmd = new SqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@ModuleId", ModuleId);
-
+                cmd.Parameters.AddWithValue("@id", ModuleId);
                 conn.Open();
-                var result = cmd.ExecuteScalar();
-                if (result != null)
-                {
-                    ltModuleTitle.Text = result.ToString();
-                }
+                var name = cmd.ExecuteScalar() as string;
+                ltModuleTitle.Text = string.IsNullOrWhiteSpace(name) ? "Module" : name;
             }
         }
 
         private void LoadSideNav()
         {
-            string connStr = System.Configuration.ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString;
-            using (SqlConnection conn = new SqlConnection(connStr))
+            using (var conn = new SqlConnection(ConnStr))
             {
-                // Get all subtopics for this module
-                string topicSql = "SELECT Id, Name FROM EducationSubTopics WHERE ModuleId = @ModuleId";
-                SqlDataAdapter topicDa = new SqlDataAdapter(topicSql, conn);
-                topicDa.SelectCommand.Parameters.AddWithValue("@ModuleId", ModuleId);
-                DataTable topicsDt = new DataTable();
-                topicDa.Fill(topicsDt);
-
-                // Create a DataTable with proper structure for binding
-                DataTable rptData = new DataTable();
-                rptData.Columns.Add("TopicName");
-                rptData.Columns.Add("Pages", typeof(DataTable));
-
-                foreach (DataRow topicRow in topicsDt.Rows)
+                // 1) Get subtopics for the module
+                var topics = new DataTable();
+                using (var da = new SqlDataAdapter("SELECT Id, Name FROM EducationSubTopics WHERE ModuleId=@m ORDER BY Name", conn))
                 {
-                    // Get all pages for this subtopic
-                    string pageSql = "SELECT Id, Title, SubTopicId, @ModuleId AS ModuleId FROM EducationPages WHERE SubTopicId = @SubTopicId";
-                    SqlDataAdapter pageDa = new SqlDataAdapter(pageSql, conn);
-                    pageDa.SelectCommand.Parameters.AddWithValue("@SubTopicId", topicRow["Id"]);
-                    pageDa.SelectCommand.Parameters.AddWithValue("@ModuleId", ModuleId);
-                    DataTable pagesDt = new DataTable();
-                    pageDa.Fill(pagesDt);
-
-                    // Add to main data
-                    DataRow newRow = rptData.NewRow();
-                    newRow["TopicName"] = topicRow["Name"];
-                    newRow["Pages"] = pagesDt;
-                    rptData.Rows.Add(newRow);
+                    da.SelectCommand.Parameters.AddWithValue("@m", ModuleId);
+                    da.Fill(topics);
                 }
 
-                rptTopics.DataSource = rptData;
+                // 2) Build a table for binding (TopicName + Pages(DataTable))
+                var navTable = new DataTable();
+                navTable.Columns.Add("TopicId", typeof(int));
+                navTable.Columns.Add("TopicName", typeof(string));
+                navTable.Columns.Add("Pages", typeof(DataTable));
+
+                foreach (DataRow t in topics.Rows)
+                {
+                    int subTopicId = Convert.ToInt32(t["Id"]);
+                    var pages = new DataTable();
+                    using (var daP = new SqlDataAdapter(
+                        "SELECT Id, Title FROM EducationPages WHERE SubTopicId=@s ORDER BY Id", conn))
+                    {
+                        daP.SelectCommand.Parameters.AddWithValue("@s", subTopicId);
+                        daP.Fill(pages);
+                        // Attach moduleId to each page row at bind time (in child ItemDataBound)
+                        pages.Columns.Add("ModuleId", typeof(int));
+                        foreach (DataRow p in pages.Rows) p["ModuleId"] = ModuleId;
+                    }
+
+                    var row = navTable.NewRow();
+                    row["TopicId"] = subTopicId;
+                    row["TopicName"] = t["Name"].ToString();
+                    row["Pages"] = pages;
+                    navTable.Rows.Add(row);
+                }
+
+                rptTopics.DataSource = navTable;
                 rptTopics.DataBind();
             }
         }
 
         private void LoadPageContent()
         {
-            string connStr = System.Configuration.ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString;
-            using (SqlConnection conn = new SqlConnection(connStr))
+            using (var conn = new SqlConnection(ConnStr))
             {
-                string sql = "SELECT Title, Content FROM EducationPages WHERE Id = @PageId";
-                SqlCommand cmd = new SqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@PageId", PageId);
-
                 conn.Open();
-                using (SqlDataReader reader = cmd.ExecuteReader())
-                {
-                    if (reader.Read())
-                    {
-                        pnlNoPageSelected.Visible = false;
-                        pnlPageContent.Visible = true;
 
-                        ltPageTitle.Text = reader["Title"].ToString();
-                        hfPageContent.Value = reader["Content"].ToString(); // Store JSON in hidden field
+                // 1) Load page content
+                using (var cmd = new SqlCommand("SELECT Title, Content FROM EducationPages WHERE Id=@p", conn))
+                {
+                    cmd.Parameters.AddWithValue("@p", PageId);
+                    using (var r = cmd.ExecuteReader())
+                    {
+                        if (r.Read())
+                        {
+                            pnlNoPageSelected.Visible = false;
+                            pnlPageContent.Visible = true;
+
+                            ltPageTitle.Text = r["Title"].ToString();
+                            ltPageContent.Text = r["Content"].ToString(); // assume HTML stored
+                        }
+                        else
+                        {
+                            pnlNoPageSelected.Visible = true;
+                            pnlPageContent.Visible = false;
+                            return;
+                        }
                     }
+                }
+
+                // 2) Progress tracking (mark viewed)
+                int userId = Convert.ToInt32(Session["UserId"]);
+
+                using (var cmd = new SqlCommand(@"
+IF NOT EXISTS (SELECT 1 FROM UserViewedPages WHERE UserId=@u AND PageId=@p)
+    INSERT INTO UserViewedPages(UserId, PageId) VALUES(@u, @p);", conn))
+                {
+                    cmd.Parameters.AddWithValue("@u", userId);
+                    cmd.Parameters.AddWithValue("@p", PageId);
+                    cmd.ExecuteNonQuery();
+                }
+
+                // 3) Recalculate completion for this module
+                int totalPages = 0, viewedPages = 0;
+
+                using (var cmd = new SqlCommand(@"
+SELECT COUNT(*) FROM EducationPages 
+WHERE SubTopicId IN (SELECT Id FROM EducationSubTopics WHERE ModuleId=@m)", conn))
+                {
+                    cmd.Parameters.AddWithValue("@m", ModuleId);
+                    totalPages = (int)cmd.ExecuteScalar();
+                }
+
+                using (var cmd = new SqlCommand(@"
+SELECT COUNT(*) FROM UserViewedPages 
+WHERE UserId=@u AND PageId IN (
+    SELECT Id FROM EducationPages 
+    WHERE SubTopicId IN (SELECT Id FROM EducationSubTopics WHERE ModuleId=@m)
+)", conn))
+                {
+                    cmd.Parameters.AddWithValue("@u", userId);
+                    cmd.Parameters.AddWithValue("@m", ModuleId);
+                    viewedPages = (int)cmd.ExecuteScalar();
+                }
+
+                int progress = totalPages > 0 ? (viewedPages * 100) / totalPages : 0;
+
+                using (var cmd = new SqlCommand(@"
+IF EXISTS (SELECT 1 FROM UserEducationProgress WHERE UserId=@u AND ModuleId=@m)
+    UPDATE UserEducationProgress 
+    SET CompletionPercentage=@pr, LastAccessed=GETDATE()
+    WHERE UserId=@u AND ModuleId=@m
+ELSE
+    INSERT INTO UserEducationProgress (UserId, ModuleId, CompletionPercentage, LastAccessed)
+    VALUES (@u, @m, @pr, GETDATE())", conn))
+                {
+                    cmd.Parameters.AddWithValue("@u", userId);
+                    cmd.Parameters.AddWithValue("@m", ModuleId);
+                    cmd.Parameters.AddWithValue("@pr", progress);
+                    cmd.ExecuteNonQuery();
                 }
             }
         }
 
-        protected void rptTopics_ItemDataBound(object sender, System.Web.UI.WebControls.RepeaterItemEventArgs e)
+        // Bind child repeater with its pages
+        protected void rptTopics_ItemDataBound(object sender, RepeaterItemEventArgs e)
         {
-            if (e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem)
-            {
-                DataRowView rowView = (DataRowView)e.Item.DataItem;
-                DataTable pages = (DataTable)rowView["Pages"];
+            if (e.Item.ItemType != ListItemType.Item && e.Item.ItemType != ListItemType.AlternatingItem) return;
 
-                Repeater rptPages = (Repeater)e.Item.FindControl("rptPages");
-                rptPages.DataSource = pages;
-                rptPages.DataBind();
-            }
+            var row = (DataRowView)e.Item.DataItem;
+            var pages = (DataTable)row["Pages"];
+
+            var child = (Repeater)e.Item.FindControl("rptPages");
+            child.DataSource = pages;
+            child.DataBind();
+        }
+
+        // Set the link text/url and active class per page row
+        protected void rptPages_ItemDataBound(object sender, RepeaterItemEventArgs e)
+        {
+            if (e.Item.ItemType != ListItemType.Item && e.Item.ItemType != ListItemType.AlternatingItem) return;
+
+            var data = (DataRowView)e.Item.DataItem;
+            int id = Convert.ToInt32(data["Id"]);
+            int moduleId = ModuleId;
+
+            var link = (HyperLink)e.Item.FindControl("lnkPage");
+            link.Text = HttpUtility.HtmlEncode(data["Title"].ToString());
+            link.NavigateUrl = $"ViewSpecificEdu.aspx?moduleId={moduleId}&pageId={id}";
+
+            // Highlight the current page
+            if (id == PageId) link.CssClass += " active";
         }
     }
 }

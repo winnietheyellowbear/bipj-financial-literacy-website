@@ -18,17 +18,19 @@ namespace bipj
 
         private void PopulateCategoryFilter()
         {
-            // load distinct categories from all advisors
-            var cats = Advisor.GetAll()
-                             .Select(a => a.Category)
-                             .Distinct()
-                             .OrderBy(c => c)
-                             .ToList();
+            // Load distinct advisor categories
+            var categories = Advisor.GetAll()
+                                    .Select(a => a.Category)
+                                    .Distinct()
+                                    .OrderBy(c => c)
+                                    .ToList();
 
             ddlCategory.Items.Clear();
             ddlCategory.Items.Add(new ListItem("All Categories", ""));
-            foreach (var c in cats)
-                ddlCategory.Items.Add(new ListItem(c, c));
+            foreach (var category in categories)
+            {
+                ddlCategory.Items.Add(new ListItem(category, category));
+            }
         }
 
         protected void FilterChanged(object sender, EventArgs e)
@@ -38,70 +40,73 @@ namespace bipj
 
         private void BindAdvisors()
         {
-            // fetch only approved advisors
-            var list = Advisor.GetAll().Where(a => a.Status == 1);
+            var advisors = Advisor.GetAll().Where(a => a.Status == 1); // Only approved advisors
 
-            // apply category filter
+            // Filter by category
             if (!string.IsNullOrEmpty(ddlCategory.SelectedValue))
-                list = list.Where(a => a.Category == ddlCategory.SelectedValue);
+            {
+                advisors = advisors.Where(a => a.Category == ddlCategory.SelectedValue);
+            }
 
-            // apply rating filter
+            // Filter by rating
             switch (ddlRating.SelectedValue)
             {
                 case "Below3":
-                    list = list.Where(a => a.Rating < 3m);
+                    advisors = advisors.Where(a => a.Rating < 3m);
                     break;
                 case "3":
-                    list = list.Where(a => a.Rating >= 3m && a.Rating < 4m);
+                    advisors = advisors.Where(a => a.Rating >= 3m && a.Rating < 4m);
                     break;
                 case "4":
-                    list = list.Where(a => a.Rating >= 4m && a.Rating < 5m);
+                    advisors = advisors.Where(a => a.Rating >= 4m && a.Rating < 5m);
                     break;
                 case "5":
-                    list = list.Where(a => a.Rating >= 5m);
+                    advisors = advisors.Where(a => a.Rating >= 5m);
                     break;
             }
 
-            rptAll.DataSource = list.ToList();
+            rptAll.DataSource = advisors.ToList();
             rptAll.DataBind();
         }
 
         protected void btnView_Click(object sender, EventArgs e)
         {
-            var id = (sender as Button).CommandArgument;
-            Response.Redirect($"AdvisorProfile.aspx?advisorId={id}");
+            var advisorId = (sender as Button).CommandArgument;
+            Response.Redirect($"AdvisorProfile.aspx?advisorId={advisorId}");
         }
 
         protected void btnDelete_Click(object sender, EventArgs e)
         {
             var btn = (Button)sender;
-            int id = int.Parse(btn.CommandArgument);
-            var adv = Advisor.GetById(id);
-            if (adv != null)
-                adv.Delete();
+            int advisorId = int.Parse(btn.CommandArgument);
+            var advisor = Advisor.GetById(advisorId);
+            if (advisor != null)
+            {
+                advisor.Delete(); // Assumes you have a Delete() method
+            }
 
-            // re-bind after deletion
+            // Rebind grid after deletion
             BindAdvisors();
         }
 
         /// <summary>
-        /// Renders ★★½☆☆ etc.
+        /// Converts decimal rating to star icons (e.g., ★★★★☆)
         /// </summary>
         public string GenerateStars(decimal rating)
         {
             int full = (int)Math.Floor(rating);
-            bool half = (rating - full) >= 0.5m;
-            int empty = 5 - full - (half ? 1 : 0);
+            bool hasHalf = (rating - full) >= 0.5m;
+            int empty = 5 - full - (hasHalf ? 1 : 0);
 
-            var sb = new System.Text.StringBuilder();
+            var stars = new System.Text.StringBuilder();
             for (int i = 0; i < full; i++)
-                sb.Append("<i class='fas fa-star'></i>");
-            if (half)
-                sb.Append("<i class='fas fa-star-half-alt'></i>");
+                stars.Append("<i class='fas fa-star'></i>");
+            if (hasHalf)
+                stars.Append("<i class='fas fa-star-half-alt'></i>");
             for (int i = 0; i < empty; i++)
-                sb.Append("<i class='far fa-star'></i>");
+                stars.Append("<i class='far fa-star'></i>");
 
-            return sb.ToString();
+            return stars.ToString();
         }
     }
 }

@@ -193,6 +193,8 @@ namespace bipj
                     .ExecuteNonQuery(new SqlParameter("@PlanID", planId));
                 new SqlCommand("DELETE FROM InsurancePolicyComparison WHERE PlanID = @PlanID", con)
                     .ExecuteNonQuery(new SqlParameter("@PlanID", planId));
+                new SqlCommand("DELETE FROM InsurancePolicyAnalysis WHERE PlanID = @PlanID", con)
+                    .ExecuteNonQuery(new SqlParameter("@PlanID", planId));
             }
         }
 

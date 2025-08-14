@@ -33,15 +33,6 @@ namespace bipj
         protected global::System.Web.UI.WebControls.Button btnSearch;
 
         /// <summary>
-        /// pnlFilter control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Panel pnlFilter;
-
-        /// <summary>
         /// ddlMinRating control.
         /// </summary>
         /// <remarks>
@@ -51,22 +42,13 @@ namespace bipj
         protected global::System.Web.UI.WebControls.DropDownList ddlMinRating;
 
         /// <summary>
-        /// cblSpecialties control.
+        /// btnOverlayApply control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.CheckBoxList cblSpecialties;
-
-        /// <summary>
-        /// btnApplyFilter control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnApplyFilter;
+        protected global::System.Web.UI.WebControls.Button btnOverlayApply;
 
         /// <summary>
         /// rptAdvisors control.

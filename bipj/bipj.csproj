@@ -316,6 +316,7 @@
     <Content Include="StudyAssistant.aspx" />
     <Content Include="Tools.aspx" />
     <Content Include="UpdateVoucher.aspx" />
+    <Content Include="UserHomepage.aspx" />
     <Content Include="ViewAdvisor.aspx" />
     <Content Include="ViewEducationPage.aspx" />
     <Content Include="ViewSpecificEdu.aspx" />
@@ -625,6 +626,7 @@
     <Compile Include="OtpConfirmation.aspx.designer.cs">
       <DependentUpon>OtpConfirmation.aspx</DependentUpon>
     </Compile>
+    <Compile Include="PolicyAnalysis.cs" />
     <Compile Include="PolicyCategory.cs" />
     <Compile Include="Post.aspx.cs">
       <DependentUpon>Post.aspx</DependentUpon>
@@ -713,6 +715,13 @@
       <DependentUpon>UpdateVoucher.aspx</DependentUpon>
     </Compile>
     <Compile Include="User.cs" />
+    <Compile Include="UserHomepage.aspx.cs">
+      <DependentUpon>UserHomepage.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="UserHomepage.aspx.designer.cs">
+      <DependentUpon>UserHomepage.aspx</DependentUpon>
+    </Compile>
     <Compile Include="ViewAdvisor.aspx.cs">
       <DependentUpon>ViewAdvisor.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>

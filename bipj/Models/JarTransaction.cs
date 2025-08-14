@@ -99,7 +99,7 @@ namespace bipj.Models
                 p.AddWithValue("@UserID", UserId);
             });
 
-            Jar.InvalidateCache(); 
+            Jar.InvalidateCache();
             return result;
         }
 
@@ -112,7 +112,7 @@ namespace bipj.Models
                 p.AddWithValue("@UserID", UserId);
             });
 
-            Jar.InvalidateCache(); 
+            Jar.InvalidateCache();
             return result;
         }
 

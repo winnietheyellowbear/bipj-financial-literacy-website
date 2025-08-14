@@ -3,6 +3,8 @@ using Microsoft.VisualBasic;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
+using System.Data.SqlClient;
 using System.Globalization;
 using System.Linq;
 using System.Web.UI;
@@ -109,25 +111,36 @@ namespace bipj
             var txnMgr = new JarTransaction();
             var jars = new Jar().GetJarsByUser(_userId, includeDeleted: true);
 
+            // Period P&L from jars; exclude transfers
             foreach (var jar in jars)
             {
                 income += txnMgr.GetTransactionSumByType(_userId, jar.JarId, "Income", from, to, includeTransfers: false);
                 expense += txnMgr.GetTransactionSumByType(_userId, jar.JarId, "Expense", from, to, includeTransfers: false);
             }
 
-            // include ALL goal inflows (top-ups + transfers)
-            var goalTxn = new GoalTransaction();
-            income += goalTxn.GetSumAllInflows(_userId, from, to);
+            // === ADD: manual goal top-ups (exclude jar->goal transfers) ===
+            // GoalTransactions: UserId, Amount, SourceType ('topup' = manual), Date
+            var connStr = ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString;
+            decimal manualGoalTopUps = 0m;
+            using (var conn = new SqlConnection(connStr))
+            using (var cmd = new SqlCommand(@"
+        SELECT ISNULL(SUM(gt.Amount), 0)
+        FROM GoalTransactions gt
+        WHERE gt.UserId = @uid
+          AND gt.SourceType = 'topup'
+          AND gt.[Date] >= @from AND gt.[Date] < @to;", conn))
+            {
+                cmd.Parameters.AddWithValue("@uid", _userId);
+                cmd.Parameters.AddWithValue("@from", from);
+                cmd.Parameters.AddWithValue("@to", to);
+                conn.Open();
+                var v = cmd.ExecuteScalar();
+                manualGoalTopUps = (v == DBNull.Value) ? 0m : Convert.ToDecimal(v);
+            }
 
-            // balance = jars + goals
-            var liveJars = new Jar().GetJarsByUser(_userId);
-            var jarSvc = new Jar();
-            decimal jarsBalance = liveJars.Sum(j => jarSvc.GetCurrentBalance(_userId, j.JarId));
+            income += manualGoalTopUps;
 
-            var allGoals = new Goal().GetGoalsByUser(_userId, DateTime.MinValue, DateTime.MaxValue, includeArchived: true);
-            decimal goalsBalance = allGoals.Sum(g => g.SavedAmount);
-
-            decimal balance = jarsBalance + goalsBalance;
+            decimal balance = income - expense;
 
             lblIncome.Text = income.ToString("C2");
             lblExpense.Text = expense.ToString("C2");
@@ -138,19 +151,13 @@ namespace bipj
         {
             var (_, to) = GetRange();
 
-            var jars = new Jar().GetJarsByUser(_userId);
-            var txnMgr = new JarTransaction();
+           var jars = new Jar().GetJarsByUser(_userId, DateTime.MinValue, to, includeDeleted: true);
 
-            decimal total = 0m;
-            foreach (var jar in jars)
-            {
-                decimal net = txnMgr.GetTransactionSum(_userId, jar.JarId, null, to);
-                decimal currentBalance = new Jar().GetCurrentBalance(_userId, jar.JarId);
-                total += currentBalance;
-            }
+            decimal total = jars.Sum(j => j.Balance);
 
             lblJarTotal.Text = total.ToString("C2");
         }
+
 
         private void LoadGoals()
         {
@@ -244,11 +251,11 @@ namespace bipj
                     txnMgr.TransactionType = TxnType.Income;
                     txnMgr.InsertTransaction();
                 }
-                else 
+                else
                 {
                     foreach (var (jarId, pct) in jarSvc.GetJarsWithPercentages(_userId))
                     {
-                        decimal share = Math.Floor(amount * pct / 100m * 100m) / 100m; 
+                        decimal share = Math.Floor(amount * pct / 100m * 100m) / 100m;
                         if (share <= 0) continue;
 
                         new JarTransaction
@@ -394,7 +401,7 @@ namespace bipj
                     data = dataPoints,
                     borderWidth = 2,
                     fill = false,
-                    spanGaps = false 
+                    spanGaps = false
                 });
             }
 

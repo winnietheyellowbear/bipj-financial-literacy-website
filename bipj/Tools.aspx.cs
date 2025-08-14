@@ -58,7 +58,7 @@ namespace bipj
         {
             if (Session["UserId"] == null)
             {
-                Response.Redirect("Login.aspx");
+                Response.Redirect("Loginpage.aspx");
                 return;
             }
             _userId = Convert.ToInt32(Session["UserId"]);
@@ -854,19 +854,16 @@ $@"Classify these merchants:
             foreach (var r in monthRows)
             {
                 var merch = CanonicalMerchant(r.Description ?? "");
+                var cat =
+                    (gptMap != null && gptMap.TryGetValue(merch, out var gptCat) &&
+                     !string.IsNullOrWhiteSpace(gptCat) &&
+                     !gptCat.Equals("Misc", StringComparison.OrdinalIgnoreCase) &&
+                     !gptCat.Equals("Unknown", StringComparison.OrdinalIgnoreCase))
+                    ? gptCat
+                    : LocalKeywordCategory(merch);
 
-                string cat = null;
-                if (gptMap != null && gptMap.TryGetValue(merch, out var gptCat) &&
-                    !string.IsNullOrWhiteSpace(gptCat) &&
-                    !gptCat.Equals("Misc", StringComparison.OrdinalIgnoreCase) &&
-                    !gptCat.Equals("Unknown", StringComparison.OrdinalIgnoreCase))
-                {
-                    cat = gptCat;
-                }
-                else
-                {
-                    cat = LocalKeywordCategory(merch); // fallback regex method
-                }
+                // Skip income: we’re showing expenses only
+                if (cat.Equals("Income", StringComparison.OrdinalIgnoreCase)) continue;
 
                 if (!totals.ContainsKey(cat)) totals[cat] = 0m;
                 totals[cat] += r.Expense;

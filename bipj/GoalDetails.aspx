@@ -505,6 +505,39 @@
             </div>
         </div>
     </div>
+
+    <asp:HiddenField ID="hdnTargetExceeded" runat="server" Value="false" />
+
+    <div class="modal fade"
+        id="targetExceededModal"
+        tabindex="-1"
+        aria-labelledby="targetExceededLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-danger">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="targetExceededLabel">Target Amount Exceeded</h5>
+                    <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close">
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Adding this entry would exceed your goal’s target amount.
+         Please enter a smaller amount.
+                </div>
+                <div class="modal-footer">
+                    <button type="button"
+                        class="btn btn-outline-warning"
+                        data-bs-dismiss="modal">
+                        Okay
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </asp:Content>
 <asp:Content ID="Content3" ContentPlaceHolderID="scripts" runat="server">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -545,6 +578,12 @@
             if (flag === "true") {
                 new bootstrap.Modal(document.getElementById('insufficientFundsModal')).show();
             }
+
+            const targetExceededFlag = document.getElementById('<%= hdnTargetExceeded.ClientID %>').value;
+            if (targetExceededFlag === "true") {
+                new bootstrap.Modal(document.getElementById('targetExceededModal')).show();
+            }
+
         });
 
         document.addEventListener('DOMContentLoaded', function () {

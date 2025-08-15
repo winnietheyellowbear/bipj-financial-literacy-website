@@ -20,7 +20,7 @@ namespace bipj
         [WebMethod]
         public static string GetAIResponse(string question, string topic)
         {
-            string apiKey = "";
+            string apiKey = "change here";
 
             string prompt = $"You are assisting a learner in the topic of \"{topic}\". " +
                             $"Only answer questions that are related to this topic. " +

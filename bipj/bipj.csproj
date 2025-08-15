@@ -314,6 +314,7 @@
     <Content Include="ReviewAdvisor.aspx" />
     <Content Include="SmartSearch.aspx" />
     <Content Include="StudyAssistant.aspx" />
+    <Content Include="testfileonly.aspx" />
     <Content Include="Tools.aspx" />
     <Content Include="UpdateVoucher.aspx" />
     <Content Include="UserHomepage.aspx" />
@@ -699,6 +700,13 @@
     </Compile>
     <Compile Include="StudyAssistant.aspx.designer.cs">
       <DependentUpon>StudyAssistant.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="testfileonly.aspx.cs">
+      <DependentUpon>testfileonly.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="testfileonly.aspx.designer.cs">
+      <DependentUpon>testfileonly.aspx</DependentUpon>
     </Compile>
     <Compile Include="Tools.aspx.cs">
       <DependentUpon>Tools.aspx</DependentUpon>

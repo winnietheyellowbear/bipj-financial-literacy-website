@@ -1115,6 +1115,8 @@ $@"Classify these merchants:
             {
                 Jar.ResetAllJarsForUser_Lite(userId);
 
+                GoalTransaction.DeleteTransactionsForArchivedGoals(userId);
+
                 pnlDone.Visible = true;
                 pnlDone.CssClass = "alert alert-success mt-4";
                 litDoneMessage.Text = "All transactions and snapshots cleared. Jars kept.";

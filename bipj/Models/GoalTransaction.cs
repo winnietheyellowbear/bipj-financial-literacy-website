@@ -345,5 +345,26 @@ WHERE TransactionID=@TxnID AND GoalID=@GoalID AND UserID=@UserID";
                 Convert.ToDateTime(r["Date"])
             );
         }
+
+        public static void DeleteTransactionsForArchivedGoals(int userId)
+        {
+            string connStr = ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString;
+
+            using (var conn = new SqlConnection(connStr))
+            {
+                conn.Open();
+                using (var cmd = new SqlCommand(@"
+                DELETE gt
+                FROM GoalTransactions gt
+                INNER JOIN Goals g ON gt.GoalId = g.GoalId
+                WHERE g.UserId = @U
+                  AND g.IsArchived = 1;", conn))
+                {
+                    cmd.Parameters.AddWithValue("@U", userId);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
     }
 }

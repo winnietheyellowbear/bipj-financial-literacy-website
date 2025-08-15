@@ -72,20 +72,27 @@ namespace bipj
             string name = txtTxnName.Text.Trim();
             if (string.IsNullOrEmpty(name)) return;
 
+            var goal = _goalModel.GetGoalById(_goalId, _userId);
+            if (goal == null) return;
+
+            decimal currentSaved = _goalTxnModel.GetTotalSavedAmount(_goalId, _userId);
+            if (currentSaved + amount > goal.TargetAmount)
+            {
+                hdnTargetExceeded.Value = "true";
+                return; // Stop before inserting
+            }
+
+
             string sourceType = "topup";
             int? fromJarId = null;
 
             var jarSvc = new Jar();
-
-            // Reload goal to be safe on postback
-            var goal = _goalModel.GetGoalById(_goalId, _userId);
-            BoundJarId = goal?.JarId;
+            BoundJarId = goal.JarId;
 
             if (rdoTransferYes.Checked)
             {
                 if (BoundJarId.HasValue)
                 {
-                    // Goal tied to a jar -> force that jar
                     fromJarId = BoundJarId.Value;
                     sourceType = "jar";
                 }

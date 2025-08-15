@@ -154,17 +154,25 @@
                     <!-- Download Template -->
                     <asp:Panel runat="server" CssClass="mb-0">
                         <div class="dropdown">
-                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="downloadDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle"
+                                type="button"
+                                id="downloadDropdown"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false">
                                 <i class="bi bi-download me-2"></i>Download Template
                             </button>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="downloadDropdown">
+                            <ul class="dropdown-menu dropdown-menu-end w-100" aria-labelledby="downloadDropdown">
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center" href="Content/sample_import.xlsx" download>
+                                    <a class="dropdown-item d-flex align-items-center"
+                                        href="<%= ResolveUrl("~/Content/sample_import.xlsx") %>"
+                                        download>
                                         <i class="bi bi-file-earmark-spreadsheet me-2"></i>XLSX
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center" href="Content/sample_import.csv" download>
+                                    <a class="dropdown-item d-flex align-items-center"
+                                        href="<%= ResolveUrl("~/Content/sample_import.csv") %>"
+                                        download>
                                         <i class="bi bi-file-earmark-spreadsheet me-2"></i>CSV
                                     </a>
                                 </li>
@@ -295,7 +303,6 @@
 </asp:Content>
 
 <asp:Content ID="Content3" ContentPlaceHolderID="scripts" runat="server">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
+<script>
 </script>
 </asp:Content>

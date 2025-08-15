@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Net.Http;
@@ -17,7 +18,9 @@ namespace bipj
 {
     public partial class InvestmentPortfolioPage : System.Web.UI.Page
     {
-        private static readonly string ApiKey = "cc404b6f2d2240f3b60772749ae6ea11";
+        // ✅ ADDED: Hardcoded Gemini API Key as requested.
+        private static readonly string GeminiApiKey = "AIzaSyAJRjb5r2BlhZQTurmQ9z7ltpCcS3S49xA";
+        private static readonly string TwelveDataApiKey = "cc404b6f2d2240f3b60772749ae6ea11";
         private static readonly string DbConstr = ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString;
         private static readonly HttpClient client = new HttpClient();
 
@@ -78,10 +81,10 @@ namespace bipj
             }
         }
 
-        // ✅ REFACTORED: Implemented a more robust "return-early" caching pattern.
+        // ✅ REFACTORED: This method now includes the Gemini API fallback logic.
         private async Task<AssetFullDetails> GetAssetDetailsAsync(string symbol)
         {
-            // Step 1: Attempt to get fresh data from the cache.
+            // Step 1: Check cache. If data is from today, return it.
             using (var con = new SqlConnection(DbConstr))
             {
                 string query = "SELECT AssetName, Description, Sector, Geography, AssetType, LastPrice, PriceLastUpdate FROM Assets WHERE Symbol = @Symbol";
@@ -93,10 +96,8 @@ namespace bipj
                     if (await reader.ReadAsync())
                     {
                         var priceLastUpdate = reader["PriceLastUpdate"] as DateTime?;
-                        // If the price is from today, we have a CACHE HIT.
                         if (priceLastUpdate.HasValue && priceLastUpdate.Value.Date >= DateTime.UtcNow.Date)
                         {
-                            // Build the object from the cache and return immediately.
                             return new AssetFullDetails
                             {
                                 Symbol = symbol,
@@ -112,13 +113,11 @@ namespace bipj
                 }
             }
 
-            // Step 2: CACHE MISS or STALE. If we reach this point, we must call the API.
+            // Step 2: CACHE MISS. Get the price first (it's critical).
             decimal? freshPrice = null;
-            JObject profileData = null;
-
             try
             {
-                string priceUrlApi = $"https://api.twelvedata.com/price?symbol={symbol}&apikey={ApiKey}";
+                string priceUrlApi = $"https://api.twelvedata.com/price?symbol={symbol}&apikey={TwelveDataApiKey}";
                 var priceJson = await client.GetStringAsync(priceUrlApi);
                 JObject priceDataApi = JObject.Parse(priceJson);
                 if (decimal.TryParse(priceDataApi["price"]?.ToString(), out decimal p))
@@ -130,26 +129,51 @@ namespace bipj
 
             if (freshPrice == null) return null; // Can't continue without a price.
 
+            // Step 3: Try to get profile data from Twelve Data.
+            JObject profileData = null;
             try
             {
-                string profileUrl = $"https://api.twelvedata.com/profile?symbol={symbol}&apikey={ApiKey}";
+                string profileUrl = $"https://api.twelvedata.com/profile?symbol={symbol}&apikey={TwelveDataApiKey}";
                 var profileJson = await client.GetStringAsync(profileUrl);
                 profileData = JObject.Parse(profileJson);
             }
-            catch { /* Profile fetch is optional */ }
+            catch { /* Profile fetch failed, we will rely on Gemini */ }
 
             var details = new AssetFullDetails
             {
                 Symbol = symbol,
-                Name = profileData?["name"]?.ToString() ?? symbol,
                 Price = freshPrice.Value,
-                Description = FormatDescription(profileData?["description"]?.ToString(), profileData?["type"]?.ToString(), profileData?["country"]?.ToString(), profileData?["sector"]?.ToString()),
+                Name = profileData?["name"]?.ToString(),
                 AssetType = profileData?["type"]?.ToString(),
                 Sector = profileData?["sector"]?.ToString(),
                 Geography = profileData?["country"]?.ToString()
             };
 
-            // Step 3: Update database with the new data.
+            // Step 4: ✅ GEMINI FALLBACK LOGIC
+            // If the data from Twelve Data is sparse, call Gemini to enrich it.
+            if (string.IsNullOrWhiteSpace(details.Name) || string.IsNullOrWhiteSpace(details.Sector) || string.IsNullOrWhiteSpace(details.Geography))
+            {
+                var geminiData = await GetAssetDetailsFromGeminiAsync(symbol);
+                if (geminiData != null)
+                {
+                    // Overwrite sparse data with richer, standardized data from Gemini.
+                    details.Name = geminiData.Name ?? details.Name ?? symbol;
+                    details.Description = geminiData.Description; // Gemini's description is the primary one now
+                    details.Sector = geminiData.Sector;
+                    details.Geography = geminiData.Country;
+                }
+            }
+
+            // Ensure Name is never empty.
+            if (string.IsNullOrWhiteSpace(details.Name))
+            {
+                details.Name = symbol;
+            }
+
+            // Format the final description for the UI
+            details.Description = FormatDescription(details.Description, details.AssetType, details.Geography, details.Sector);
+
+            // Step 5: Update database with the complete, enriched data.
             using (var con = new SqlConnection(DbConstr))
             {
                 string upsertQuery = @"
@@ -165,7 +189,8 @@ namespace bipj
                 {
                     cmd.Parameters.AddWithValue("@Symbol", details.Symbol);
                     cmd.Parameters.AddWithValue("@AssetName", (object)details.Name ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Description", (object)profileData?["description"]?.ToString() ?? DBNull.Value);
+                    // Note: We are now caching Gemini's description, not Twelve Data's.
+                    cmd.Parameters.AddWithValue("@Description", (object)details.Description ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@Sector", (object)details.Sector ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@Geography", (object)details.Geography ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@AssetType", (object)details.AssetType ?? DBNull.Value);
@@ -177,6 +202,72 @@ namespace bipj
                 }
             }
             return details;
+        }
+
+        // ✅ NEW METHOD: Calls the Gemini API with a structured prompt.
+        private async Task<GeminiAssetProfile> GetAssetDetailsFromGeminiAsync(string symbol)
+        {
+            // ✅ ADDED: Log message to indicate the method is starting.
+            Debug.WriteLine($"[GEMINI LOG] Attempting to call Gemini API for symbol: {symbol}");
+
+            string geminiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={GeminiApiKey}";
+
+            // This prompt instructs Gemini to act like an API and return standardized, structured JSON.
+            string prompt = $@"
+                You are a financial data API. For the asset with the symbol '{symbol}', provide the following information in a valid JSON object format:
+                1. 'name': The full, proper name of the asset.
+                2. 'description': A concise, one-sentence description of the asset or company.
+                3. 'country': The standardized, full name of the country of origin (e.g., 'United States', not 'USA').
+                4. 'sector': The standardized, single primary business sector (e.g., 'Technology', 'Healthcare', 'Financial Services').
+                
+                Your response must be ONLY the JSON object, with no other text or explanations.
+                Example for 'AAPL':
+                {{
+                  ""name"": ""Apple Inc."",
+                  ""description"": ""A multinational technology company that designs, develops, and sells consumer electronics, computer software, and online services."",
+                  ""country"": ""United States"",
+                  ""sector"": ""Technology""
+                }}";
+
+            var payload = new
+            {
+                contents = new[]
+                {
+                    new { parts = new[] { new { text = prompt } } }
+                }
+            };
+
+            try
+            {
+                var content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
+                var response = await client.PostAsync(geminiUrl, content);
+                if (response.IsSuccessStatusCode)
+                {
+                    string responseBody = await response.Content.ReadAsStringAsync();
+                    // ✅ ADDED: Log the raw response from the API for debugging.
+                    Debug.WriteLine($"[GEMINI LOG] Success. Raw response for {symbol}: {responseBody}");
+
+                    JObject result = JObject.Parse(responseBody);
+                    string textResponse = result["candidates"][0]["content"]["parts"][0]["text"].ToString();
+
+                    // Clean the response to ensure it's valid JSON
+                    textResponse = textResponse.Trim().Replace("```json", "").Replace("```", "");
+
+                    return JsonConvert.DeserializeObject<GeminiAssetProfile>(textResponse);
+                }
+                else
+                {
+                    // ✅ ADDED: Log API call failures with status code.
+                    Debug.WriteLine($"[GEMINI LOG] API call failed for {symbol}. Status Code: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                // ✅ ADDED: Log any exceptions that occur during the process.
+                Debug.WriteLine($"[GEMINI LOG] Exception for {symbol}: {ex.Message}");
+                return null;
+            }
+            return null;
         }
 
         private string FormatDescription(string description, string type, string country, string sector)
@@ -330,15 +421,12 @@ namespace bipj
             }
         }
 
-        // ✅ REFACTORED: Implemented a more robust "return-early" caching pattern.
         private async Task<List<HistoricalPrice>> GetHistoricalPricesAsync(string symbol, int days)
         {
             int assetId = await GetOrCreateAssetIdAsync(symbol, symbol);
             using (var con = new SqlConnection(DbConstr))
             {
                 await con.OpenAsync();
-
-                // Step 1: Attempt to read from the cache first.
                 string cacheQuery = "SELECT TOP (@Days) PriceDate, ClosePrice FROM AssetPriceHistory WHERE AssetID = @AssetID ORDER BY PriceDate DESC";
                 var cmd = new SqlCommand(cacheQuery, con);
                 cmd.Parameters.AddWithValue("@AssetID", assetId);
@@ -352,17 +440,13 @@ namespace bipj
                     }
                 }
 
-                // Step 2: Check if the cache is fresh and sufficient.
                 DateTime latestDateInCache = prices.Any() ? prices.Max(p => p.Date) : DateTime.MinValue;
-                // The cache is good if it has enough data AND its latest entry is from yesterday or today.
                 if (prices.Count >= days && latestDateInCache.Date >= DateTime.UtcNow.Date.AddDays(-1))
                 {
-                    // CACHE HIT: Return the cached data immediately.
                     return prices;
                 }
 
-                // Step 3: CACHE MISS or STALE. Fetch a large chunk of data from the API.
-                string url = $"https://api.twelvedata.com/time_series?symbol={symbol}&interval=1day&outputsize=400&apikey={ApiKey}";
+                string url = $"https://api.twelvedata.com/time_series?symbol={symbol}&interval=1day&outputsize=400&apikey={TwelveDataApiKey}";
                 var response = await client.GetStringAsync(url);
                 JObject data = JObject.Parse(response);
                 if (data["values"] != null)
@@ -373,7 +457,6 @@ namespace bipj
                         Price = decimal.Parse(item["close"].ToString(), CultureInfo.InvariantCulture)
                     }).ToList();
 
-                    // Update the cache with the new data.
                     var mergeQuery = @"
                         MERGE AssetPriceHistory AS target
                         USING (SELECT @AssetID AS AssetID, @PriceDate AS PriceDate) AS source ON (target.AssetID = source.AssetID AND target.PriceDate = source.PriceDate)
@@ -388,11 +471,10 @@ namespace bipj
                             await mergeCmd.ExecuteNonQueryAsync();
                         }
                     }
-                    // Return the requested number of days from the newly fetched data.
                     return values.OrderByDescending(p => p.Date).Take(days).ToList();
                 }
             }
-            return new List<HistoricalPrice>(); // Return empty list if API fails
+            return new List<HistoricalPrice>();
         }
 
         private async Task LoadPortfolioAssetsAsync()
@@ -483,6 +565,15 @@ namespace bipj
         {
             public DateTime Date { get; set; }
             public decimal Price { get; set; }
+        }
+
+        // ✅ NEW HELPER CLASS: Represents the structured JSON we expect from Gemini.
+        private class GeminiAssetProfile
+        {
+            public string Name { get; set; }
+            public string Description { get; set; }
+            public string Country { get; set; }
+            public string Sector { get; set; }
         }
     }
 }

@@ -24,76 +24,160 @@ namespace bipj
         protected global::System.Web.UI.WebControls.Label lblPortfolioName;
 
         /// <summary>
+<<<<<<< HEAD
+        /// txtAssetSymbol control.
+=======
         /// btnGoToDashboard control.
+>>>>>>> 07a4dbcf93962d5594baae011952de56a750ffbd
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
+<<<<<<< HEAD
+        protected global::System.Web.UI.WebControls.TextBox txtAssetSymbol;
+
+        /// <summary>
+        /// btnSearch control.
+=======
         protected global::System.Web.UI.WebControls.Button btnGoToDashboard;
 
         /// <summary>
         /// txtSymbol control.
+>>>>>>> 07a4dbcf93962d5594baae011952de56a750ffbd
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
+<<<<<<< HEAD
+        protected global::System.Web.UI.WebControls.Button btnSearch;
+
+        /// <summary>
+        /// lblSearchStatus control.
+=======
         protected global::System.Web.UI.WebControls.TextBox txtSymbol;
 
         /// <summary>
         /// btnGetPrice control.
+>>>>>>> 07a4dbcf93962d5594baae011952de56a750ffbd
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
+<<<<<<< HEAD
+        protected global::System.Web.UI.WebControls.Label lblSearchStatus;
+
+        /// <summary>
+        /// pnlAssetDetails control.
+=======
         protected global::System.Web.UI.WebControls.Button btnGetPrice;
 
         /// <summary>
         /// lblPrice control.
+>>>>>>> 07a4dbcf93962d5594baae011952de56a750ffbd
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
+<<<<<<< HEAD
+        protected global::System.Web.UI.WebControls.Panel pnlAssetDetails;
+
+        /// <summary>
+        /// litAssetName control.
+=======
         protected global::System.Web.UI.WebControls.Label lblPrice;
 
         /// <summary>
         /// lblAssetDescription control.
+>>>>>>> 07a4dbcf93962d5594baae011952de56a750ffbd
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
+<<<<<<< HEAD
+        protected global::System.Web.UI.WebControls.Literal litAssetName;
+
+        /// <summary>
+        /// litAssetSymbol control.
+=======
         protected global::System.Web.UI.WebControls.Label lblAssetDescription;
 
         /// <summary>
         /// btnViewMonth control.
+>>>>>>> 07a4dbcf93962d5594baae011952de56a750ffbd
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
+<<<<<<< HEAD
+        protected global::System.Web.UI.WebControls.Literal litAssetSymbol;
+
+        /// <summary>
+        /// litAssetDescription control.
+=======
         protected global::System.Web.UI.WebControls.Button btnViewMonth;
 
         /// <summary>
         /// btnViewYear control.
+>>>>>>> 07a4dbcf93962d5594baae011952de56a750ffbd
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
+<<<<<<< HEAD
+        protected global::System.Web.UI.WebControls.Literal litAssetDescription;
+
+        /// <summary>
+        /// litCurrentPrice control.
+=======
         protected global::System.Web.UI.WebControls.Button btnViewYear;
 
         /// <summary>
         /// btnForecast control.
+>>>>>>> 07a4dbcf93962d5594baae011952de56a750ffbd
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
+<<<<<<< HEAD
+        protected global::System.Web.UI.WebControls.Literal litCurrentPrice;
+
+        /// <summary>
+        /// litSector control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Literal litSector;
+
+        /// <summary>
+        /// litAssetType control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Literal litAssetType;
+
+        /// <summary>
+        /// litGeography control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Literal litGeography;
+=======
         protected global::System.Web.UI.WebControls.Button btnForecast;
+>>>>>>> 07a4dbcf93962d5594baae011952de56a750ffbd
 
         /// <summary>
         /// txtQuantity control.
@@ -114,13 +198,21 @@ namespace bipj
         protected global::System.Web.UI.WebControls.Button btnAddAsset;
 
         /// <summary>
+<<<<<<< HEAD
+        /// lblAddStatus control.
+=======
         /// litMessage control.
+>>>>>>> 07a4dbcf93962d5594baae011952de56a750ffbd
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
+<<<<<<< HEAD
+        protected global::System.Web.UI.WebControls.Label lblAddStatus;
+=======
         protected global::System.Web.UI.WebControls.Literal litMessage;
+>>>>>>> 07a4dbcf93962d5594baae011952de56a750ffbd
 
         /// <summary>
         /// gvPortfolioAssets control.
@@ -132,21 +224,35 @@ namespace bipj
         protected global::System.Web.UI.WebControls.GridView gvPortfolioAssets;
 
         /// <summary>
+<<<<<<< HEAD
+        /// btnGoToDashboard control.
+=======
         /// hfPriceLabels control.
+>>>>>>> 07a4dbcf93962d5594baae011952de56a750ffbd
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
+<<<<<<< HEAD
+        protected global::System.Web.UI.WebControls.Button btnGoToDashboard;
+
+        /// <summary>
+        /// hfCurrentSymbol control.
+=======
         protected global::System.Web.UI.WebControls.HiddenField hfPriceLabels;
 
         /// <summary>
         /// hfPriceData control.
+>>>>>>> 07a4dbcf93962d5594baae011952de56a750ffbd
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
+<<<<<<< HEAD
+        protected global::System.Web.UI.WebControls.HiddenField hfCurrentSymbol;
+=======
         protected global::System.Web.UI.WebControls.HiddenField hfPriceData;
 
         /// <summary>
@@ -175,5 +281,6 @@ namespace bipj
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.HiddenField hfForecastLower;
+>>>>>>> 07a4dbcf93962d5594baae011952de56a750ffbd
     }
 }

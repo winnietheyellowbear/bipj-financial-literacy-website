@@ -293,11 +293,11 @@ WHERE TransactionID=@TxnID AND GoalID=@GoalID AND UserID=@UserID";
             SqlDate.Clamp(ref f, ref t);
 
             const string sql = @"
-SELECT SUM(Amount)
-FROM GoalTransactions
-WHERE UserID=@UserID
-  AND SourceType='topup'
-  AND Date>=@FromDate AND Date<@ToDate";
+            SELECT SUM(Amount)
+            FROM GoalTransactions
+            WHERE UserID=@UserID
+              AND SourceType='topup'
+              AND Date>=@FromDate AND Date<@ToDate";
 
             return Db.Scalar(sql,
                 p =>
@@ -316,11 +316,11 @@ WHERE UserID=@UserID
             SqlDate.Clamp(ref f, ref t);
 
             const string sql = @"
-SELECT SUM(Amount)
-FROM GoalTransactions
-WHERE UserID=@UserID
-  AND SourceType='jar'
-  AND Date>=@FromDate AND Date<@ToDate";
+            SELECT SUM(Amount)
+            FROM GoalTransactions
+            WHERE UserID=@UserID
+              AND SourceType='jar'
+              AND Date>=@FromDate AND Date<@ToDate";
 
             return Db.Scalar(sql,
                 p =>

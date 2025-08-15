@@ -73,6 +73,10 @@
             border-radius: 20px;
             margin-bottom: 2rem;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            /* Make the header a flex container to align items */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .header h1 {
@@ -85,6 +89,27 @@
         .header p {
             color: #666;
             font-size: 1.1rem;
+        }
+
+        /* NEW: Styles for the "Analyze" button */
+        .analyze-button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background 0.3s ease, transform 0.3s ease;
+            box-shadow: 0 4px 15px rgba(118, 75, 162, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .analyze-button:hover {
+            background: linear-gradient(135deg, #764ba2, #667eea);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(118, 75, 162, 0.4);
         }
 
         /* KPI Cards */
@@ -288,7 +313,6 @@
 
 <asp:Content ID="mainContent" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     <div class="content-wrapper">
-        <!-- Keep your original sidebar -->
         <div class="sidebar">
             <ul>
                 <li class="active"><a href="AdminPage.aspx"><i class="bi bi-speedometer2"></i> Performance Dashboard</a></li>
@@ -299,13 +323,16 @@
         </div>
 
         <div class="main-content">
-            <!-- Header -->
             <div class="header">
-                <h1>Performance Dashboard</h1>
-                <p>Monitor your platform's health and user engagement metrics</p>
+                <div>
+                    <h1>Performance Dashboard</h1>
+                    <p>Monitor your platform's health and user engagement metrics</p>
+                </div>
+                <a href="PerformanceAnalysis.aspx" class="analyze-button">
+                    <i class="bi bi-bar-chart-line"></i> Analyze
+                </a>
             </div>
 
-            <!-- KPI Cards -->
             <div class="kpi-grid">
                 <div class="kpi-card">
                     <div class="kpi-header">
@@ -392,9 +419,7 @@
                 </div>
             </div>
 
-            <!-- Charts Grid -->
             <div class="chart-grid">
-                <!-- User Growth Chart -->
                 <div class="chart-section">
                     <div class="chart-header">
                         <h3 class="chart-title">User Growth & Engagement</h3>
@@ -404,7 +429,6 @@
                     </div>
                 </div>
 
-                <!-- Financial Tools Usage -->
                 <div class="chart-section">
                     <div class="chart-header">
                         <h3 class="chart-title">Financial Tools Usage</h3>
@@ -414,7 +438,6 @@
                     </div>
                 </div>
 
-                <!-- Education Module Performance -->
                 <div class="chart-section">
                     <div class="chart-header">
                         <h3 class="chart-title">Education Module Performance</h3>
@@ -424,7 +447,6 @@
                     </div>
                 </div>
 
-                <!-- Advisor Performance -->
                 <div class="chart-section">
                     <div class="chart-header">
                         <h3 class="chart-title">Top Performing Advisors</h3>
@@ -434,7 +456,6 @@
                     </div>
                 </div>
 
-                <!-- Forum Activity -->
                 <div class="chart-section">
                     <div class="chart-header">
                         <h3 class="chart-title">Community Engagement</h3>
@@ -444,7 +465,6 @@
                     </div>
                 </div>
 
-                <!-- Platform Analytics -->
                 <div class="chart-section">
                     <div class="chart-header">
                         <h3 class="chart-title">Platform Analytics</h3>
@@ -455,14 +475,12 @@
                 </div>
             </div>
 
-            <!-- Recent Activity -->
             <div class="activity-section">
                 <div class="chart-header">
                     <h3 class="chart-title">Recent Platform Activity</h3>
                 </div>
                 <div id="recentActivityContainer">
-                    <!-- Recent activity items will be populated by JavaScript -->
-                </div>
+                    </div>
             </div>
         </div>
     </div>

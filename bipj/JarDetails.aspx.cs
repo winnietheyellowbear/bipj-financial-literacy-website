@@ -26,6 +26,10 @@ namespace bipj
 
             if (!IsPostBack)
             {
+                string today = DateTime.Now.ToString("yyyy-MM-dd");
+                txtExpenseDate.Text = today;
+                txtIncomeDate.Text = today;
+
                 txtExpenseAmount.Attributes["step"] = "0.01";
                 txtIncomeAmount.Attributes["step"] = "0.01";
 

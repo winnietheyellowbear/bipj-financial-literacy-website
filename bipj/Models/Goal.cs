@@ -174,51 +174,27 @@ namespace bipj.Models
 
                         if (isCompleted)
                         {
-                            // Route the visible purchase to the reporting jar (non-cash)
+                            // Expense for completed goals
                             int reportingJarId = new Jar().GetOrCreateReportingJarId(UserId, conn, trans);
+                            decimal expenseAmount = goal.TargetAmount;
 
-                            // Decide what to display as “purchase”:
-                            decimal expenseAmount = goal.TargetAmount; // or goal.SavedAmount — pick one rule and keep UI copy consistent
-
-                            // One expense; no offset needed
                             using (var expenseCmd = new SqlCommand(@"
-                            INSERT INTO JarTransactions
-                                (UserId, JarId, Name, Amount, [Date], TransactionType, Category)
-                            VALUES
-                                (@U, @J, @N, @A, @D, 'Expense', 'Goal Purchase')", conn, trans))
+                        INSERT INTO JarTransactions
+                            (UserId, JarId, Name, Amount, [Date], TransactionType, Category)
+                        VALUES
+                            (@U, @J, @N, @A, @D, 'Expense', 'Goal Purchase')", conn, trans))
                             {
                                 expenseCmd.Parameters.AddWithValue("@U", UserId);
                                 expenseCmd.Parameters.AddWithValue("@J", reportingJarId);
                                 expenseCmd.Parameters.AddWithValue("@N", "Purchase from completed goal: " + goal.GoalName);
-                                expenseCmd.Parameters.AddWithValue("@A", -expenseAmount);   // negative = expense
+                                expenseCmd.Parameters.AddWithValue("@A", -expenseAmount);
                                 expenseCmd.Parameters.AddWithValue("@D", DateTime.Now);
                                 expenseCmd.ExecuteNonQuery();
                             }
-
-                            // Hard-delete goal history (no refund)
-                            using (var delTx = new SqlCommand(
-                                "DELETE FROM GoalTransactions WHERE GoalId=@G AND UserId=@U", conn, trans))
-                            {
-                                delTx.Parameters.AddWithValue("@G", GoalId);
-                                delTx.Parameters.AddWithValue("@U", UserId);
-                                delTx.ExecuteNonQuery();
-                            }
-
-                            using (var delGoal = new SqlCommand(
-                                "DELETE FROM Goals WHERE GoalId=@G AND UserId=@U", conn, trans))
-                            {
-                                delGoal.Parameters.AddWithValue("@G", GoalId);
-                                delGoal.Parameters.AddWithValue("@U", UserId);
-                                delGoal.ExecuteNonQuery();
-                            }
-
-                            trans.Commit();
-                            return 1;
                         }
-
                         else
                         {
-                            // refund then delete
+                            // Refund for uncompleted goals
                             if (savedAmount > 0m)
                             {
                                 int refundJarId;
@@ -236,37 +212,37 @@ namespace bipj.Models
                             INSERT INTO JarTransactions
                               (UserId, JarId, Name, Amount, Date, TransactionType, Category)
                             VALUES
-                              (@U, @J, @N, @A, @D, 'Income', 'Transfer In')", conn, trans))
+                              (@U, @J, @N, @A, @D, 'Income', 'Uncompleted goals')", conn, trans))
                                 {
                                     txnCmd.Parameters.AddWithValue("@U", UserId);
                                     txnCmd.Parameters.AddWithValue("@J", refundJarId);
-                                    txnCmd.Parameters.AddWithValue("@N", "Refund from deleted goal: " + goal.GoalName);
+                                    txnCmd.Parameters.AddWithValue("@N", $"Refund from Deleted Goal ({goal.GoalName})");
                                     txnCmd.Parameters.AddWithValue("@A", savedAmount);
                                     txnCmd.Parameters.AddWithValue("@D", DateTime.Now);
                                     txnCmd.ExecuteNonQuery();
                                 }
-                            }
 
-                            using (var delTx = new SqlCommand(
+                                using (var delGoalTx = new SqlCommand(
                                 "DELETE FROM GoalTransactions WHERE GoalId=@G AND UserId=@U", conn, trans))
-                            {
-                                delTx.Parameters.AddWithValue("@G", GoalId);
-                                delTx.Parameters.AddWithValue("@U", UserId);
-                                delTx.ExecuteNonQuery();
+                                {
+                                    delGoalTx.Parameters.AddWithValue("@G", GoalId);
+                                    delGoalTx.Parameters.AddWithValue("@U", UserId);
+                                    delGoalTx.ExecuteNonQuery();
+                                }
                             }
-
-                            int result;
-                            using (var delGoal = new SqlCommand(
-                                "DELETE FROM Goals WHERE GoalId=@G AND UserId=@U", conn, trans))
-                            {
-                                delGoal.Parameters.AddWithValue("@G", GoalId);
-                                delGoal.Parameters.AddWithValue("@U", UserId);
-                                result = delGoal.ExecuteNonQuery();
-                            }
-
-                            trans.Commit();
-                            return result;
                         }
+
+                        // Archive all goals (both completed and uncompleted)
+                        using (var archiveGoal = new SqlCommand(
+                            "UPDATE Goals SET IsArchived = 1 WHERE GoalId=@G AND UserId=@U", conn, trans))
+                        {
+                            archiveGoal.Parameters.AddWithValue("@G", GoalId);
+                            archiveGoal.Parameters.AddWithValue("@U", UserId);
+                            archiveGoal.ExecuteNonQuery();
+                        }
+
+                        trans.Commit();
+                        return 1;
                     }
                     catch
                     {

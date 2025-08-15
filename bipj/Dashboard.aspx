@@ -546,6 +546,14 @@
 
             addEl.addEventListener('hidden.bs.modal', () => {
                 const insuffEl = $('insufficientFundsModal');
+
+                // When insufficient funds modal closes, return to Expense form
+                insuffEl.addEventListener('hidden.bs.modal', () => {
+                    toggleEntryForm('expense'); // Switch back to expense form
+                    const addModal = $('addEntryModal');
+                    bootstrap.Modal.getOrCreateInstance(addModal).show(); // Reopen Add Entry modal
+                }, { once: true });
+
                 bootstrap.Modal.getOrCreateInstance(insuffEl).show();
             }, { once: true });
 

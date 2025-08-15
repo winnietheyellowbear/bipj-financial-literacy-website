@@ -55,41 +55,37 @@ namespace bipj
             }
         }
 
-        // ✅ MODIFIED: This button now creates a new portfolio in the database with a default name,
-        // then immediately redirects to the page where you can add assets to it.
+        // ✅ REFACTORED: This method now uses the input from the new textbox.
         protected void btnCreateNewPortfolio_Click(object sender, EventArgs e)
         {
+            // First, check if the validator passed.
+            if (!Page.IsValid)
+            {
+                return;
+            }
+
             int userId = GetCurrentUserID();
-            string newPortfolioName = $"My Portfolio - {DateTime.Now:yyyy-MM-dd HH:mm}";
-            int newPortfolioId = 0;
+            // Get the name from the textbox instead of generating a default one.
+            string newPortfolioName = txtNewPortfolioName.Text.Trim();
 
             string constr = ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString;
             using (SqlConnection con = new SqlConnection(constr))
             {
-                // Insert new portfolio and get its ID back using OUTPUT INSERTED.PortfolioID
-                string query = "INSERT INTO Portfolios (UserID, PortfolioName, CreatedAt, LastUpdatedAt) OUTPUT INSERTED.PortfolioID VALUES (@UserID, @PortfolioName, GETDATE(), GETDATE())";
+                string query = "INSERT INTO Portfolios (UserID, PortfolioName, CreatedAt, LastUpdatedAt) VALUES (@UserID, @PortfolioName, GETDATE(), GETDATE())";
                 using (SqlCommand cmd = new SqlCommand(query, con))
                 {
                     cmd.Parameters.AddWithValue("@UserID", userId);
                     cmd.Parameters.AddWithValue("@PortfolioName", newPortfolioName);
                     con.Open();
-                    // ExecuteScalar returns the first column of the first row, which is our new ID.
-                    newPortfolioId = (int)cmd.ExecuteScalar();
+                    cmd.ExecuteNonQuery();
                 }
             }
 
-            if (newPortfolioId > 0)
-            {
-                // Redirect to the page to add assets to the newly created portfolio.
-                Response.Redirect($"InvestmentPortfolioPage.aspx?id={newPortfolioId}");
-            }
-            else
-            {
-                // Optionally, handle the case where the portfolio couldn't be created.
-            }
+            // ✅ MODIFIED: Instead of redirecting, we clear the textbox and refresh the portfolio list.
+            txtNewPortfolioName.Text = "";
+            BindPortfolios();
         }
 
-        // ✅ MODIFIED: The "Edit" command has been changed to "Analyze" to match the button.
         protected void rptPortfolios_ItemCommand(object source, RepeaterCommandEventArgs e)
         {
             int portfolioId = Convert.ToInt32(e.CommandArgument);
@@ -98,7 +94,6 @@ namespace bipj
             {
                 Response.Redirect($"InvestmentPortfolioPage.aspx?id={portfolioId}");
             }
-            // ✅ MODIFIED: This now handles the "Analyze" button and redirects to the dashboard.
             else if (e.CommandName == "Analyze")
             {
                 Response.Redirect($"InvestmentDashboardPage.aspx?id={portfolioId}");

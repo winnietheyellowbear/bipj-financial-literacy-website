@@ -74,7 +74,6 @@ namespace bipj
 
             var historicalData = await GetPortfolioHistoricalDataAsync(portfolioAssets, 90);
 
-            // ✅ FIXED: The method is now synchronous, so we no longer need to 'await' it.
             var correlationMatrix = CalculateCorrelationMatrix(portfolioAssets, historicalData);
 
             var dashboardData = new DashboardData(portfolioAssets, historicalData, correlationMatrix);
@@ -277,38 +276,21 @@ namespace bipj
             return new List<HistoricalPrice>();
         }
 
-        private async Task<int> GetOrCreateAssetIdAsync(string symbol, string assetName)
-        {
-            using (var con = new SqlConnection(DbConstr))
-            {
-                string upsertQuery = @"
-                    MERGE Assets AS target
-                    USING (SELECT @Symbol AS Symbol) AS source ON (target.Symbol = source.Symbol)
-                    WHEN NOT MATCHED THEN INSERT (Symbol, AssetName) VALUES (@Symbol, @AssetName);
-                    SELECT AssetID FROM Assets WHERE Symbol = @Symbol;";
-                using (var cmd = new SqlCommand(upsertQuery, con))
-                {
-                    cmd.Parameters.AddWithValue("@Symbol", symbol);
-                    cmd.Parameters.AddWithValue("@AssetName", assetName);
-                    await con.OpenAsync();
-                    return (int)await cmd.ExecuteScalarAsync();
-                }
-            }
-        }
-
-        // ✅ FIXED: Removed 'async Task<>' as this method is purely synchronous.
         private List<CorrelationRow> CalculateCorrelationMatrix(List<PortfolioAsset> assets, Dictionary<int, List<decimal>> historicalData)
         {
             var historicalReturns = new Dictionary<string, List<decimal>>();
             foreach (var asset in assets)
             {
-                var prices = historicalData[asset.AssetId];
-                var returns = new List<decimal>();
-                for (int i = 0; i < prices.Count - 1; i++)
+                if (historicalData.ContainsKey(asset.AssetId))
                 {
-                    if (prices[i + 1] != 0) returns.Add((prices[i] - prices[i + 1]) / prices[i + 1]);
+                    var prices = historicalData[asset.AssetId];
+                    var returns = new List<decimal>();
+                    for (int i = 0; i < prices.Count - 1; i++)
+                    {
+                        if (prices[i + 1] != 0) returns.Add((prices[i] - prices[i + 1]) / prices[i + 1]);
+                    }
+                    historicalReturns[asset.Symbol] = returns;
                 }
-                historicalReturns[asset.Symbol] = returns;
             }
             var matrix = new List<CorrelationRow>();
             foreach (var assetA in assets)
@@ -316,7 +298,14 @@ namespace bipj
                 var row = new CorrelationRow { Symbol = assetA.Symbol };
                 foreach (var assetB in assets)
                 {
-                    row.Correlations.Add(CalculatePearsonCorrelation(historicalReturns[assetA.Symbol], historicalReturns[assetB.Symbol]));
+                    if (historicalReturns.ContainsKey(assetA.Symbol) && historicalReturns.ContainsKey(assetB.Symbol))
+                    {
+                        row.Correlations.Add(CalculatePearsonCorrelation(historicalReturns[assetA.Symbol], historicalReturns[assetB.Symbol]));
+                    }
+                    else
+                    {
+                        row.Correlations.Add(0);
+                    }
                 }
                 matrix.Add(row);
             }
@@ -380,13 +369,33 @@ namespace bipj
             return new string('★', score) + new string('☆', 5 - score);
         }
 
+        // ✅ REFACTORED: This method now calculates a smooth gradient from red to green.
         public string GetColorForCorrelation(double correlation)
         {
-            if (correlation > 0.7) return "#d4edda";
-            if (correlation > 0.3) return "#e2e3e5";
-            if (correlation < -0.7) return "#f8d7da";
-            if (correlation < -0.3) return "#f5c6cb";
-            return "#ffffff";
+            // Clamp the value between -1 and 1 to handle any edge cases.
+            correlation = Math.Max(-1.0, Math.Min(1.0, correlation));
+
+            int r, g, b;
+
+            if (correlation >= 0)
+            {
+                // Positive correlation: Interpolate from White (255, 255, 255) to Green (34, 139, 34)
+                // We use a slightly darker green for better visibility.
+                r = (int)(255 - (255 - 34) * correlation);
+                g = (int)(255 - (255 - 139) * correlation);
+                b = (int)(255 - (255 - 34) * correlation);
+            }
+            else
+            {
+                // Negative correlation: Interpolate from Red (220, 20, 60) to White (255, 255, 255)
+                // We use a crimson red. The interpolation factor is the absolute value.
+                double factor = Math.Abs(correlation);
+                r = (int)(255 - (255 - 220) * factor);
+                g = (int)(255 - (255 - 20) * factor);
+                b = (int)(255 - (255 - 60) * factor);
+            }
+
+            return $"#{r:X2}{g:X2}{b:X2}";
         }
 
         #endregion

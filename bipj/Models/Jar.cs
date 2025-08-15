@@ -682,13 +682,13 @@ namespace bipj.Models
 
             using (var conn = new SqlConnection(_connStr))
             using (var cmd = new SqlCommand(@"
-        SELECT ISNULL(SUM(Amount), 0)
-        FROM JarTransactions
-        WHERE UserID=@U
-          AND JarId=@J
-          AND [Date] < @ToExclusive
-          " + (excludeTransfers ? "AND (TransactionType <> 'Transfer' OR TransactionType IS NULL)" : "") + @"
-    ", conn))
+                SELECT ISNULL(SUM(Amount), 0)
+                FROM JarTransactions
+                WHERE UserID=@U
+                  AND JarId=@J
+                  AND [Date] < @ToExclusive
+                  " + (excludeTransfers ? "AND (TransactionType <> 'Transfer' OR TransactionType IS NULL)" : "") + @"
+            ", conn))
             {
                 cmd.Parameters.AddWithValue("@U", userId);
                 cmd.Parameters.AddWithValue("@J", jarId);
@@ -706,13 +706,13 @@ namespace bipj.Models
 
             using (var conn = new SqlConnection(_connStr))
             using (var cmd = new SqlCommand(@"
-        SELECT JarId, ISNULL(SUM(Amount),0) AS Balance
-        FROM JarTransactions
-        WHERE UserID=@U
-          AND [Date] < @ToExclusive
-          " + (excludeTransfers ? "AND (TransactionType <> 'Transfer' OR TransactionType IS NULL)" : "") + @"
-        GROUP BY JarId
-    ", conn))
+                SELECT JarId, ISNULL(SUM(Amount),0) AS Balance
+                FROM JarTransactions
+                WHERE UserID=@U
+                  AND [Date] < @ToExclusive
+                  " + (excludeTransfers ? "AND (TransactionType <> 'Transfer' OR TransactionType IS NULL)" : "") + @"
+                GROUP BY JarId
+            ", conn))
             {
                 cmd.Parameters.AddWithValue("@U", userId);
                 cmd.Parameters.AddWithValue("@ToExclusive", cap);

@@ -528,9 +528,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // ============================================================
         // Shared helpers (used by ALL forms + modals)
-        // ============================================================
         function $(id) { return document.getElementById(id); }
 
         // Remove validation styles/messages under a container (or document)
@@ -569,9 +567,7 @@
             if (el && el.parentNode !== document.body) document.body.appendChild(el);
         }
 
-        // ============================================================
         // Period dropdown (unchanged behavior)
-        // ============================================================
         document.addEventListener('DOMContentLoaded', function () {
             const dropdown = document.getElementById('customDropdown');
             if (dropdown) {
@@ -851,9 +847,7 @@
                 new bootstrap.Modal(document.getElementById('editTxnModal')).show();
             };
 
-            // ==========================================================
-            // Move Funds + Insufficient modals (no CSS; JS-only robustness)
-            // ==========================================================
+            // Move Funds + Insufficient modals
             (function setupMoveAndInsufficientFlow() {
                 const MF = {
                     moveModalId: 'moveFundsModal',

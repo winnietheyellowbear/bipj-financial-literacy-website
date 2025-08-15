@@ -216,10 +216,18 @@ namespace bipj.Models
                                 {
                                     txnCmd.Parameters.AddWithValue("@U", UserId);
                                     txnCmd.Parameters.AddWithValue("@J", refundJarId);
-                                    txnCmd.Parameters.AddWithValue("@N", "Refund from deleted goal: " + goal.GoalName);
+                                    txnCmd.Parameters.AddWithValue("@N", $"Refund from Deleted Goal ({goal.GoalName})");
                                     txnCmd.Parameters.AddWithValue("@A", savedAmount);
                                     txnCmd.Parameters.AddWithValue("@D", DateTime.Now);
                                     txnCmd.ExecuteNonQuery();
+                                }
+
+                                using (var delGoalTx = new SqlCommand(
+                                "DELETE FROM GoalTransactions WHERE GoalId=@G AND UserId=@U", conn, trans))
+                                {
+                                    delGoalTx.Parameters.AddWithValue("@G", GoalId);
+                                    delGoalTx.Parameters.AddWithValue("@U", UserId);
+                                    delGoalTx.ExecuteNonQuery();
                                 }
                             }
                         }

@@ -758,7 +758,29 @@
                 if (isNaN(amount) || amount <= 0) {
                     showInvalid(amountInput, "Please enter a valid amount greater than 0.");
                     isValid = false;
+                } else {
+                    if (txnType === "Expense") {
+                        const currentBalance = parseFloat(document.getElementById('<%= hdnCurrentJarBalance.ClientID %>')?.value);
+                        if (!isNaN(currentBalance) && amount > currentBalance) {
+                            window.expenseSnapshot = {
+                                name: nameInput.value,
+                                amount: amountInput.value,
+                                date: dateInput.value
+                            };
+                            window.reopenExpenseAfterInsufficient = true;
+
+                            const addEntryModalEl = document.getElementById('addEntryModal');
+                            addEntryModalEl.addEventListener('hidden.bs.modal', function onHidden() {
+                                addEntryModalEl.removeEventListener('hidden.bs.modal', onHidden);
+                                bootstrap.Modal.getOrCreateInstance(document.getElementById('insufficientFundsModal')).show();
+                            }, { once: true });
+
+                            bootstrap.Modal.getOrCreateInstance(addEntryModalEl).hide();
+                            return false; // stop form submission
+                        }
+                    }
                 }
+
 
                 if (dateInput.value === "") {
                     showInvalid(dateInput, "Please select a date.");
@@ -970,6 +992,40 @@
                     return true;
                 };
             })();
+
+            const addEntryModal = document.getElementById('addEntryModal');
+            if (addEntryModal) {
+                addEntryModal.addEventListener('show.bs.modal', resetEntryForm);
+            }
+
+            // When Insufficient Funds modal closes, reopen Add Entry with Expense data
+            const insuffEl = document.getElementById('insufficientFundsModal');
+            if (insuffEl) {
+                insuffEl.addEventListener('hidden.bs.modal', () => {
+                    if (window.reopenExpenseAfterInsufficient) {
+                        window.reopenExpenseAfterInsufficient = false;
+
+                        const addEntryModalEl = document.getElementById('addEntryModal');
+                        const onShown = () => {
+                            addEntryModalEl.removeEventListener('shown.bs.modal', onShown);
+
+                            // Restore snapshot values
+                            if (window.expenseSnapshot) {
+                                document.getElementById('<%= txtExpenseName.ClientID %>').value = window.expenseSnapshot.name || '';
+                                document.getElementById('<%= txtExpenseAmount.ClientID %>').value = window.expenseSnapshot.amount || '';
+                                document.getElementById('<%= txtExpenseDate.ClientID %>').value = window.expenseSnapshot.date || '';
+                            }
+
+                            // Force expense mode
+                            window.toggleEntryForm('expense');
+                        };
+                        addEntryModalEl.addEventListener('shown.bs.modal', onShown, { once: true });
+
+                        bootstrap.Modal.getOrCreateInstance(addEntryModalEl).show();
+                    }
+                });
+            }
+
         });
     </script>
 </asp:Content>

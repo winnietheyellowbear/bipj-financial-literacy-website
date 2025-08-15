@@ -339,14 +339,14 @@
         document.addEventListener('DOMContentLoaded', function () {
             const addGoalModal = document.getElementById('addGoalModal');
 
-            // 🟢 Reset fields and validation when modal is opened
+            // Reset fields and validation when modal is opened
             addGoalModal.addEventListener('show.bs.modal', function () {
                 const form = addGoalModal.querySelector('.modal-body');
                 resetFormInputs(form);
                 resetValidation(form);
             });
 
-            // 🟢 Also clear validation when modal is closed
+            // Also clear validation when modal is closed
             addGoalModal.addEventListener('hidden.bs.modal', function () {
                 const form = addGoalModal.querySelector('.modal-body');
                 resetValidation(form);
@@ -473,7 +473,6 @@
             document.getElementById('<%= hdnDeleteGoalId.ClientID %>').value = goalId;
             document.getElementById('<%= hdnDeleteGoalName.ClientID %>').value = goalName;
 
-            // ✅ Let showDeleteGoalModal() handle the rest
             setTimeout(() => {
                 showDeleteGoalModal();
             }, 50);

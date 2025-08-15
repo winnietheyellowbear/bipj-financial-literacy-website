@@ -470,39 +470,41 @@
 
     <!-- Move Funds Modal -->
     <div class="modal fade" id="moveFundsModal" tabindex="-1" aria-labelledby="moveFundsLabel" aria-hidden="true">
-        <asp:HiddenField ID="hdnCurrentJarBalance" runat="server" />
-        <asp:HiddenField ID="hdnCurrentJarId" runat="server" />
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
+                <!-- keep hidden fields INSIDE modal-content (or inside the panel) -->
+                <asp:HiddenField ID="hdnCurrentJarBalance" runat="server" />
+                <asp:HiddenField ID="hdnCurrentJarId" runat="server" />
+
                 <div class="modal-header">
                     <h5 class="modal-title" id="moveFundsLabel">Move Funds</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">To Jar <span class="text-danger">*</span></label>
-                        <asp:DropDownList ID="ddlTargetJar" runat="server" CssClass="form-select" AppendDataBoundItems="true">
-                            <asp:ListItem Text="-- Select Jar --" Value="" />
-                        </asp:DropDownList>
-                    </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Amount <span class="text-danger">*</span></label>
-                        <asp:TextBox ID="txtMoveAmount" runat="server" CssClass="form-control" TextMode="Number" />
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <asp:Button ID="btnMoveFunds" runat="server" CssClass="btn btn-primary"
-                        Text="Confirm Move"
-                        OnClick="btnMoveFunds_Click"
-                        UseSubmitBehavior="true"
-                        OnClientClick="return validateAndSwapModal();" />
+                <div class="modal-body">
+                    <asp:Panel ID="panelMoveFunds" runat="server" DefaultButton="btnMoveFunds">
+                        <div class="mb-3">
+                            <label class="form-label">To Jar <span class="text-danger">*</span></label>
+                            <asp:DropDownList ID="ddlTargetJar" runat="server" CssClass="form-select" AppendDataBoundItems="true">
+                                <asp:ListItem Text="-- Select Jar --" Value="" />
+                            </asp:DropDownList>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Amount <span class="text-danger">*</span></label>
+                            <asp:TextBox ID="txtMoveAmount" runat="server" CssClass="form-control" TextMode="Number" />
+                        </div>
+
+                        <asp:Button ID="btnMoveFunds" runat="server" Text="Confirm Move"
+                            CssClass="btn btn-primary w-100"
+                            OnClick="btnMoveFunds_Click"
+                            UseSubmitBehavior="true"
+                            OnClientClick="return validateAndSwapModal();" />
+                    </asp:Panel>
                 </div>
             </div>
         </div>
     </div>
-
-
 
     <!-- Insufficient Funds Modal -->
     <div class="modal fade" id="insufficientFundsModal" tabindex="-1" aria-labelledby="insufficientFundsLabel" aria-hidden="true">
@@ -526,402 +528,448 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        // Shared helpers (used by ALL forms + modals)
+        function $(id) { return document.getElementById(id); }
+
+        // Remove validation styles/messages under a container (or document)
+        function resetValidation(container) {
+            const scope = container || document;
+            scope.querySelectorAll('.is-invalid').forEach(el => {
+                el.classList.remove('is-invalid');
+            });
+            scope.querySelectorAll('.invalid-feedback').forEach(fb => fb.remove());
+        }
+
+        // Show a single field error
+        function showInvalid(input, message) {
+            if (!input) return;
+            input.classList.add('is-invalid');
+            let fb = input.nextElementSibling;
+            if (!fb || !fb.classList.contains('invalid-feedback')) {
+                fb = document.createElement('div');
+                fb.className = 'invalid-feedback';
+                input.parentNode.insertBefore(fb, input.nextSibling);
+            }
+            fb.textContent = message || 'Invalid value.';
+        }
+
+        // Clear orphaned backdrops/body lock when no modal is open
+        function cleanupIfNoModal() {
+            if (document.querySelector('.modal.show')) return;
+            document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+            document.body.classList.remove('modal-open');
+            document.body.style.removeProperty('padding-right');
+            document.body.style.removeProperty('overflow');
+        }
+
+        // Move a modal element to <body> (prevents stacking-context traps)
+        function hoistToBody(el) {
+            if (el && el.parentNode !== document.body) document.body.appendChild(el);
+        }
+
+        // Period dropdown (unchanged behavior)
         document.addEventListener('DOMContentLoaded', function () {
             const dropdown = document.getElementById('customDropdown');
-            const selected = dropdown.querySelector('.selected');
-            const optionsContainer = dropdown.querySelector('.options');
-            const optionsList = optionsContainer.querySelectorAll('.option');
-            const periodField = document.getElementById('<%= hdnSelectedPeriod.ClientID %>');
-            const dateField = document.getElementById('<%= hdnSelectedDate.ClientID %>');
+            if (dropdown) {
+                const selected = dropdown.querySelector('.selected');
+                const optionsContainer = dropdown.querySelector('.options');
+                const optionsList = optionsContainer.querySelectorAll('.option');
+                const periodField = document.getElementById('<%= hdnSelectedPeriod.ClientID %>');
+                const dateField = document.getElementById('<%= hdnSelectedDate.ClientID %>');
 
-            function updateVisibleInput() {
-                const period = periodField.value;
-                const selectedValue = dateField.value;
+                function updateVisibleInput() {
+                    const period = periodField.value;
+                    const selectedValue = dateField.value;
 
-                ['inputDay', 'inputWeek', 'inputMonth', 'inputYear'].forEach(id => {
-                    const input = document.getElementById(id);
-                    input.style.display = 'none';
-                    input.value = '';
+                    ['inputDay', 'inputWeek', 'inputMonth', 'inputYear'].forEach(id => {
+                        const input = document.getElementById(id);
+                        input.style.display = 'none';
+                        input.value = '';
+                    });
+
+                    let inputToShow = null;
+                    if (period === 'day') inputToShow = 'inputDay';
+                    else if (period === 'week') inputToShow = 'inputWeek';
+                    else if (period === 'month') inputToShow = 'inputMonth';
+                    else if (period === 'year') inputToShow = 'inputYear';
+
+                    if (inputToShow) {
+                        const input = document.getElementById(inputToShow);
+                        input.style.display = 'block';
+                        input.value = selectedValue;
+                    }
+                }
+
+                function handleOptionClick(option) {
+                    const value = option.getAttribute('data-value');
+                    const img = option.querySelector('img');
+                    const text = option.querySelector('span').innerText;
+
+                    const selectedImg = selected.querySelector('img');
+                    const selectedSpan = selected.querySelector('span:not(.dropdown-arrow)');
+
+                    if (img) {
+                        if (!selectedImg) {
+                            const newImg = document.createElement('img');
+                            selected.insertBefore(newImg, selectedSpan);
+                        }
+                        selected.querySelector('img').src = img.src;
+                        selected.querySelector('img').alt = img.alt || text;
+                        selected.querySelector('img').width = img.width;
+                        selected.querySelector('img').height = img.height;
+                    } else if (selectedImg) {
+                        selected.removeChild(selectedImg);
+                    }
+
+                    selectedSpan.innerText = text;
+                    periodField.value = value;
+
+                    const today = new Date();
+                    let defaultDate = "";
+
+                    switch (value) {
+                        case "day":
+                            defaultDate = today.toLocaleDateString('en-CA');
+                            break;
+                        case "week":
+                            const current = new Date();
+                            const day = current.getDay(); // 0 Sun … 6 Sat
+                            const mondayOffset = (day === 0) ? -6 : 1 - day;
+                            const monday = new Date(current.getFullYear(), current.getMonth(), current.getDate() + mondayOffset);
+                            const jan1 = new Date(monday.getFullYear(), 0, 1);
+                            const diffDays = Math.floor((monday - jan1) / (24 * 60 * 60 * 1000));
+                            const week = Math.ceil((diffDays + jan1.getDay() + 1) / 7);
+                            defaultDate = `${monday.getFullYear()}-W${String(week).padStart(2, '0')}`;
+                            break;
+                        case "month":
+                            defaultDate = today.toISOString().slice(0, 7);
+                            break;
+                        case "year":
+                            defaultDate = today.getFullYear();
+                            break;
+                        default:
+                            defaultDate = "";
+                    }
+
+                    dateField.value = defaultDate;
+                    updateVisibleInput();
+                    optionsContainer.style.display = 'none';
+                    document.getElementById('<%= btnPeriodChange.ClientID %>').click();
+                }
+
+                selected.addEventListener('click', e => {
+                    e.stopPropagation();
+                    const isOpen = optionsContainer.style.display === 'block';
+                    document.querySelectorAll('.custom-dropdown .options').forEach(opt => opt.style.display = 'none');
+                    optionsContainer.style.display = isOpen ? 'none' : 'block';
                 });
 
-                let inputToShow = null;
-                if (period === 'day') inputToShow = 'inputDay';
-                else if (period === 'week') inputToShow = 'inputWeek';
-                else if (period === 'month') inputToShow = 'inputMonth';
-                else if (period === 'year') inputToShow = 'inputYear';
+                document.addEventListener('click', e => {
+                    if (!dropdown.contains(e.target)) optionsContainer.style.display = 'none';
+                });
 
-                if (inputToShow) {
-                    const input = document.getElementById(inputToShow);
-                    input.style.display = 'block';
-                    input.value = selectedValue;
-                }
-            }
+                optionsList.forEach(option => option.addEventListener('click', () => handleOptionClick(option)));
 
-            function handleOptionClick(option) {
-                const value = option.getAttribute('data-value');
-                const img = option.querySelector('img');
-                const text = option.querySelector('span').innerText;
-
-                const selectedImg = selected.querySelector('img');
-                const selectedSpan = selected.querySelector('span:not(.dropdown-arrow)');
-
-                // Set icon
-                if (img) {
-                    if (!selectedImg) {
-                        const newImg = document.createElement('img');
-                        selected.insertBefore(newImg, selectedSpan);
-                    }
-                    selected.querySelector('img').src = img.src;
-                    selected.querySelector('img').alt = img.alt || text;
-                    selected.querySelector('img').width = img.width;
-                    selected.querySelector('img').height = img.height;
-                } else if (selectedImg) {
-                    selected.removeChild(selectedImg);
-                }
-
-                selectedSpan.innerText = text;
-                periodField.value = value;
-
-                // Set default date
-                const today = new Date();
-                let defaultDate = "";
-
-                switch (value) {
-                    case "day":
-                        defaultDate = today.toLocaleDateString('en-CA');
-                        break;
-                    case "week":
-                        const current = new Date();
-                        const day = current.getDay(); // 0 = Sun, 1 = Mon, ..., 6 = Sat
-                        const mondayOffset = (day === 0) ? -6 : 1 - day; // shift Sunday back to previous Monday
-                        const monday = new Date(current.getFullYear(), current.getMonth(), current.getDate() + mondayOffset);
-
-                        const jan1 = new Date(monday.getFullYear(), 0, 1);
-                        const diffDays = Math.floor((monday - jan1) / (24 * 60 * 60 * 1000));
-                        const week = Math.ceil((diffDays + jan1.getDay() + 1) / 7);
-
-                        const weekStr = week.toString().padStart(2, '0');
-                        defaultDate = `${monday.getFullYear()}-W${weekStr}`;
-                        break;
-
-                    case "month":
-                        defaultDate = today.toISOString().slice(0, 7);
-                        break;
-                    case "year":
-                        defaultDate = today.getFullYear();
-                        break;
-                    default:
-                        defaultDate = "";
-                }
-
-                dateField.value = defaultDate;
+                window.handleDateChange = function (input) {
+                    dateField.value = input.value;
+                    document.getElementById('<%= btnPeriodChange.ClientID %>').click();
+                };
 
                 updateVisibleInput();
-                optionsContainer.style.display = 'none';
-
-                document.getElementById('<%= btnPeriodChange.ClientID %>').click();
             }
 
-            // Toggle dropdown
-            selected.addEventListener('click', e => {
-                e.stopPropagation();
-                const isOpen = optionsContainer.style.display === 'block';
-                document.querySelectorAll('.custom-dropdown .options').forEach(opt => opt.style.display = 'none');
-                optionsContainer.style.display = isOpen ? 'none' : 'block';
-            });
+            // ==========================================================
+            // Add / Edit Entry forms — use shared resetValidation/showInvalid
+            // ==========================================================
+            window.toggleEntryForm = function (type) {
+                const incomeForm = document.getElementById('incomeForm');
+                const expenseForm = document.getElementById('expenseForm');
+                const txnTypeField = document.getElementById('<%= hdnTransactionType.ClientID %>');
+                const btnIncome = document.getElementById('<%= btnShowIncome.ClientID %>');
+                const btnExpense = document.getElementById('<%= btnShowExpense.ClientID %>');
 
-            // Click outside to close
-            document.addEventListener('click', e => {
-                if (!dropdown.contains(e.target)) {
-                    optionsContainer.style.display = 'none';
+                if (type === 'income') {
+                    incomeForm.style.display = 'block';
+                    expenseForm.style.display = 'none';
+                    txnTypeField.value = 'Income';
+                    btnIncome.classList.add('btn-primary');
+                    btnIncome.classList.remove('btn-outline-secondary');
+                    btnExpense.classList.add('btn-outline-primary');
+                    btnExpense.classList.remove('btn-primary');
+                    resetValidation(incomeForm);
+                } else {
+                    incomeForm.style.display = 'none';
+                    expenseForm.style.display = 'block';
+                    txnTypeField.value = 'Expense';
+                    btnExpense.classList.add('btn-primary');
+                    btnExpense.classList.remove('btn-outline-primary');
+                    btnIncome.classList.add('btn-outline-secondary');
+                    btnIncome.classList.remove('btn-primary');
+                    resetValidation(expenseForm);
                 }
-            });
-
-            // Attach option logic
-            optionsList.forEach(option => {
-                option.addEventListener('click', () => handleOptionClick(option));
-            });
-
-            // Date change logic
-            window.handleDateChange = function (input) {
-                dateField.value = input.value;
-                document.getElementById('<%= btnPeriodChange.ClientID %>').click();
             };
 
-            // Initial state on page load
-            updateVisibleInput();
+            window.resetEntryForm = function () {
+                const today = new Date().toLocaleDateString('en-CA');
+                [
+                    '<%= txtExpenseName.ClientID %>',
+                    '<%= txtExpenseAmount.ClientID %>',
+                    '<%= txtExpenseDate.ClientID %>',
+                    '<%= txtIncomeName.ClientID %>',
+                    '<%= txtIncomeAmount.ClientID %>',
+                    '<%= txtIncomeDate.ClientID %>'
+                ].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = "";
+                });
+
+                document.getElementById('<%= txtExpenseDate.ClientID %>').value = today;
+                document.getElementById('<%= txtIncomeDate.ClientID %>').value = today;
+
+                resetValidation(document.getElementById('expenseForm'));
+                resetValidation(document.getElementById('incomeForm'));
+
+                window.toggleEntryForm('expense');
+            };
+
+            window.validateAddEntryForm = function () {
+                const txnType = document.getElementById('<%= hdnTransactionType.ClientID %>').value;
+                let nameInput, amountInput, dateInput;
+                let isValid = true;
+
+                if (txnType === "Expense") {
+                    nameInput = document.getElementById('<%= txtExpenseName.ClientID %>');
+                    amountInput = document.getElementById('<%= txtExpenseAmount.ClientID %>');
+                    dateInput = document.getElementById('<%= txtExpenseDate.ClientID %>');
+                } else {
+                    nameInput = document.getElementById('<%= txtIncomeName.ClientID %>');
+                    amountInput = document.getElementById('<%= txtIncomeAmount.ClientID %>');
+                    dateInput = document.getElementById('<%= txtIncomeDate.ClientID %>');
+                }
+
+                resetValidation((nameInput && nameInput.closest("form")) || document);
+
+                if (nameInput.value.trim() === "") {
+                    showInvalid(nameInput, "Please enter a name.");
+                    isValid = false;
+                }
+
+                const amount = parseFloat(amountInput.value);
+                if (isNaN(amount) || amount <= 0) {
+                    showInvalid(amountInput, "Please enter a valid amount greater than 0.");
+                    isValid = false;
+                }
+
+                if (dateInput.value === "") {
+                    showInvalid(dateInput, "Please select a date.");
+                    isValid = false;
+                }
+
+                return isValid;
+            };
+
+            window.openEditModal = function (el) {
+                const id = el.dataset.id;
+                const name = el.dataset.name;
+                const amount = el.dataset.amount;
+                const date = el.dataset.date;
+                const type = el.dataset.type;
+                if (type === "Transfer") return;
+                const category = el.dataset.category;
+
+                document.getElementById('<%= hdnEditTxnId.ClientID %>').value = id;
+                document.getElementById('<%= txtTxnName.ClientID %>').value = name;
+                document.getElementById('<%= txtTxnAmount.ClientID %>').value = amount;
+                document.getElementById('<%= txtTxnDate.ClientID %>').value = date;
+                document.getElementById('<%= hdnEditTxnCategory.ClientID %>').value = category;
+
+                const deleteBtn = document.getElementById("btnTxnDelete");
+                const updateBtn = document.getElementById("<%= btnUpdateTxn.ClientID %>");
+
+                if ((type === "Expense" && category === "Transfer Out") ||
+                    (type === "Income" && category === "Transfer In")) {
+                    deleteBtn.style.display = "none";
+                    updateBtn.disabled = true;
+                    updateBtn.classList.remove("btn-primary");
+                    updateBtn.classList.add("btn-secondary");
+                } else {
+                    deleteBtn.style.display = "block";
+                    updateBtn.disabled = false;
+                    updateBtn.classList.add("btn-primary");
+                    updateBtn.classList.remove("btn-secondary");
+                }
+
+                const modal = new bootstrap.Modal(document.getElementById("editTxnModal"));
+                modal.show();
+            };
+
+            window.validateEditTxn = function () {
+                const name = document.getElementById('<%= txtTxnName.ClientID %>');
+                const amount = document.getElementById('<%= txtTxnAmount.ClientID %>');
+                const date = document.getElementById('<%= txtTxnDate.ClientID %>');
+
+                resetValidation(document.getElementById('<%= pnlEditTxn.ClientID %>'));
+
+                let isValid = true;
+
+                if (name.value.trim() === "") {
+                    showInvalid(name, "Please enter a name.");
+                    isValid = false;
+                }
+
+                const amt = parseFloat(amount.value);
+                if (isNaN(amt) || amt <= 0) {
+                    showInvalid(amount, "Please enter a valid amount greater than 0.");
+                    isValid = false;
+                }
+
+                if (date.value === "") {
+                    showInvalid(date, "Please select a date.");
+                    isValid = false;
+                }
+
+                return isValid;
+            };
+
+            window.openTxnDeleteModal = function (txnId, txnName) {
+                const editModal = bootstrap.Modal.getInstance(document.getElementById('editTxnModal'));
+                if (editModal) {
+                    editModal.hide();
+                    editModal.dispose();
+                }
+                document.getElementById('<%= hdnDeleteTxnId.ClientID %>').value = txnId;
+                document.getElementById('txnNameToDelete').textContent = txnName;
+                new bootstrap.Modal(document.getElementById('deleteTxnConfirmModal')).show();
+            };
+
+            window.cancelTxnDelete = function () {
+                bootstrap.Modal.getInstance(document.getElementById('deleteTxnConfirmModal')).hide();
+                new bootstrap.Modal(document.getElementById('editTxnModal')).show();
+            };
+
+            // Move Funds + Insufficient modals
+            (function setupMoveAndInsufficientFlow() {
+                const MF = {
+                    moveModalId: 'moveFundsModal',
+                    insufficientModalId: 'insufficientFundsModal',
+                    amountId: "<%= txtMoveAmount.ClientID %>",
+                    balanceId: "<%= hdnCurrentJarBalance.ClientID %>",
+                    targetJarId: "<%= ddlTargetJar.ClientID %>",
+                    btnMoveId: "<%= btnMoveFunds.ClientID %>",
+                };
+
+                const moveEl = document.getElementById(MF.moveModalId);
+                const insuffEl = document.getElementById(MF.insufficientModalId);
+
+                if (!moveEl || !insuffEl) return;
+
+                // If you have hoistToBody() from earlier, use it (prevents stacking-context issues)
+                if (typeof hoistToBody === 'function') {
+                    hoistToBody(insuffEl);
+                }
+
+                const moveModal = bootstrap.Modal.getOrCreateInstance(moveEl, { backdrop: true, keyboard: true });
+                const insuffModal = bootstrap.Modal.getOrCreateInstance(insuffEl, { backdrop: true, keyboard: true });
+
+                // ---- State used for the auto-reopen flow
+                let reopenMoveAfterInsufficient = false;
+                let moveSnapshot = null; // { jarValue, jarIndex, amount }
+
+                function getEls() {
+                    return {
+                        amountEl: document.getElementById(MF.amountId),
+                        jarEl: document.getElementById(MF.targetJarId),
+                        btnEl: document.getElementById(MF.btnMoveId),
+                        balanceEl: document.getElementById(MF.balanceId),
+                    };
+                }
+
+                function snapshotMoveForm() {
+                    const { amountEl, jarEl } = getEls();
+                    return {
+                        amount: amountEl ? amountEl.value : '',
+                        jarValue: jarEl ? jarEl.value : '',
+                        jarIndex: jarEl ? jarEl.selectedIndex : 0,
+                    };
+                }
+
+                function restoreMoveForm(snap) {
+                    const { amountEl, jarEl } = getEls();
+                    if (jarEl) {
+                        // Prefer restoring by value; fall back to index if value not found
+                        if (snap.jarValue && [...jarEl.options].some(o => o.value === snap.jarValue)) {
+                            jarEl.value = snap.jarValue;
+                        } else {
+                            jarEl.selectedIndex = snap.jarIndex ?? 0;
+                        }
+                    }
+                    if (amountEl) amountEl.value = snap.amount ?? '';
+                }
+
+                // Normal reset ONLY when user truly closes Move Funds (not during insufficient swap)
+                moveEl.addEventListener('hidden.bs.modal', () => {
+                    if (reopenMoveAfterInsufficient) return; // keep inputs for the swap
+                    const { amountEl, jarEl, btnEl } = getEls();
+                    if (amountEl) amountEl.value = '';
+                    if (jarEl) jarEl.selectedIndex = 0;
+                    if (btnEl) btnEl.disabled = false;
+                    if (typeof resetValidation === 'function') resetValidation(moveEl);
+                });
+
+                // When Insufficient closes, optionally reopen Move Funds and restore previous inputs
+                insuffEl.addEventListener('hidden.bs.modal', () => {
+                    if (!reopenMoveAfterInsufficient) return;
+                    // Reopen Move Funds, then restore the snapshot on shown
+                    const onShown = () => {
+                        moveEl.removeEventListener('shown.bs.modal', onShown);
+                        if (moveSnapshot) restoreMoveForm(moveSnapshot);
+                    };
+                    moveEl.addEventListener('shown.bs.modal', onShown, { once: true });
+                    moveModal.show();
+                    reopenMoveAfterInsufficient = false;
+                });
+
+                // Public validator used by Confirm Move (OnClientClick)
+                window.validateAndSwapModal = function () {
+                    const { amountEl, jarEl, btnEl, balanceEl } = getEls();
+
+                    if (typeof resetValidation === 'function') resetValidation(moveEl);
+
+                    let ok = true;
+                    if (!jarEl || !jarEl.value || jarEl.selectedIndex === 0) {
+                        if (typeof showInvalid === 'function') showInvalid(jarEl, 'Please select a target jar.');
+                        ok = false;
+                    }
+
+                    const amount = parseFloat(amountEl?.value);
+                    if (!amountEl || isNaN(amount) || amount <= 0) {
+                        if (typeof showInvalid === 'function') showInvalid(amountEl, 'Enter an amount > 0.');
+                        ok = false;
+                    }
+
+                    if (!ok) return false; // block postback
+
+                    const currentBalance = parseFloat(balanceEl?.value);
+                    if (!isNaN(currentBalance) && amount > currentBalance) {
+                        // Prepare swap: remember what user typed, set reopen flag
+                        moveSnapshot = snapshotMoveForm();
+                        reopenMoveAfterInsufficient = true;
+
+                        // After Move Funds fully hides, show Insufficient
+                        const onHidden = () => {
+                            moveEl.removeEventListener('hidden.bs.modal', onHidden);
+                            insuffModal.show();
+                        };
+                        moveEl.addEventListener('hidden.bs.modal', onHidden, { once: true });
+                        moveModal.hide();
+
+                        return false; // cancel postback
+                    }
+
+                    if (btnEl) setTimeout(() => { btnEl.disabled = true; }, 0);
+                    return true;
+                };
+            })();
         });
-
-        // ===============================
-        // 🔄 General Purpose Validation Reset
-        // ===============================
-        function resetValidation(container) {
-            const elements = container.querySelectorAll('input, select');
-
-            elements.forEach(el => {
-                el.classList.remove("is-invalid");
-
-                // Remove the error message if it exists
-                const feedback = el.parentNode.querySelector('.invalid-feedback');
-                if (feedback) {
-                    feedback.remove();
-                }
-            });
-        }
-
-
-        function showInvalid(input, message) {
-            input.classList.add("is-invalid");
-
-            const errorDiv = document.createElement("div");
-            errorDiv.className = "invalid-feedback";
-            errorDiv.textContent = message;
-
-            // For select (dropdown), append at end of parent
-            if (input.tagName === "SELECT") {
-                input.parentNode.appendChild(errorDiv);
-            } else {
-                input.parentNode.insertBefore(errorDiv, input.nextSibling);
-            }
-        }
-
-        // ===============================
-        // 🧾 Entry Form: Toggle, Reset, Validate
-        // ===============================
-        function toggleEntryForm(type) {
-            const incomeForm = document.getElementById('incomeForm');
-            const expenseForm = document.getElementById('expenseForm');
-            const txnTypeField = document.getElementById('<%= hdnTransactionType.ClientID %>');
-            const btnIncome = document.getElementById('<%= btnShowIncome.ClientID %>');
-            const btnExpense = document.getElementById('<%= btnShowExpense.ClientID %>');
-
-            if (type === 'income') {
-                incomeForm.style.display = 'block';
-                expenseForm.style.display = 'none';
-                txnTypeField.value = 'Income';
-                btnIncome.classList.add('btn-primary');
-                btnIncome.classList.remove('btn-outline-secondary');
-                btnExpense.classList.add('btn-outline-primary');
-                btnExpense.classList.remove('btn-primary');
-                resetValidation(incomeForm);
-            } else {
-                incomeForm.style.display = 'none';
-                expenseForm.style.display = 'block';
-                txnTypeField.value = 'Expense';
-                btnExpense.classList.add('btn-primary');
-                btnExpense.classList.remove('btn-outline-primary');
-                btnIncome.classList.add('btn-outline-secondary');
-                btnIncome.classList.remove('btn-primary');
-                resetValidation(expenseForm);
-            }
-        }
-
-        function resetEntryForm() {
-            const today = new Date().toLocaleDateString('en-CA');
-            [
-         '<%= txtExpenseName.ClientID %>',
-         '<%= txtExpenseAmount.ClientID %>',
-         '<%= txtExpenseDate.ClientID %>',
-         '<%= txtIncomeName.ClientID %>',
-         '<%= txtIncomeAmount.ClientID %>',
-         '<%= txtIncomeDate.ClientID %>'
-            ].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.value = "";
-            });
-
-            document.getElementById('<%= txtExpenseDate.ClientID %>').value = today;
-            document.getElementById('<%= txtIncomeDate.ClientID %>').value = today;
-
-            resetValidation(document.getElementById('expenseForm'));
-            resetValidation(document.getElementById('incomeForm'));
-
-            toggleEntryForm('expense');
-        }
-
-        function validateAddEntryForm() {
-            const txnType = document.getElementById('<%= hdnTransactionType.ClientID %>').value;
-            let nameInput, amountInput, dateInput;
-            let isValid = true;
-
-            if (txnType === "Expense") {
-                nameInput = document.getElementById('<%= txtExpenseName.ClientID %>');
-                amountInput = document.getElementById('<%= txtExpenseAmount.ClientID %>');
-                dateInput = document.getElementById('<%= txtExpenseDate.ClientID %>');
-            } else {
-                nameInput = document.getElementById('<%= txtIncomeName.ClientID %>');
-                amountInput = document.getElementById('<%= txtIncomeAmount.ClientID %>');
-                dateInput = document.getElementById('<%= txtIncomeDate.ClientID %>');
-            }
-
-            resetValidation(nameInput.closest("form") || document);
-
-            if (nameInput.value.trim() === "") {
-                showInvalid(nameInput, "Please enter a name.");
-                isValid = false;
-            }
-
-            const amount = parseFloat(amountInput.value);
-            if (isNaN(amount) || amount <= 0) {
-                showInvalid(amountInput, "Please enter a valid amount greater than 0.");
-                isValid = false;
-            }
-
-            if (dateInput.value === "") {
-                showInvalid(dateInput, "Please select a date.");
-                isValid = false;
-            }
-
-            return isValid;
-        }
-
-        // ===============================
-        // 🧾 Edit Form: Toggle, Reset, Validate
-        // ===============================
-        function openEditModal(el) {
-            const id = el.dataset.id;
-            const name = el.dataset.name;
-            const amount = el.dataset.amount;
-            const date = el.dataset.date;
-            const type = el.dataset.type;
-            if (type === "Transfer") return;
-            const category = el.dataset.category;
-
-            document.getElementById('<%= hdnEditTxnId.ClientID %>').value = id;
-            document.getElementById('<%= txtTxnName.ClientID %>').value = name;
-            document.getElementById('<%= txtTxnAmount.ClientID %>').value = amount;
-            document.getElementById('<%= txtTxnDate.ClientID %>').value = date;
-            document.getElementById('<%= hdnEditTxnCategory.ClientID %>').value = category;
-
-            const deleteBtn = document.getElementById("btnTxnDelete");
-            const updateBtn = document.getElementById("<%= btnUpdateTxn.ClientID %>");
-
-            if ((type === "Expense" && category === "Transfer Out") ||
-                (type === "Income" && category === "Transfer In")) {
-                deleteBtn.style.display = "none";
-                updateBtn.disabled = true;
-                updateBtn.classList.remove("btn-primary");
-                updateBtn.classList.add("btn-secondary");
-            } else {
-                deleteBtn.style.display = "block";
-                updateBtn.disabled = false;
-                updateBtn.classList.add("btn-primary");
-                updateBtn.classList.remove("btn-secondary");
-            }
-
-
-            const modal = new bootstrap.Modal(document.getElementById("editTxnModal"));
-            modal.show();
-        }
-
-
-        function validateEditTxn() {
-            const name = document.getElementById('<%= txtTxnName.ClientID %>');
-            const amount = document.getElementById('<%= txtTxnAmount.ClientID %>');
-            const date = document.getElementById('<%= txtTxnDate.ClientID %>');
-
-            resetValidation(document.getElementById('<%= pnlEditTxn.ClientID %>'));
-
-            let isValid = true;
-
-            if (name.value.trim() === "") {
-                showInvalid(name, "Please enter a name.");
-                isValid = false;
-            }
-
-            const amt = parseFloat(amount.value);
-            if (isNaN(amt) || amt <= 0) {
-                showInvalid(amount, "Please enter a valid amount greater than 0.");
-                isValid = false;
-            }
-
-            if (date.value === "") {
-                showInvalid(date, "Please select a date.");
-                isValid = false;
-            }
-
-            return isValid;
-        }
-
-
-        // ===============================
-        // ❌ Delete Modal Logic
-        // ===============================
-        function openTxnDeleteModal(txnId, txnName) {
-            const editModal = bootstrap.Modal.getInstance(document.getElementById('editTxnModal'));
-            if (editModal) {
-                editModal.hide();
-                editModal.dispose();
-            }
-            document.getElementById('<%= hdnDeleteTxnId.ClientID %>').value = txnId;
-            document.getElementById('txnNameToDelete').textContent = txnName;
-            new bootstrap.Modal(document.getElementById('deleteTxnConfirmModal')).show();
-        }
-
-        function cancelTxnDelete() {
-            bootstrap.Modal.getInstance(document.getElementById('deleteTxnConfirmModal')).hide();
-            new bootstrap.Modal(document.getElementById('editTxnModal')).show();
-        }
-
-        // ===============================
-        // 🔁 Move Funds Modal Validation
-        // ===============================
-        function validateAndSwapModal() {
-            const amountInput = document.getElementById("<%= txtMoveAmount.ClientID %>");
-            const currentBalanceHidden = document.getElementById("<%= hdnCurrentJarBalance.ClientID %>");
-            const jarSelect = document.getElementById("<%= ddlTargetJar.ClientID %>");
-
-            resetValidation(document.getElementById("moveFundsModal"));
-
-            let isValid = true;
-
-            if (!jarSelect.value || jarSelect.selectedIndex === 0) {
-                showInvalid(jarSelect, "Please select a target jar.");
-                isValid = false;
-            }
-
-            const amount = parseFloat(amountInput.value);
-            if (isNaN(amount) || amount <= 0) {
-                showInvalid(amountInput, "Please enter a valid amount greater than 0.");
-                isValid = false;
-            } else {
-                const currentBalance = parseFloat(currentBalanceHidden.value);
-                if (!isNaN(currentBalance) && amount > currentBalance) {
-                    // Show insufficient funds modal and prevent submission
-                    var moveModalEl = document.getElementById("moveFundsModal");
-                    var moveModal = bootstrap.Modal.getInstance(moveModalEl) || new bootstrap.Modal(moveModalEl);
-                    moveModal.hide();
-
-                    var insufficientModalEl = document.getElementById("insufficientFundsModal");
-                    var insufficientModal = new bootstrap.Modal(insufficientModalEl);
-                    insufficientModal.show();
-
-                    return false; // Cancel submit
-                }
-            }
-
-            return isValid; // If false, cancels form submit; if true, submits normally
-        }
-
-        // Reset inputs and validation on modal open
-        // ✅ Robust reset of Move Funds modal on both open and close
-        const moveFundsModalEl = document.getElementById('moveFundsModal');
-        if (moveFundsModalEl) {
-            // Reset validation when opened
-            moveFundsModalEl.addEventListener('show.bs.modal', () => {
-                resetValidation(moveFundsModalEl);
-            });
-
-            // Fully reset fields and validation when closed
-            moveFundsModalEl.addEventListener('hidden.bs.modal', () => {
-                document.getElementById("<%= txtMoveAmount.ClientID %>").value = '';
-                const ddl = document.getElementById("<%= ddlTargetJar.ClientID %>");
-                ddl.selectedIndex = 0;
-                resetValidation(moveFundsModalEl);
-            });
-        }
-
-        const addEntryModal = document.getElementById('addEntryModal');
-        addEntryModal.addEventListener('show.bs.modal', resetEntryForm);
     </script>
 </asp:Content>

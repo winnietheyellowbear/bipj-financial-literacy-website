@@ -148,6 +148,7 @@ namespace bipj
 
             LoadJars();
             ScriptManager.RegisterStartupScript(this, GetType(), "closeAdd", "closeAddModal(); renderPieChart();", true);
+            Response.Redirect(Request.RawUrl, true);
         }
 
         protected void rptJars_ItemCommand(object source, RepeaterCommandEventArgs e)

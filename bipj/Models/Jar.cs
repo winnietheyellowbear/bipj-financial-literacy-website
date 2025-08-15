@@ -1,8 +1,9 @@
-﻿using System;
+﻿using bipj.Data;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data.SqlClient;
-using bipj.Data;
+using System.Linq;
 
 namespace bipj.Models
 {
@@ -228,7 +229,7 @@ namespace bipj.Models
                             {
                                 p.AddWithValue("@U", UserId);
                                 p.AddWithValue("@ToJar", defaultJarId);
-                                p.AddWithValue("@Note", "Transfer from Deleted Jar (auto)");
+                                p.AddWithValue("@Note", $"Transfer from Deleted Jar ({JarName})");
                                 p.AddWithValue("@Amt", bal);
                                 p.AddWithValue("@Dt", now);
                             });
@@ -364,22 +365,23 @@ namespace bipj.Models
                 : 0m;
         }
 
-
         public List<Jar> GetJarsByUser(int userId, bool includeDeleted = false)
         {
-            // pull balances from transactions
-            var balances = GetJarBalances(userId);
+            return GetJarsByUser(userId, DateTime.MinValue, DateTime.MaxValue, includeDeleted);
+        }
+
+        public List<Jar> GetJarsByUser(int userId, DateTime from, DateTime to, bool includeDeleted = false)
+        {
+            // pull balances from transactions in range
+            var balances = GetJarBalances(userId, from, to);
             var jars = new List<Jar>();
 
-            // if includeDeleted==true, ignore the IsDeleted filter
             string sql = includeDeleted
-            ? @"
-            SELECT JarId, JarName, Percentage, ColorHex, IsDefault
+                ? @"SELECT JarId, JarName, Percentage, ColorHex, IsDefault
             FROM Jars
             WHERE UserId = @UserId
             ORDER BY Position"
-            : @"
-            SELECT JarId, JarName, Percentage, ColorHex, IsDefault
+                : @"SELECT JarId, JarName, Percentage, ColorHex, IsDefault
             FROM Jars
             WHERE UserId = @UserId
             AND IsDeleted = 0
@@ -410,6 +412,53 @@ namespace bipj.Models
 
             return jars;
         }
+
+        private Dictionary<int, decimal> GetJarBalances(int userId, DateTime from, DateTime to)
+        {
+            // Wrap into nullable so SqlDate.Clamp works
+            DateTime? f = from;
+            DateTime? t = to;
+
+            SqlDate.Clamp(ref f, ref t);
+
+            from = f ?? from;
+            to = t ?? to;
+
+            var dict = new Dictionary<int, decimal>();
+
+            const string sql = @"
+            SELECT JarId,
+                   SUM(
+                     CASE
+                       WHEN TransactionType = 'Expense' THEN -Amount
+                       ELSE Amount            -- Income + Transfer (+ any NULL) counted as stored
+                     END
+                   ) AS Balance
+            FROM JarTransactions
+            WHERE UserId = @UserId
+              AND [Date] >= @From AND [Date] <= @To
+            GROUP BY JarId;";
+
+            using (var conn = new SqlConnection(_connStr))
+            using (var cmd = new SqlCommand(sql, conn))
+            {
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@From", from);
+                cmd.Parameters.AddWithValue("@To", to);
+
+                conn.Open();
+                using (var rdr = cmd.ExecuteReader())
+                {
+                    while (rdr.Read())
+                    {
+                        dict[rdr.GetInt32(0)] = rdr.IsDBNull(1) ? 0m : rdr.GetDecimal(1);
+                    }
+                }
+            }
+
+            return dict;
+        }
+
 
         public Jar GetJarById(int jarId, int userId)
         {
@@ -489,25 +538,39 @@ namespace bipj.Models
             }
         }
 
-        public string GetNextAvailableColor(int userId)
+        public string GetNextAvailableColor(int userId, int? excludeJarId = null)
         {
-            var usedColors = Db.Query(
-                "SELECT ColorHex FROM Jars WHERE UserId=@UserId",
-                p => p.AddWithValue("@UserId", userId),
-                r => r["ColorHex"].ToString().ToLower());
+            // Get only active jars’ colors; ignore nulls/empties; normalize
+            var used = Db.Query(
+                    @"SELECT ColorHex 
+              FROM Jars 
+              WHERE UserId=@UserId 
+                AND (IsDeleted = 0 OR IsDeleted IS NULL)"
+                      + (excludeJarId.HasValue ? " AND JarId <> @Exclude" : ""),
+                    p =>
+                    {
+                        p.AddWithValue("@UserId", userId);
+                        if (excludeJarId.HasValue) p.AddWithValue("@Exclude", excludeJarId.Value);
+                    },
+                    r => (r["ColorHex"] as string) ?? string.Empty)
+                .Select(c => c.Trim().ToLowerInvariant())
+                .Where(c => !string.IsNullOrEmpty(c))
+                .Distinct()
+                .ToHashSet();
 
             string[] defaultColors =
             {
-                "#c8b6ff", "#a5d8ff", "#ff94c2", "#66a6ff", "#7f00ff", "#ff00b8",
-                "#ffc75f", "#f9f871", "#00c9a7", "#ff6f61", "#ff9671", "#c34a36"
-            };
+        "#c8b6ff", "#a5d8ff", "#ff94c2", "#66a6ff", "#7f00ff", "#ff00b8",
+        "#ffc75f", "#f9f871", "#00c9a7", "#ff6f61", "#ff9671", "#c34a36"
+    };
 
-            foreach (var color in defaultColors)
-            {
-                if (!usedColors.Contains(color.ToLower())) return color;
-            }
+            foreach (var c in defaultColors)
+                if (!used.Contains(c)) return c;
+
+            // all palette colors taken → fall back (or generate)
             return "#cccccc";
         }
+
 
         private static Jar MapJar(SqlDataReader reader)
         {
@@ -612,6 +675,55 @@ namespace bipj.Models
                 insert.Parameters.AddWithValue("@U", userId);
                 return Convert.ToInt32(insert.ExecuteScalar());
             }
+        }
+        public decimal GetBalanceAsOf(int userId, int jarId, DateTime toExclusive, bool excludeTransfers = true)
+        {
+            var cap = toExclusive.Date.AddDays(1); // exclusive upper bound; safe against time-of-day issues
+
+            using (var conn = new SqlConnection(_connStr))
+            using (var cmd = new SqlCommand(@"
+                SELECT ISNULL(SUM(Amount), 0)
+                FROM JarTransactions
+                WHERE UserID=@U
+                  AND JarId=@J
+                  AND [Date] < @ToExclusive
+                  " + (excludeTransfers ? "AND (TransactionType <> 'Transfer' OR TransactionType IS NULL)" : "") + @"
+            ", conn))
+            {
+                cmd.Parameters.AddWithValue("@U", userId);
+                cmd.Parameters.AddWithValue("@J", jarId);
+                cmd.Parameters.AddWithValue("@ToExclusive", cap);
+                conn.Open();
+                var val = cmd.ExecuteScalar();
+                return (val == DBNull.Value) ? 0m : Convert.ToDecimal(val);
+            }
+        }
+
+        public Dictionary<int, decimal> GetJarBalancesAsOf(int userId, DateTime toExclusive, bool excludeTransfers = true)
+        {
+            var cap = toExclusive.Date.AddDays(1);
+            var balances = new Dictionary<int, decimal>();
+
+            using (var conn = new SqlConnection(_connStr))
+            using (var cmd = new SqlCommand(@"
+                SELECT JarId, ISNULL(SUM(Amount),0) AS Balance
+                FROM JarTransactions
+                WHERE UserID=@U
+                  AND [Date] < @ToExclusive
+                  " + (excludeTransfers ? "AND (TransactionType <> 'Transfer' OR TransactionType IS NULL)" : "") + @"
+                GROUP BY JarId
+            ", conn))
+            {
+                cmd.Parameters.AddWithValue("@U", userId);
+                cmd.Parameters.AddWithValue("@ToExclusive", cap);
+                conn.Open();
+                using (var rdr = cmd.ExecuteReader())
+                {
+                    while (rdr.Read())
+                        balances[rdr.GetInt32(0)] = rdr.GetDecimal(1);
+                }
+            }
+            return balances;
         }
 
     }

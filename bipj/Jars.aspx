@@ -304,7 +304,7 @@
                             <asp:TextBox ID="txtNewJarDesc" runat="server" CssClass="form-control" placeholder="e.g. to use for emergencies like hospitalisation" TextMode="MultiLine" Rows="3" />
                         </div>
                         <small class="text-muted d-block mb-3">Note: Jar allocation is set to 0%. Adjust percentages in 
-                    <i class="bi bi-gear"></i>on the jars page to split income automatically.
+                    <i class="bi bi-gear me-1"></i>on the jars page to split income automatically.
                         </small>
 
                         <asp:Button ID="btnAddJar" runat="server" Text="Save"
@@ -509,43 +509,43 @@
             });
         }
 
+        document.addEventListener("DOMContentLoaded", function () {
+            const addEl = document.getElementById('addModal');
+            if (!addEl) return;
+
+            addEl.addEventListener('hidden.bs.modal', function () {
+                const name = document.getElementById('<%= txtNewJarName.ClientID %>');
+                const desc = document.getElementById('<%= txtNewJarDesc.ClientID %>');
+                if (name) name.value = '';
+                if (desc) desc.value = '';
+                resetValidation(addEl);
+            });
+
+            addEl.addEventListener('shown.bs.modal', function () {
+                const name = document.getElementById('<%= txtNewJarName.ClientID %>');
+                if (name) name.focus();
+            });
+        });
+
         function validateAddJarForm() {
             const nameInput = document.getElementById('<%= txtNewJarName.ClientID %>');
             let isValid = true;
-
             resetValidation(nameInput.closest("form") || document);
-
             if (nameInput.value.trim() === "") {
                 showInvalid(nameInput, "Please enter a jar name.");
                 isValid = false;
             }
-
-            const amount = parseFloat(amountInput.value);
-            if (isNaN(amount) || amount < 0) {
-                showInvalid(amountInput, "Please enter a valid starting amount (0 or more).");
-                isValid = false;
-            }
-
             return isValid;
         }
 
         function validateEditJarForm() {
             const nameInput = document.getElementById('<%= txtEditName.ClientID %>');
             let isValid = true;
-
             resetValidation(nameInput.closest("form") || document);
-
             if (nameInput.value.trim() === "") {
                 showInvalid(nameInput, "Jar name cannot be empty.");
                 isValid = false;
             }
-
-            const amount = parseFloat(amountInput.value);
-            if (isNaN(amount) || amount < 0) {
-                showInvalid(amountInput, "Amount must be a valid number (0 or more).");
-                isValid = false;
-            }
-
             return isValid;
         }
 

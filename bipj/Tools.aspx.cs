@@ -25,9 +25,7 @@ namespace bipj
 {
     public partial class Tools : Page
     {
-        // ============================================================
         // CORE FIELDS / CONSTANTS
-        // ============================================================
         private int _userId;
         private static readonly HttpClient _httpClient = new HttpClient();
 
@@ -51,14 +49,12 @@ namespace bipj
             return k?.Trim();
         }
 
-        // ============================================================
         // PAGE LIFECYCLE + UI WIRE-UP
-        // ============================================================
         protected void Page_Load(object sender, EventArgs e)
         {
             if (Session["UserId"] == null)
             {
-                Response.Redirect("Login.aspx");
+                Response.Redirect("Loginpage.aspx");
                 return;
             }
             _userId = Convert.ToInt32(Session["UserId"]);
@@ -97,9 +93,7 @@ namespace bipj
             ddl.SelectedValue = vm.JarId.ToString();
         }
 
-        // ============================================================
         // FEATURE: UPLOAD & PREVIEW
-        // ============================================================
         // Make this async to avoid blocking the request thread
         protected async void btnParse_Click(object sender, EventArgs e)
         {
@@ -854,19 +848,16 @@ $@"Classify these merchants:
             foreach (var r in monthRows)
             {
                 var merch = CanonicalMerchant(r.Description ?? "");
+                var cat =
+                    (gptMap != null && gptMap.TryGetValue(merch, out var gptCat) &&
+                     !string.IsNullOrWhiteSpace(gptCat) &&
+                     !gptCat.Equals("Misc", StringComparison.OrdinalIgnoreCase) &&
+                     !gptCat.Equals("Unknown", StringComparison.OrdinalIgnoreCase))
+                    ? gptCat
+                    : LocalKeywordCategory(merch);
 
-                string cat = null;
-                if (gptMap != null && gptMap.TryGetValue(merch, out var gptCat) &&
-                    !string.IsNullOrWhiteSpace(gptCat) &&
-                    !gptCat.Equals("Misc", StringComparison.OrdinalIgnoreCase) &&
-                    !gptCat.Equals("Unknown", StringComparison.OrdinalIgnoreCase))
-                {
-                    cat = gptCat;
-                }
-                else
-                {
-                    cat = LocalKeywordCategory(merch); // fallback regex method
-                }
+                // Skip income: we’re showing expenses only
+                if (cat.Equals("Income", StringComparison.OrdinalIgnoreCase)) continue;
 
                 if (!totals.ContainsKey(cat)) totals[cat] = 0m;
                 totals[cat] += r.Expense;
@@ -907,38 +898,38 @@ $@"Classify these merchants:
                     messages = new object[]
                     {
                         new { role = "system", content =
-@"You are a precise personal finance classifier and coach.
+                        @"You are a precise personal finance classifier and coach.
 
-OUTPUT JSON ONLY:
-{ ""categories"": { ""<merchant>"": ""<category>"" }, ""advice"": [""...""] }
+                        OUTPUT JSON ONLY:
+                        { ""categories"": { ""<merchant>"": ""<category>"" }, ""advice"": [""...""] }
 
-Categories (choose one): Groceries, Dining, Transport, Shopping, Entertainment, Subscriptions, Utilities, Fees, Health, Education, Rent, Travel, Income, Misc.
+                        Categories (choose one): Groceries, Dining, Transport, Shopping, Entertainment, Subscriptions, Utilities, Fees, Health, Education, Rent, Travel, Income, Misc.
 
-Classification rules:
-- Grocery/supermarket/market → Groceries.
-- Cafe/coffee/tea/boba → Dining.
-- Telcos/utilities → Utilities.
-- Streaming/music → Subscriptions.
-- Ride-hail/public transport → Transport.
-- Salary/Payroll/Client payment with negative amount → Income.
-- Prefer best-fit; use Misc only if truly unclassifiable.
+                        Classification rules:
+                        - Grocery/supermarket/market → Groceries.
+                        - Cafe/coffee/tea/boba → Dining.
+                        - Telcos/utilities → Utilities.
+                        - Streaming/music → Subscriptions.
+                        - Ride-hail/public transport → Transport.
+                        - Salary/Payroll/Client payment with negative amount → Income.
+                        - Prefer best-fit; use Misc only if truly unclassifiable.
 
-Advice rules:
-- Return 3–6 concrete, actionable suggestions tied to the pattern you see (caps, audits, automation, 50/30/20, zero-based budget, sinking funds, emergency fund, unit pricing).
-- Never return an empty advice list." },
+                        Advice rules:
+                        - Return 3–6 concrete, actionable suggestions tied to the pattern you see (caps, audits, automation, 50/30/20, zero-based budget, sinking funds, emergency fund, unit pricing).
+                        - Never return an empty advice list." },
 
                         // Non-empty few-shot to bias advice presence
                         new { role = "user", content =
-@"Recent transactions JSON:
-{ ""txns"": [
-  { ""date"": ""2025-06-01"", ""description"": ""GROCERY SHOPPING"", ""amount"": 120.50 },
-  { ""date"": ""2025-06-03"", ""description"": ""SALARY"", ""amount"": -2500.00 },
-  { ""date"": ""2025-06-05"", ""description"": ""COFFEE"", ""amount"": 5.75 },
-  { ""date"": ""2025-06-07"", ""description"": ""GRAB"", ""amount"": 12.40 }
-]}" },
-                        new { role = "assistant", content =
-@"{""categories"":{""GROCERY SHOPPING"":""Groceries"",""SALARY"":""Income"",""COFFEE"":""Dining"",""GRAB"":""Transport""},
-  ""advice"":[""Set a weekly grocery cap and use unit pricing to trim 5–10%."",""Auto-move 20% of income on payday (50/30/20). "",""Batch rides or swap short trips to public transport to cut Transport 20%.""]}" },
+                        @"Recent transactions JSON:
+                        { ""txns"": [
+                          { ""date"": ""2025-06-01"", ""description"": ""GROCERY SHOPPING"", ""amount"": 120.50 },
+                          { ""date"": ""2025-06-03"", ""description"": ""SALARY"", ""amount"": -2500.00 },
+                          { ""date"": ""2025-06-05"", ""description"": ""COFFEE"", ""amount"": 5.75 },
+                          { ""date"": ""2025-06-07"", ""description"": ""GRAB"", ""amount"": 12.40 }
+                        ]}" },
+                                                new { role = "assistant", content =
+                        @"{""categories"":{""GROCERY SHOPPING"":""Groceries"",""SALARY"":""Income"",""COFFEE"":""Dining"",""GRAB"":""Transport""},
+                          ""advice"":[""Set a weekly grocery cap and use unit pricing to trim 5–10%."",""Auto-move 20% of income on payday (50/30/20). "",""Batch rides or swap short trips to public transport to cut Transport 20%.""]}" },
 
                         // Real data
                         new { role = "user", content = "Recent transactions JSON:\n" + userContent + "\nReturn JSON only." }
@@ -990,7 +981,7 @@ Advice rules:
                 {
                     var nudgePayload = new
                     {
-                        model = "gpt-5",
+                        model = "gpt-4o-mini",
                         response_format = new { type = "json_object" },
                         temperature = 0.1,
                         messages = new object[]
@@ -1050,9 +1041,7 @@ Advice rules:
             return new GptHybridOut { categories = map, advice = new List<string>(), aiRan = false, aiError = "Service unavailable" };
         }
 
-        // ============================================================
         // FEATURE: IMPORT / CANCEL
-        // ============================================================
         protected void btnImport_Click(object sender, EventArgs e)
         {
             var rows = Session["importRows"] as List<RowVm>;
@@ -1112,9 +1101,7 @@ Advice rules:
             pnlAnalysis.Visible = false;
         }
 
-        // ============================================================
         // FEATURE: RESTART ALL JARS (LITE)
-        // ============================================================
         protected void btnRestartAllJars_Click(object sender, EventArgs e)
         {
             if (Session["UserId"] == null) return;
@@ -1143,9 +1130,7 @@ Advice rules:
             }
         }
 
-        // ============================================================
         // INTERNAL VIEW MODEL (preview/import rows)
-        // ============================================================
         private sealed class RowVm
         {
             public DateTime Date { get; set; }
@@ -1156,9 +1141,7 @@ Advice rules:
             public bool Import { get; set; }
         }
 
-        // ============================================================
         // SHARED UI HELPERS
-        // ============================================================
         private void BindJarDropDown(DropDownList ddl)
         {
             var jars = new Jar().GetJarsByUser(_userId);

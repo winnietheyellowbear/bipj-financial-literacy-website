@@ -304,6 +304,7 @@
     <Content Include="MyNotification.aspx" />
     <Content Include="MyPost.aspx" />
     <Content Include="OtpConfirmation.aspx" />
+    <Content Include="PerformanceAnalysis.aspx" />
     <Content Include="Post.aspx" />
     <Content Include="Profile.aspx" />
     <Content Include="ProfileQR.aspx" />
@@ -626,6 +627,13 @@
     </Compile>
     <Compile Include="OtpConfirmation.aspx.designer.cs">
       <DependentUpon>OtpConfirmation.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="PerformanceAnalysis.aspx.cs">
+      <DependentUpon>PerformanceAnalysis.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="PerformanceAnalysis.aspx.designer.cs">
+      <DependentUpon>PerformanceAnalysis.aspx</DependentUpon>
     </Compile>
     <Compile Include="PolicyAnalysis.cs" />
     <Compile Include="PolicyCategory.cs" />

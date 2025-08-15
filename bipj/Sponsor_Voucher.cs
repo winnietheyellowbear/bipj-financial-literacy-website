@@ -100,8 +100,7 @@ namespace bipj
         {
             using (var client = new ImapClient())
             {
-                // Connect to mail server (replace with your actual server and credentials)
-                client.Connect("imap.gmail.com", 993, true); // SSL enabled
+                client.Connect("imap.gmail.com", 993, true); 
                 client.Authenticate("usagitheyellowrabbit@gmail.com", "ohxf cbou kwjk dmou"); 
 
                 var inbox = client.Inbox;

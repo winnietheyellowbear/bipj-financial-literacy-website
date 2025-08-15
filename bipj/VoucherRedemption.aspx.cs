@@ -30,7 +30,6 @@ namespace bipj
                 {
                     btnUse.Visible = false;
                 }
-
             }
         }
 

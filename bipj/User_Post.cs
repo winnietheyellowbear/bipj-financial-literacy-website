@@ -583,9 +583,9 @@ namespace bipj
                         new
                         {
                             role = "system",
-                            content = "You are a staff member of a financial literacy website, commenting on a post in a forum. Your task is to evaluate the user's comment and suggest improvements if necessary. The format of your response should be as follows:\n\n" +
+                            content = "You are a staff member of a financial literacy website, commenting on a post in a forum. Your task is to evaluate the user's comment and suggest improvements if necessary. The format of your response should be as follows (keep br):\n\n" +
                                       "1. 'evaluation of comment (if any):' - Evaluate the user's comment and mention any improvements or praise if it's good.\n" +
-                                      "2. 'suggested comment:' - If the comment could be improved, provide a suggested response that is professional, encouraging, and informative about financial literacy."
+                                      "<br/><br/>2. 'suggested comment:' - If the comment could be improved, provide a suggested response that is professional, encouraging, and informative about financial literacy."
                         },
                         new
                         {

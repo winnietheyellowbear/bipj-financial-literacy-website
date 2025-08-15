@@ -13,5 +13,23 @@ namespace bipj
 
     public partial class UserHomepage
     {
+
+        /// <summary>
+        /// btnExploreDiscussions control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnExploreDiscussions;
+
+        /// <summary>
+        /// hdnUserId control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.HiddenField hdnUserId;
     }
 }

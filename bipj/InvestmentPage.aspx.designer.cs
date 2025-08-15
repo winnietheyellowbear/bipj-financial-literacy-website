@@ -15,6 +15,15 @@ namespace bipj
     {
 
         /// <summary>
+        /// txtNewPortfolioName control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.TextBox txtNewPortfolioName;
+
+        /// <summary>
         /// btnCreateNewPortfolio control.
         /// </summary>
         /// <remarks>
@@ -22,6 +31,15 @@ namespace bipj
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Button btnCreateNewPortfolio;
+
+        /// <summary>
+        /// rfvPortfolioName control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.RequiredFieldValidator rfvPortfolioName;
 
         /// <summary>
         /// pnlEmptyData control.

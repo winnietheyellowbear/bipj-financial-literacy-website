@@ -224,15 +224,6 @@ namespace bipj.Models
                             }
                         }
 
-                        // Remove goal transactions so they don't appear twice
-                        using (var delTx = new SqlCommand(
-                            "DELETE FROM GoalTransactions WHERE GoalId=@G AND UserId=@U", conn, trans))
-                        {
-                            delTx.Parameters.AddWithValue("@G", GoalId);
-                            delTx.Parameters.AddWithValue("@U", UserId);
-                            delTx.ExecuteNonQuery();
-                        }
-
                         // Archive all goals (both completed and uncompleted)
                         using (var archiveGoal = new SqlCommand(
                             "UPDATE Goals SET IsArchived = 1 WHERE GoalId=@G AND UserId=@U", conn, trans))

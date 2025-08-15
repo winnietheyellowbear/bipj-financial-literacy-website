@@ -6,6 +6,7 @@ using System.Data.SqlClient;
 using System.Globalization;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web.UI;
 using System.Web.UI.WebControls;
@@ -20,7 +21,6 @@ namespace bipj
         private static readonly string DbConstr = ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString;
         private static readonly HttpClient client = new HttpClient();
 
-        // Property to hold PortfolioID from URL
         private int PortfolioID
         {
             get { return ViewState["PortfolioID"] != null ? (int)ViewState["PortfolioID"] : 0; }
@@ -31,7 +31,6 @@ namespace bipj
         {
             if (!IsPostBack)
             {
-                // ADAPTED: Get PortfolioID from URL, not Session.
                 if (int.TryParse(Request.QueryString["id"], out int portfolioId))
                 {
                     PortfolioID = portfolioId;
@@ -39,7 +38,6 @@ namespace bipj
                 }
                 else
                 {
-                    // If no ID is provided, redirect to the main investment page.
                     Response.Redirect("InvestmentPage.aspx");
                 }
             }
@@ -48,16 +46,12 @@ namespace bipj
         private async Task LoadInitialDataAsync()
         {
             await LoadPortfolioAssetsAsync();
-
-            // Set initial chart to empty
             hfPriceLabels.Value = "[]";
             hfPriceData.Value = "[]";
             hfForecastData.Value = "[]";
             hfForecastUpper.Value = "[]";
             hfForecastLower.Value = "[]";
             btnForecast.Enabled = false;
-
-            // ✅ FIXED: Explicitly call the JavaScript drawChart function after the server has prepared the hidden fields.
             ScriptManager.RegisterStartupScript(this, GetType(), "drawInitialChart", "drawChart();", true);
         }
 
@@ -66,17 +60,13 @@ namespace bipj
             string symbol = txtSymbol.Text.Trim().ToUpper();
             if (string.IsNullOrEmpty(symbol)) return;
 
-            // Call the new helper method to get asset details (from cache or API)
-            AssetDetails details = await GetAssetDetailsAsync(symbol);
+            AssetFullDetails details = await GetAssetDetailsAsync(symbol);
 
             if (details != null)
             {
                 lblPrice.Text = $"Current Price for {symbol}: ${details.Price:F2}";
-                lblAssetDescription.Text = details.Name;
-
-                ViewState["CurrentPrice"] = details.Price;
-                ViewState["CurrentSymbol"] = symbol;
-                ViewState["CurrentAssetName"] = details.Name;
+                lblAssetDescription.Text = details.Description;
+                ViewState["CurrentAsset"] = details;
 
                 await LoadHistoryAndDrawChart(symbol, 30);
                 btnForecast.Enabled = true;
@@ -88,11 +78,13 @@ namespace bipj
             }
         }
 
-        private async Task<AssetDetails> GetAssetDetailsAsync(string symbol)
+        // ✅ REFACTORED: Implemented a more robust "return-early" caching pattern.
+        private async Task<AssetFullDetails> GetAssetDetailsAsync(string symbol)
         {
+            // Step 1: Attempt to get fresh data from the cache.
             using (var con = new SqlConnection(DbConstr))
             {
-                string query = "SELECT AssetName, LastApiUpdate FROM Assets WHERE Symbol = @Symbol";
+                string query = "SELECT AssetName, Description, Sector, Geography, AssetType, LastPrice, PriceLastUpdate FROM Assets WHERE Symbol = @Symbol";
                 var cmd = new SqlCommand(query, con);
                 cmd.Parameters.AddWithValue("@Symbol", symbol);
                 await con.OpenAsync();
@@ -100,170 +92,143 @@ namespace bipj
                 {
                     if (await reader.ReadAsync())
                     {
-                        var lastUpdate = reader["LastApiUpdate"] as DateTime?;
-                        if (lastUpdate.HasValue && lastUpdate > DateTime.UtcNow.AddHours(-1))
+                        var priceLastUpdate = reader["PriceLastUpdate"] as DateTime?;
+                        // If the price is from today, we have a CACHE HIT.
+                        if (priceLastUpdate.HasValue && priceLastUpdate.Value.Date >= DateTime.UtcNow.Date)
                         {
-                            string assetName = reader["AssetName"].ToString();
-                            string priceUrl = $"https://api.twelvedata.com/price?symbol={symbol}&apikey={ApiKey}";
-                            var priceResponse = await client.GetStringAsync(priceUrl);
-                            JObject priceData = JObject.Parse(priceResponse);
-                            if (decimal.TryParse(priceData["price"]?.ToString(), out decimal price))
+                            // Build the object from the cache and return immediately.
+                            return new AssetFullDetails
                             {
-                                return new AssetDetails { Name = assetName, Price = price };
-                            }
+                                Symbol = symbol,
+                                Name = reader["AssetName"].ToString(),
+                                Price = (decimal)reader["LastPrice"],
+                                Description = FormatDescription(reader["Description"]?.ToString(), reader["AssetType"]?.ToString(), reader["Geography"]?.ToString(), reader["Sector"]?.ToString()),
+                                AssetType = reader["AssetType"]?.ToString(),
+                                Sector = reader["Sector"]?.ToString(),
+                                Geography = reader["Geography"]?.ToString()
+                            };
                         }
                     }
                 }
             }
 
-            string profileUrl = $"https://api.twelvedata.com/profile?symbol={symbol}&apikey={ApiKey}";
-            string priceUrlApi = $"https://api.twelvedata.com/price?symbol={symbol}&apikey={ApiKey}";
+            // Step 2: CACHE MISS or STALE. If we reach this point, we must call the API.
+            decimal? freshPrice = null;
+            JObject profileData = null;
 
-            var profileTask = client.GetStringAsync(profileUrl);
-            var priceTask = client.GetStringAsync(priceUrlApi);
-            await Task.WhenAll(profileTask, priceTask);
-
-            JObject profileData = JObject.Parse(await profileTask);
-            JObject priceDataApi = JObject.Parse(await priceTask);
-
-            string freshName = profileData["name"]?.ToString();
-            string freshPriceStr = priceDataApi["price"]?.ToString();
-
-            // ✅ FIXED: The logic now prioritizes getting a valid price. If a name isn't available from the profile,
-            // it uses the symbol as a fallback, allowing assets like cryptocurrencies to be processed correctly.
-            if (decimal.TryParse(freshPriceStr, out decimal freshPrice))
+            try
             {
-                // Use the profile name if available, otherwise default to the symbol itself.
-                string finalAssetName = string.IsNullOrEmpty(freshName) ? symbol : freshName;
-
-                using (var con = new SqlConnection(DbConstr))
+                string priceUrlApi = $"https://api.twelvedata.com/price?symbol={symbol}&apikey={ApiKey}";
+                var priceJson = await client.GetStringAsync(priceUrlApi);
+                JObject priceDataApi = JObject.Parse(priceJson);
+                if (decimal.TryParse(priceDataApi["price"]?.ToString(), out decimal p))
                 {
-                    string upsertQuery = @"
-                        MERGE Assets AS target
-                        USING (SELECT @Symbol AS Symbol) AS source ON (target.Symbol = source.Symbol)
-                        WHEN MATCHED THEN 
-                            UPDATE SET AssetName = @AssetName, LastApiUpdate = @LastApiUpdate
-                        WHEN NOT MATCHED THEN 
-                            INSERT (Symbol, AssetName, LastApiUpdate) VALUES (@Symbol, @AssetName, @LastApiUpdate);";
-
-                    using (var cmd = new SqlCommand(upsertQuery, con))
-                    {
-                        cmd.Parameters.AddWithValue("@Symbol", symbol);
-                        cmd.Parameters.AddWithValue("@AssetName", finalAssetName);
-                        cmd.Parameters.AddWithValue("@LastApiUpdate", DateTime.UtcNow);
-                        await con.OpenAsync();
-                        await cmd.ExecuteNonQueryAsync();
-                    }
+                    freshPrice = p;
                 }
-                return new AssetDetails { Name = finalAssetName, Price = freshPrice };
             }
+            catch { /* Price fetch failed */ }
 
-            return null;
+            if (freshPrice == null) return null; // Can't continue without a price.
+
+            try
+            {
+                string profileUrl = $"https://api.twelvedata.com/profile?symbol={symbol}&apikey={ApiKey}";
+                var profileJson = await client.GetStringAsync(profileUrl);
+                profileData = JObject.Parse(profileJson);
+            }
+            catch { /* Profile fetch is optional */ }
+
+            var details = new AssetFullDetails
+            {
+                Symbol = symbol,
+                Name = profileData?["name"]?.ToString() ?? symbol,
+                Price = freshPrice.Value,
+                Description = FormatDescription(profileData?["description"]?.ToString(), profileData?["type"]?.ToString(), profileData?["country"]?.ToString(), profileData?["sector"]?.ToString()),
+                AssetType = profileData?["type"]?.ToString(),
+                Sector = profileData?["sector"]?.ToString(),
+                Geography = profileData?["country"]?.ToString()
+            };
+
+            // Step 3: Update database with the new data.
+            using (var con = new SqlConnection(DbConstr))
+            {
+                string upsertQuery = @"
+                    MERGE Assets AS target
+                    USING (SELECT @Symbol AS Symbol) AS source ON (target.Symbol = source.Symbol)
+                    WHEN MATCHED THEN 
+                        UPDATE SET AssetName = @AssetName, Description = @Description, Sector = @Sector, Geography = @Geography, AssetType = @AssetType, LastApiUpdate = @LastApiUpdate, LastPrice = @LastPrice, PriceLastUpdate = @PriceLastUpdate
+                    WHEN NOT MATCHED THEN 
+                        INSERT (Symbol, AssetName, Description, Sector, Geography, AssetType, LastApiUpdate, LastPrice, PriceLastUpdate) 
+                        VALUES (@Symbol, @AssetName, @Description, @Sector, @Geography, @AssetType, @LastApiUpdate, @LastPrice, @PriceLastUpdate);";
+
+                using (var cmd = new SqlCommand(upsertQuery, con))
+                {
+                    cmd.Parameters.AddWithValue("@Symbol", details.Symbol);
+                    cmd.Parameters.AddWithValue("@AssetName", (object)details.Name ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Description", (object)profileData?["description"]?.ToString() ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Sector", (object)details.Sector ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Geography", (object)details.Geography ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@AssetType", (object)details.AssetType ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@LastApiUpdate", DateTime.UtcNow);
+                    cmd.Parameters.AddWithValue("@LastPrice", details.Price);
+                    cmd.Parameters.AddWithValue("@PriceLastUpdate", DateTime.UtcNow);
+                    await con.OpenAsync();
+                    await cmd.ExecuteNonQueryAsync();
+                }
+            }
+            return details;
         }
 
-        protected async void btnViewMonth_Click(object sender, EventArgs e)
+        private string FormatDescription(string description, string type, string country, string sector)
         {
-            string symbol = ViewState["CurrentSymbol"]?.ToString();
-            if (!string.IsNullOrEmpty(symbol))
+            if (string.IsNullOrWhiteSpace(description) && string.IsNullOrWhiteSpace(type) && string.IsNullOrWhiteSpace(country) && string.IsNullOrWhiteSpace(sector))
             {
-                await LoadHistoryAndDrawChart(symbol, 30);
+                return "<i>Asset description not applicable.</i>";
             }
-        }
-
-        protected async void btnViewYear_Click(object sender, EventArgs e)
-        {
-            string symbol = ViewState["CurrentSymbol"]?.ToString();
-            if (!string.IsNullOrEmpty(symbol))
+            var sb = new StringBuilder();
+            if (!string.IsNullOrWhiteSpace(description))
             {
-                await LoadHistoryAndDrawChart(symbol, 365);
+                sb.Append(description);
             }
-        }
-
-        protected void btnForecast_Click(object sender, EventArgs e)
-        {
-            // This logic now reads from hidden fields, as per the original design.
-            var priceList = JsonConvert.DeserializeObject<List<decimal>>(hfPriceData.Value);
-            var emaList = CalculateEMA(priceList, 10);
-            if (emaList.Count < 2) return;
-
-            var returns = new List<decimal>();
-            for (int i = 1; i < priceList.Count; i++)
+            var details = new List<string>();
+            if (!string.IsNullOrWhiteSpace(type)) details.Add($"Type: {type}");
+            if (!string.IsNullOrWhiteSpace(country)) details.Add($"Country: {country}");
+            if (!string.IsNullOrWhiteSpace(sector)) details.Add($"Sector: {sector}");
+            if (details.Any())
             {
-                if (priceList[i - 1] != 0) returns.Add((priceList[i] - priceList[i - 1]) / priceList[i - 1]);
+                sb.Append($"<br/><br/><strong>{string.Join(" | ", details)}</strong>");
             }
-            if (!returns.Any()) return;
-
-            decimal avgReturn = returns.Average();
-            decimal variance = returns.Average(r => (r - avgReturn) * (r - avgReturn));
-            decimal stdDev = (decimal)Math.Sqrt((double)variance);
-
-            var forecastCenter = new List<decimal>();
-            var upperBand = new List<decimal>();
-            var lowerBand = new List<decimal>();
-
-            decimal slope = emaList.Last() - emaList[emaList.Count - 2];
-            decimal lastEma = emaList.Last();
-
-            for (int i = 1; i <= 7; i++)
-            {
-                lastEma += slope;
-                decimal volatilityRange = lastEma * stdDev;
-                forecastCenter.Add(lastEma);
-                upperBand.Add(lastEma + volatilityRange);
-                lowerBand.Add(lastEma - volatilityRange);
-            }
-
-            hfForecastData.Value = JsonConvert.SerializeObject(forecastCenter);
-            hfForecastUpper.Value = JsonConvert.SerializeObject(upperBand);
-            hfForecastLower.Value = JsonConvert.SerializeObject(lowerBand);
-
-            // Append forecast dates to labels
-            var labels = JsonConvert.DeserializeObject<List<string>>(hfPriceLabels.Value);
-            DateTime lastDate = DateTime.Parse(labels.Last());
-            for (int i = 1; i <= 7; i++) { labels.Add(lastDate.AddDays(i).ToString("yyyy-MM-dd")); }
-            hfPriceLabels.Value = JsonConvert.SerializeObject(labels);
-
-            ScriptManager.RegisterStartupScript(this, GetType(), "drawChart", "drawChart();", true);
+            return sb.ToString();
         }
 
         protected async void btnAddAsset_Click(object sender, EventArgs e)
         {
-            string symbol = ViewState["CurrentSymbol"]?.ToString();
-            string assetName = ViewState["CurrentAssetName"]?.ToString();
-            object priceObj = ViewState["CurrentPrice"];
+            var assetDetails = ViewState["CurrentAsset"] as AssetFullDetails;
             string quantityStr = txtQuantity.Text.Trim();
-
-            if (string.IsNullOrEmpty(symbol) || priceObj == null || !decimal.TryParse(quantityStr, out decimal quantity))
+            if (assetDetails == null || !decimal.TryParse(quantityStr, out decimal quantity))
             {
                 litMessage.Text = "<p class='text-danger mt-2'>Missing data. Please search for an asset and enter a valid quantity.</p>";
                 return;
             }
-
-            decimal buyPrice = (decimal)priceObj;
-
-            // ADAPTED: Ensure the asset exists in the 'Assets' table before adding to portfolio.
-            int assetId = await GetOrCreateAssetIdAsync(symbol, assetName);
-
+            int assetId = await GetOrCreateAssetIdAsync(assetDetails.Symbol, assetDetails.Name);
             using (SqlConnection conn = new SqlConnection(DbConstr))
             {
-                // ADAPTED: Query now uses the correct table and column names.
                 string insertQuery = @"INSERT INTO PortfolioAssets (PortfolioID, AssetID, Quantity, PurchasedPrice, PurchasedAt)
                                        VALUES (@PortfolioID, @AssetID, @Quantity, @PurchasedPrice, GETDATE());
                                        UPDATE Portfolios SET LastUpdatedAt = GETDATE() WHERE PortfolioID = @PortfolioID;";
-
                 using (SqlCommand cmd = new SqlCommand(insertQuery, conn))
                 {
                     cmd.Parameters.AddWithValue("@PortfolioID", this.PortfolioID);
                     cmd.Parameters.AddWithValue("@AssetID", assetId);
                     cmd.Parameters.AddWithValue("@Quantity", quantity);
-                    cmd.Parameters.AddWithValue("@PurchasedPrice", buyPrice);
+                    cmd.Parameters.AddWithValue("@PurchasedPrice", assetDetails.Price);
                     try
                     {
                         await conn.OpenAsync();
                         await cmd.ExecuteNonQueryAsync();
                         litMessage.Text = "<p class='text-success mt-2'>Asset added successfully!</p>";
                         txtQuantity.Text = "";
-                        await LoadPortfolioAssetsAsync(); // Refresh GridView
+                        await LoadPortfolioAssetsAsync();
                     }
                     catch (Exception ex)
                     {
@@ -273,16 +238,69 @@ namespace bipj
             }
         }
 
+        protected async void btnViewMonth_Click(object sender, EventArgs e)
+        {
+            var assetDetails = ViewState["CurrentAsset"] as AssetFullDetails;
+            if (assetDetails != null)
+            {
+                await LoadHistoryAndDrawChart(assetDetails.Symbol, 30);
+            }
+        }
+
+        protected async void btnViewYear_Click(object sender, EventArgs e)
+        {
+            var assetDetails = ViewState["CurrentAsset"] as AssetFullDetails;
+            if (assetDetails != null)
+            {
+                await LoadHistoryAndDrawChart(assetDetails.Symbol, 365);
+            }
+        }
+
+        protected void btnForecast_Click(object sender, EventArgs e)
+        {
+            var priceList = JsonConvert.DeserializeObject<List<decimal>>(hfPriceData.Value);
+            var emaList = CalculateEMA(priceList, 10);
+            if (emaList.Count < 2) return;
+            var returns = new List<decimal>();
+            for (int i = 1; i < priceList.Count; i++)
+            {
+                if (priceList[i - 1] != 0) returns.Add((priceList[i] - priceList[i - 1]) / priceList[i - 1]);
+            }
+            if (!returns.Any()) return;
+            decimal avgReturn = returns.Average();
+            decimal variance = returns.Average(r => (r - avgReturn) * (r - avgReturn));
+            decimal stdDev = (decimal)Math.Sqrt((double)variance);
+            var forecastCenter = new List<decimal>();
+            var upperBand = new List<decimal>();
+            var lowerBand = new List<decimal>();
+            decimal slope = emaList.Last() - emaList[emaList.Count - 2];
+            decimal lastEma = emaList.Last();
+            for (int i = 1; i <= 7; i++)
+            {
+                lastEma += slope;
+                decimal volatilityRange = lastEma * stdDev;
+                forecastCenter.Add(lastEma);
+                upperBand.Add(lastEma + volatilityRange);
+                lowerBand.Add(lastEma - volatilityRange);
+            }
+            hfForecastData.Value = JsonConvert.SerializeObject(forecastCenter);
+            hfForecastUpper.Value = JsonConvert.SerializeObject(upperBand);
+            hfForecastLower.Value = JsonConvert.SerializeObject(lowerBand);
+            var labels = JsonConvert.DeserializeObject<List<string>>(hfPriceLabels.Value);
+            DateTime lastDate = DateTime.Parse(labels.Last());
+            for (int i = 1; i <= 7; i++) { labels.Add(lastDate.AddDays(i).ToString("yyyy-MM-dd")); }
+            hfPriceLabels.Value = JsonConvert.SerializeObject(labels);
+            ScriptManager.RegisterStartupScript(this, GetType(), "drawChart", "drawChart();", true);
+        }
+
         protected async void gvPortfolioAssets_RowCommand(object sender, GridViewCommandEventArgs e)
         {
             if (e.CommandName == "DeleteAsset")
             {
                 int rowIndex = Convert.ToInt32(e.CommandArgument);
                 int portfolioAssetId = Convert.ToInt32(gvPortfolioAssets.DataKeys[rowIndex].Value);
-
                 using (SqlConnection conn = new SqlConnection(DbConstr))
                 {
-                    // ADAPTED: Deleting from the correct table using the correct primary key.
                     string deleteQuery = "DELETE FROM PortfolioAssets WHERE PortfolioAssetID = @PortfolioAssetID";
                     using (SqlCommand cmd = new SqlCommand(deleteQuery, conn))
                     {
@@ -291,83 +309,75 @@ namespace bipj
                         await cmd.ExecuteNonQueryAsync();
                     }
                 }
-                await LoadPortfolioAssetsAsync(); // Refresh table
+                await LoadPortfolioAssetsAsync();
             }
         }
 
         private async Task LoadHistoryAndDrawChart(string symbol, int days)
         {
             var historicalData = await GetHistoricalPricesAsync(symbol, days);
-
             if (historicalData != null && historicalData.Any())
             {
-                // Data is returned with newest first, so we reverse it for the chart.
                 historicalData.Reverse();
                 var labels = historicalData.Select(item => item.Date.ToString("yyyy-MM-dd")).ToList();
                 var prices = historicalData.Select(item => item.Price).ToList();
-
                 hfPriceLabels.Value = JsonConvert.SerializeObject(labels);
                 hfPriceData.Value = JsonConvert.SerializeObject(prices);
                 hfForecastData.Value = "[]";
                 hfForecastUpper.Value = "[]";
                 hfForecastLower.Value = "[]";
-
                 ScriptManager.RegisterStartupScript(this, GetType(), "drawChart", "drawChart();", true);
             }
         }
 
+        // ✅ REFACTORED: Implemented a more robust "return-early" caching pattern.
         private async Task<List<HistoricalPrice>> GetHistoricalPricesAsync(string symbol, int days)
         {
-            var prices = new List<HistoricalPrice>();
-            int assetId = await GetOrCreateAssetIdAsync(symbol, symbol); // Ensure asset exists
-
+            int assetId = await GetOrCreateAssetIdAsync(symbol, symbol);
             using (var con = new SqlConnection(DbConstr))
             {
                 await con.OpenAsync();
-                // Check for the most recent date in our cache for this asset
-                string latestDateQuery = "SELECT MAX(PriceDate) FROM AssetPriceHistory WHERE AssetID = @AssetID";
-                var dateCmd = new SqlCommand(latestDateQuery, con);
-                dateCmd.Parameters.AddWithValue("@AssetID", assetId);
-                object lastDateResult = await dateCmd.ExecuteScalarAsync();
 
-                // If our cache is up-to-date (has today's or yesterday's price), we can try to use it.
-                if (lastDateResult != DBNull.Value && ((DateTime)lastDateResult) >= DateTime.Today.AddDays(-1))
+                // Step 1: Attempt to read from the cache first.
+                string cacheQuery = "SELECT TOP (@Days) PriceDate, ClosePrice FROM AssetPriceHistory WHERE AssetID = @AssetID ORDER BY PriceDate DESC";
+                var cmd = new SqlCommand(cacheQuery, con);
+                cmd.Parameters.AddWithValue("@AssetID", assetId);
+                cmd.Parameters.AddWithValue("@Days", days);
+                var prices = new List<HistoricalPrice>();
+                using (var reader = await cmd.ExecuteReaderAsync())
                 {
-                    string cacheQuery = "SELECT TOP (@Days) PriceDate, ClosePrice FROM AssetPriceHistory WHERE AssetID = @AssetID ORDER BY PriceDate DESC";
-                    var cmd = new SqlCommand(cacheQuery, con);
-                    cmd.Parameters.AddWithValue("@AssetID", assetId);
-                    cmd.Parameters.AddWithValue("@Days", days);
-                    using (var reader = await cmd.ExecuteReaderAsync())
+                    while (await reader.ReadAsync())
                     {
-                        while (await reader.ReadAsync())
-                        {
-                            prices.Add(new HistoricalPrice { Date = (DateTime)reader["PriceDate"], Price = (decimal)reader["ClosePrice"] });
-                        }
+                        prices.Add(new HistoricalPrice { Date = (DateTime)reader["PriceDate"], Price = (decimal)reader["ClosePrice"] });
                     }
-                    // If we found enough data in the cache, we're done!
-                    if (prices.Count >= days) return prices;
                 }
 
-                // CACHE MISS/STALE: We need to call the API.
-                string url = $"https://api.twelvedata.com/time_series?symbol={symbol}&interval=1day&outputsize={days}&apikey={ApiKey}";
+                // Step 2: Check if the cache is fresh and sufficient.
+                DateTime latestDateInCache = prices.Any() ? prices.Max(p => p.Date) : DateTime.MinValue;
+                // The cache is good if it has enough data AND its latest entry is from yesterday or today.
+                if (prices.Count >= days && latestDateInCache.Date >= DateTime.UtcNow.Date.AddDays(-1))
+                {
+                    // CACHE HIT: Return the cached data immediately.
+                    return prices;
+                }
+
+                // Step 3: CACHE MISS or STALE. Fetch a large chunk of data from the API.
+                string url = $"https://api.twelvedata.com/time_series?symbol={symbol}&interval=1day&outputsize=400&apikey={ApiKey}";
                 var response = await client.GetStringAsync(url);
                 JObject data = JObject.Parse(response);
-
                 if (data["values"] != null)
                 {
-                    prices.Clear(); // Clear any partial data we might have read from a stale cache
                     var values = data["values"].Select(item => new HistoricalPrice
                     {
                         Date = DateTime.Parse(item["datetime"].ToString()),
                         Price = decimal.Parse(item["close"].ToString(), CultureInfo.InvariantCulture)
-                    }).OrderByDescending(p => p.Date).Take(days).ToList();
+                    }).ToList();
 
-                    // Update our database cache with the new data
+                    // Update the cache with the new data.
                     var mergeQuery = @"
                         MERGE AssetPriceHistory AS target
                         USING (SELECT @AssetID AS AssetID, @PriceDate AS PriceDate) AS source ON (target.AssetID = source.AssetID AND target.PriceDate = source.PriceDate)
                         WHEN NOT MATCHED THEN INSERT (AssetID, PriceDate, ClosePrice) VALUES (@AssetID, @PriceDate, @ClosePrice);";
-
                     foreach (var value in values)
                     {
                         using (var mergeCmd = new SqlCommand(mergeQuery, con))
@@ -378,22 +388,21 @@ namespace bipj
                             await mergeCmd.ExecuteNonQueryAsync();
                         }
                     }
-                    return values;
+                    // Return the requested number of days from the newly fetched data.
+                    return values.OrderByDescending(p => p.Date).Take(days).ToList();
                 }
             }
-            return prices; // Return whatever we have, even if it's empty
+            return new List<HistoricalPrice>(); // Return empty list if API fails
         }
 
         private async Task LoadPortfolioAssetsAsync()
         {
             using (SqlConnection conn = new SqlConnection(DbConstr))
             {
-                // ADAPTED: Query now joins with Assets table and uses correct column names.
                 string query = @"SELECT pa.PortfolioAssetID, a.Symbol, pa.Quantity, pa.PurchasedPrice, pa.PurchasedAt 
                                  FROM PortfolioAssets pa
                                  JOIN Assets a ON pa.AssetID = a.AssetID
                                  WHERE pa.PortfolioID = @PortfolioID ORDER BY pa.PurchasedAt DESC";
-
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@PortfolioID", this.PortfolioID);
@@ -404,8 +413,6 @@ namespace bipj
                         gvPortfolioAssets.DataBind();
                     }
                 }
-
-                // Also load the portfolio name
                 string nameQuery = "SELECT PortfolioName FROM Portfolios WHERE PortfolioID = @PortfolioID";
                 using (SqlCommand nameCmd = new SqlCommand(nameQuery, conn))
                 {
@@ -423,13 +430,11 @@ namespace bipj
         {
             using (var con = new SqlConnection(DbConstr))
             {
-                // ADAPTED: This logic is from your modern code, ensuring data integrity.
                 string upsertQuery = @"
                     MERGE Assets AS target
                     USING (SELECT @Symbol AS Symbol) AS source ON (target.Symbol = source.Symbol)
-                    WHEN NOT MATCHED THEN INSERT (Symbol, AssetName, LastApiUpdate) VALUES (@Symbol, @AssetName, GETDATE());
+                    WHEN NOT MATCHED THEN INSERT (Symbol, AssetName) VALUES (@Symbol, @AssetName);
                     SELECT AssetID FROM Assets WHERE Symbol = @Symbol;";
-
                 using (var cmd = new SqlCommand(upsertQuery, con))
                 {
                     cmd.Parameters.AddWithValue("@Symbol", symbol);
@@ -461,12 +466,19 @@ namespace bipj
             Response.Redirect($"InvestmentDashboardPage.aspx?id={this.PortfolioID}");
         }
 
-        private class AssetDetails
+        [Serializable]
+        private class AssetFullDetails
         {
+            public string Symbol { get; set; }
             public string Name { get; set; }
             public decimal Price { get; set; }
+            public string Description { get; set; }
+            public string AssetType { get; set; }
+            public string Sector { get; set; }
+            public string Geography { get; set; }
         }
 
+        [Serializable]
         private class HistoricalPrice
         {
             public DateTime Date { get; set; }

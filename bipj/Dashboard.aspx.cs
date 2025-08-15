@@ -1,5 +1,6 @@
 ﻿using bipj.Models;
 using Microsoft.VisualBasic;
+using Microsoft.VisualBasic.ApplicationServices;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -118,21 +119,25 @@ namespace bipj
                 expense += txnMgr.GetTransactionSumByType(_userId, jar.JarId, "Expense", from, to, includeTransfers: false);
             }
 
-            // === ADD: manual goal top-ups (exclude jar->goal transfers) ===
-            // GoalTransactions: UserId, Amount, SourceType ('topup' = manual), Date
             var connStr = ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString;
             decimal manualGoalTopUps = 0m;
+
             using (var conn = new SqlConnection(connStr))
             using (var cmd = new SqlCommand(@"
-        SELECT ISNULL(SUM(gt.Amount), 0)
-        FROM GoalTransactions gt
-        WHERE gt.UserId = @uid
-          AND gt.SourceType = 'topup'
-          AND gt.[Date] >= @from AND gt.[Date] < @to;", conn))
+                SELECT ISNULL(SUM(gt.Amount), 0)
+                FROM GoalTransactions gt
+                INNER JOIN Goals g 
+                    ON g.GoalId = gt.GoalId 
+                    AND g.UserId = gt.UserId
+                WHERE gt.UserId = @uid
+                  AND gt.SourceType = 'topup'
+                  AND gt.[Date] >= @from 
+                  AND gt.[Date] < @to;", conn))
             {
                 cmd.Parameters.AddWithValue("@uid", _userId);
                 cmd.Parameters.AddWithValue("@from", from);
                 cmd.Parameters.AddWithValue("@to", to);
+
                 conn.Open();
                 var v = cmd.ExecuteScalar();
                 manualGoalTopUps = (v == DBNull.Value) ? 0m : Convert.ToDecimal(v);
@@ -147,17 +152,30 @@ namespace bipj
             lblBalance.Text = balance.ToString("C2");
         }
 
-        private void LoadJarTotal()
+
+        public void LoadJarTotal()
         {
             var (_, to) = GetRange();
 
-           var jars = new Jar().GetJarsByUser(_userId, DateTime.MinValue, to, includeDeleted: true);
+            var jars = new Jar().GetJarsByUser(_userId, DateTime.MinValue, to, includeDeleted: true);
 
-            decimal total = jars.Sum(j => j.Balance);
+            var connStr = ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString;
 
-            lblJarTotal.Text = total.ToString("C2");
+            using (var conn = new SqlConnection(connStr))
+            {
+                conn.Open();
+                using (var trans = conn.BeginTransaction())
+                {
+                    int reportingJarId = new Jar().GetOrCreateReportingJarId(_userId, conn, trans);
+
+                    decimal total = jars
+                        .Where(j => j.JarId != reportingJarId)
+                        .Sum(j => j.Balance);
+
+                    lblJarTotal.Text = total.ToString("C2");
+                }
+            }
         }
-
 
         private void LoadGoals()
         {

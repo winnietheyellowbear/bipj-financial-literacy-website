@@ -12,8 +12,9 @@
 
         /* Hero */
         .hero {
-            background: radial-gradient(1200px 600px at 90% -10%, rgba(59,56,126,.25), transparent 60%),
-                        linear-gradient(135deg, var(--brand) 0%, #5a56b1 60%, #7c78de 100%);
+            background:
+                radial-gradient(1200px 600px at 90% -10%, rgba(59,56,126,.25), transparent 60%),
+                linear-gradient(135deg, var(--brand) 0%, #5a56b1 60%, #7c78de 100%);
             color: #fff;
             border-radius: 1.25rem;
             padding: 3.5rem 2rem;
@@ -58,6 +59,33 @@
             padding: 1rem 1.25rem;
             border-radius: .5rem;
         }
+
+        /* Game container */
+        .game-card {
+            border: 1px solid #eee;
+            border-radius: 1rem;
+            padding: 1rem;
+            background: #fff;
+            box-shadow: 0 6px 18px rgba(0,0,0,.05);
+        }
+        .game-frame {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            border-radius: .75rem;
+            background: #000;
+        }
+        /* Fallback if bootstrap .ratio isn’t present */
+        .ratio-16x9 {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%;
+            border-radius: .75rem;
+            overflow: hidden;
+        }
+        .ratio-16x9 > .ratio-inner {
+            position: absolute; inset: 0;
+        }
     </style>
 
     <!-- HERO -->
@@ -78,6 +106,31 @@
             </div>
 
             <div class="hero-illustration">₿ $ ¥ ₩ €</div>
+        </div>
+    </section>
+
+    <!-- PLAY THE GAME -->
+    <section class="container mt-5" id="play">
+        <h2 class="section-title fw-semibold mb-3">Play the Game</h2>
+        <div class="game-card">
+            <div class="ratio-16x9">
+                <div class="ratio-inner">
+                    <!-- Update src if your folder/file differs -->
+                    <iframe
+                         id="unityFrame"
+    class="game-frame"
+    src="<%: ResolveUrl("~/unitybuild3/index.html") %>"
+    allow="fullscreen; autoplay; xr-spatial-tracking; camera; microphone"
+    allowfullscreen
+    loading="lazy">
+                    </iframe>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 justify-content-end mt-3">
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="btnReload">Reload</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="btnFullscreen">Fullscreen</button>
+            </div>
         </div>
     </section>
 
@@ -185,8 +238,9 @@
         </div>
     </section>
 
-    <!-- Smooth scroll for “Explore features” -->
+    <!-- Scripts -->
     <script>
+        // Smooth scroll for “Explore features”
         document.addEventListener('click', function (e) {
             const a = e.target.closest('a[href^="#"]');
             if (!a) return;
@@ -196,6 +250,30 @@
                 el.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         });
+
+        // Iframe helpers (reload + fullscreen)
+        (function () {
+            const frame = document.getElementById('unityFrame');
+            const btnReload = document.getElementById('btnReload');
+            const btnFullscreen = document.getElementById('btnFullscreen');
+
+            if (btnReload) {
+                btnReload.addEventListener('click', function () {
+                    const url = frame.src;
+                    frame.src = 'about:blank';
+                    setTimeout(() => frame.src = url, 50);
+                });
+            }
+
+            if (btnFullscreen) {
+                btnFullscreen.addEventListener('click', function () {
+                    if (frame.requestFullscreen) frame.requestFullscreen();
+                    else if (frame.webkitRequestFullscreen) frame.webkitRequestFullscreen();
+                    else if (frame.mozRequestFullScreen) frame.mozRequestFullScreen();
+                    else if (frame.msRequestFullscreen) frame.msRequestFullscreen();
+                });
+            }
+        })();
     </script>
 
 </asp:Content>

@@ -4,11 +4,11 @@
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     <div class="container mt-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h3 mb-0">
-                AI Policy Analysis for <asp:Literal ID="litPlanName" runat="server"></asp:Literal>
+            <h1 class="h3 mb-0 my-4">
+                Policy Analysis
             </h1>
             <asp:Button ID="btnBackToDashboard" runat="server" Text="&larr; Back to Dashboard" OnClick="btnBackToDashboard_Click"
-                CssClass="btn btn-outline-secondary" />
+                CssClass="btn btn-outline-secondary my-4" />
         </div>
 
         <asp:Panel ID="pnlLoading" runat="server" CssClass="text-center py-5">

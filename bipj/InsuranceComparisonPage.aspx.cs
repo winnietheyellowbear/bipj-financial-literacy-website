@@ -250,7 +250,6 @@ namespace bipj
                     cmd.Parameters.AddWithValue("@PlanID", PlanID);
                     await con.OpenAsync();
                     object result = await cmd.ExecuteScalarAsync();
-                    if (result != null) litPlanName.Text = result.ToString();
                 }
             }
         }

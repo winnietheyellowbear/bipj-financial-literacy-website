@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -40,8 +41,6 @@ namespace bipj
 
         private async Task LoadDashboardDataAsync(int portfolioId)
         {
-            // ✅ REFACTORED: Caching logic starts here.
-            // Step 1: Get the portfolio's "version" (LastUpdatedAt timestamp).
             DateTime lastUpdated;
             using (var con = new SqlConnection(DbConstr))
             {
@@ -52,7 +51,6 @@ namespace bipj
                 {
                     if (!await reader.ReadAsync())
                     {
-                        // Portfolio not found, handle appropriately.
                         return;
                     }
                     lastUpdated = (DateTime)reader["LastUpdatedAt"];
@@ -60,37 +58,31 @@ namespace bipj
                 }
             }
 
-            // Step 2: Create a unique cache key based on the portfolio's state.
             string cacheKey = $"dashboard_{portfolioId}_{lastUpdated:yyyyMMddHHmmss}";
             var cachedData = HttpRuntime.Cache[cacheKey] as DashboardData;
 
             if (cachedData != null)
             {
-                // ✅ CACHE HIT: Data is fresh. Bind from the cached object and return.
                 BindDataToUI(cachedData);
                 return;
             }
 
-            // ✅ CACHE MISS: If we reach here, we need to do the full calculation.
             var portfolioAssets = await GetPortfolioAssetsAsync(portfolioId);
             if (!portfolioAssets.Any()) return;
 
             await GetAndUpdateCurrentPricesAsync(portfolioAssets);
 
             var historicalData = await GetPortfolioHistoricalDataAsync(portfolioAssets, 90);
-            var correlationMatrix = await CalculateCorrelationMatrixAsync(portfolioAssets, historicalData);
 
-            // Create the data object to be cached.
+            var correlationMatrix = CalculateCorrelationMatrix(portfolioAssets, historicalData);
+
             var dashboardData = new DashboardData(portfolioAssets, historicalData, correlationMatrix);
 
-            // Cache the newly calculated data for future requests.
             HttpRuntime.Cache.Insert(cacheKey, dashboardData, null, Cache.NoAbsoluteExpiration, TimeSpan.FromHours(12));
 
-            // Bind the new data to the UI.
             BindDataToUI(dashboardData);
         }
 
-        // ✅ NEW METHOD: Centralizes binding logic to be used for both cached and fresh data.
         private void BindDataToUI(DashboardData data)
         {
             litPrincipal.Text = data.Principal.ToString("C");
@@ -222,111 +214,83 @@ namespace bipj
             var allHistory = new Dictionary<int, List<decimal>>();
             foreach (var asset in assets)
             {
-                allHistory[asset.AssetId] = await GetHistoricalPricesAsync(asset.AssetId, asset.Symbol, days);
+                var prices = await GetHistoricalPricesAsync(asset.AssetId, asset.Symbol, days);
+                allHistory[asset.AssetId] = prices.Select(p => p.Price).ToList();
             }
             return allHistory;
         }
 
-        private async Task<List<decimal>> GetHistoricalPricesAsync(int assetId, string symbol, int days)
+        private async Task<List<HistoricalPrice>> GetHistoricalPricesAsync(int assetId, string symbol, int days)
         {
-            var prices = new List<decimal>();
             using (var con = new SqlConnection(DbConstr))
             {
                 await con.OpenAsync();
-                string cacheQuery = "SELECT ClosePrice FROM AssetPriceHistory WHERE AssetID = @AssetID AND PriceDate >= @StartDate ORDER BY PriceDate DESC";
+
+                string cacheQuery = "SELECT TOP (@Days) PriceDate, ClosePrice FROM AssetPriceHistory WHERE AssetID = @AssetID ORDER BY PriceDate DESC";
                 var cmd = new SqlCommand(cacheQuery, con);
                 cmd.Parameters.AddWithValue("@AssetID", assetId);
-                cmd.Parameters.AddWithValue("@StartDate", DateTime.Today.AddDays(-days));
+                cmd.Parameters.AddWithValue("@Days", days);
+                var prices = new List<HistoricalPrice>();
                 using (var reader = await cmd.ExecuteReaderAsync())
                 {
-                    while (await reader.ReadAsync()) prices.Add((decimal)reader["ClosePrice"]);
+                    while (await reader.ReadAsync())
+                    {
+                        prices.Add(new HistoricalPrice { Date = (DateTime)reader["PriceDate"], Price = (decimal)reader["ClosePrice"] });
+                    }
                 }
-                if (prices.Count >= days) return prices;
-                string url = $"https://api.twelvedata.com/time_series?symbol={symbol}&interval=1day&outputsize={days}&apikey={ApiKey}";
+
+                DateTime latestDateInCache = prices.Any() ? prices.Max(p => p.Date) : DateTime.MinValue;
+                if (prices.Count >= days && latestDateInCache.Date >= DateTime.UtcNow.Date.AddDays(-1))
+                {
+                    return prices;
+                }
+
+                string url = $"https://api.twelvedata.com/time_series?symbol={symbol}&interval=1day&outputsize=400&apikey={ApiKey}";
                 var response = await client.GetStringAsync(url);
                 var apiData = JsonConvert.DeserializeObject<TimeSeriesResponse>(response);
                 if (apiData?.Values != null)
                 {
-                    prices.Clear();
+                    var values = apiData.Values.Select(item => new HistoricalPrice
+                    {
+                        Date = item.Datetime,
+                        Price = item.Close
+                    }).ToList();
+
                     var mergeQuery = @"
                         MERGE AssetPriceHistory AS target
                         USING (SELECT @AssetID AS AssetID, @PriceDate AS PriceDate) AS source ON (target.AssetID = source.AssetID AND target.PriceDate = source.PriceDate)
                         WHEN NOT MATCHED THEN INSERT (AssetID, PriceDate, ClosePrice) VALUES (@AssetID, @PriceDate, @ClosePrice);";
-                    foreach (var value in apiData.Values.OrderByDescending(v => v.Datetime).Take(days))
+                    foreach (var value in values)
                     {
-                        prices.Add(value.Close);
                         using (var mergeCmd = new SqlCommand(mergeQuery, con))
                         {
                             mergeCmd.Parameters.AddWithValue("@AssetID", assetId);
-                            mergeCmd.Parameters.AddWithValue("@PriceDate", value.Datetime);
-                            mergeCmd.Parameters.AddWithValue("@ClosePrice", value.Close);
+                            mergeCmd.Parameters.AddWithValue("@PriceDate", value.Date);
+                            mergeCmd.Parameters.AddWithValue("@ClosePrice", value.Price);
                             await mergeCmd.ExecuteNonQueryAsync();
                         }
                     }
+                    return values.OrderByDescending(p => p.Date).Take(days).ToList();
                 }
             }
-            return prices;
+            return new List<HistoricalPrice>();
         }
 
-        private int CalculateVolatility(Dictionary<int, List<decimal>> historicalData)
-        {
-            if (historicalData == null || !historicalData.Any()) return 0;
-            var portfolioReturns = new List<decimal>();
-            int maxPoints = historicalData.Values.Min(v => v.Count);
-            if (maxPoints < 2) return 0;
-            for (int i = 0; i < maxPoints - 1; i++)
-            {
-                decimal yesterdayValue = historicalData.Sum(kvp => kvp.Value[i + 1]);
-                decimal todayValue = historicalData.Sum(kvp => kvp.Value[i]);
-                if (yesterdayValue != 0)
-                {
-                    portfolioReturns.Add((todayValue - yesterdayValue) / yesterdayValue);
-                }
-            }
-            if (!portfolioReturns.Any()) return 0;
-            decimal avgReturn = portfolioReturns.Average();
-            double variance = (double)portfolioReturns.Sum(r => (r - avgReturn) * (r - avgReturn)) / portfolioReturns.Count;
-            double stdDev = Math.Sqrt(variance);
-            if (stdDev > 0.05) return 5;
-            if (stdDev > 0.03) return 4;
-            if (stdDev > 0.02) return 3;
-            if (stdDev > 0.01) return 2;
-            if (stdDev > 0) return 1;
-            return 0;
-        }
-
-        private int CalculateRiskScore(List<PortfolioAsset> assets, int volatilityScore)
-        {
-            if (!assets.Any()) return 0;
-            double totalValue = (double)assets.Sum(a => a.Quantity * a.CurrentPrice);
-            if (totalValue == 0) return 0;
-            double weightedRisk = 0;
-            foreach (var asset in assets)
-            {
-                int assetRisk = 3;
-                switch (asset.AssetType?.ToLower())
-                {
-                    case "cryptocurrency": assetRisk = 5; break;
-                    case "bond": case "government bond": assetRisk = 1; break;
-                    case "real estate": case "reit": assetRisk = 2; break;
-                }
-                weightedRisk += assetRisk * ((double)(asset.Quantity * asset.CurrentPrice) / totalValue);
-            }
-            return (int)Math.Round((weightedRisk + volatilityScore) / 2.0, MidpointRounding.AwayFromZero);
-        }
-
-        private async Task<List<CorrelationRow>> CalculateCorrelationMatrixAsync(List<PortfolioAsset> assets, Dictionary<int, List<decimal>> historicalData)
+        private List<CorrelationRow> CalculateCorrelationMatrix(List<PortfolioAsset> assets, Dictionary<int, List<decimal>> historicalData)
         {
             var historicalReturns = new Dictionary<string, List<decimal>>();
             foreach (var asset in assets)
             {
-                var prices = historicalData[asset.AssetId];
-                var returns = new List<decimal>();
-                for (int i = 0; i < prices.Count - 1; i++)
+                if (historicalData.ContainsKey(asset.AssetId))
                 {
-                    if (prices[i + 1] != 0) returns.Add((prices[i] - prices[i + 1]) / prices[i + 1]);
+                    var prices = historicalData[asset.AssetId];
+                    var returns = new List<decimal>();
+                    for (int i = 0; i < prices.Count - 1; i++)
+                    {
+                        if (prices[i + 1] != 0) returns.Add((prices[i] - prices[i + 1]) / prices[i + 1]);
+                    }
+                    historicalReturns[asset.Symbol] = returns;
                 }
-                historicalReturns[asset.Symbol] = returns;
             }
             var matrix = new List<CorrelationRow>();
             foreach (var assetA in assets)
@@ -334,7 +298,14 @@ namespace bipj
                 var row = new CorrelationRow { Symbol = assetA.Symbol };
                 foreach (var assetB in assets)
                 {
-                    row.Correlations.Add(CalculatePearsonCorrelation(historicalReturns[assetA.Symbol], historicalReturns[assetB.Symbol]));
+                    if (historicalReturns.ContainsKey(assetA.Symbol) && historicalReturns.ContainsKey(assetB.Symbol))
+                    {
+                        row.Correlations.Add(CalculatePearsonCorrelation(historicalReturns[assetA.Symbol], historicalReturns[assetB.Symbol]));
+                    }
+                    else
+                    {
+                        row.Correlations.Add(0);
+                    }
                 }
                 matrix.Add(row);
             }
@@ -398,13 +369,33 @@ namespace bipj
             return new string('★', score) + new string('☆', 5 - score);
         }
 
+        // ✅ REFACTORED: This method now calculates a smooth gradient from red to green.
         public string GetColorForCorrelation(double correlation)
         {
-            if (correlation > 0.7) return "#d4edda";
-            if (correlation > 0.3) return "#e2e3e5";
-            if (correlation < -0.7) return "#f8d7da";
-            if (correlation < -0.3) return "#f5c6cb";
-            return "#ffffff";
+            // Clamp the value between -1 and 1 to handle any edge cases.
+            correlation = Math.Max(-1.0, Math.Min(1.0, correlation));
+
+            int r, g, b;
+
+            if (correlation >= 0)
+            {
+                // Positive correlation: Interpolate from White (255, 255, 255) to Green (34, 139, 34)
+                // We use a slightly darker green for better visibility.
+                r = (int)(255 - (255 - 34) * correlation);
+                g = (int)(255 - (255 - 139) * correlation);
+                b = (int)(255 - (255 - 34) * correlation);
+            }
+            else
+            {
+                // Negative correlation: Interpolate from Red (220, 20, 60) to White (255, 255, 255)
+                // We use a crimson red. The interpolation factor is the absolute value.
+                double factor = Math.Abs(correlation);
+                r = (int)(255 - (255 - 220) * factor);
+                g = (int)(255 - (255 - 20) * factor);
+                b = (int)(255 - (255 - 60) * factor);
+            }
+
+            return $"#{r:X2}{g:X2}{b:X2}";
         }
 
         #endregion
@@ -437,7 +428,13 @@ namespace bipj
             public decimal Close { get; set; }
         }
 
-        // ✅ NEW CLASS: A container for all calculated dashboard data to be stored in the cache.
+        [Serializable]
+        private class HistoricalPrice
+        {
+            public DateTime Date { get; set; }
+            public decimal Price { get; set; }
+        }
+
         [Serializable]
         public class DashboardData
         {
@@ -462,7 +459,6 @@ namespace bipj
                 RiskScore = CalculateRiskScore(assets, VolatilityScore);
             }
 
-            // These calculation methods are copied from the main class to be self-contained.
             private int CalculateVolatility(Dictionary<int, List<decimal>> historicalData)
             {
                 if (historicalData == null || !historicalData.Any()) return 0;

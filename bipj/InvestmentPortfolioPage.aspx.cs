@@ -392,10 +392,12 @@ namespace bipj
                 int portfolioAssetId = Convert.ToInt32(gvPortfolioAssets.DataKeys[rowIndex].Value);
                 using (SqlConnection conn = new SqlConnection(DbConstr))
                 {
-                    string deleteQuery = "DELETE FROM PortfolioAssets WHERE PortfolioAssetID = @PortfolioAssetID";
-                    using (SqlCommand cmd = new SqlCommand(deleteQuery, conn))
+                    string commandText = @"DELETE FROM PortfolioAssets WHERE PortfolioAssetID = @PortfolioAssetID;
+                                           UPDATE Portfolios SET LastUpdatedAt = GETDATE() WHERE PortfolioID = @PortfolioID;";
+                    using (SqlCommand cmd = new SqlCommand(commandText, conn))
                     {
                         cmd.Parameters.AddWithValue("@PortfolioAssetID", portfolioAssetId);
+                        cmd.Parameters.AddWithValue("@PortfolioID", this.PortfolioID);
                         await conn.OpenAsync();
                         await cmd.ExecuteNonQueryAsync();
                     }

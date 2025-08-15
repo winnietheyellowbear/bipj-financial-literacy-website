@@ -299,6 +299,7 @@
     <Content Include="InvestmentPortfolioPage.aspx" />
     <Content Include="JarDetails.aspx" />
     <Content Include="Jars.aspx" />
+    <Content Include="Landing.aspx" />
     <Content Include="Loginpage.aspx" />
     <Content Include="ManageEducation.aspx" />
     <Content Include="MyNotification.aspx" />
@@ -587,6 +588,13 @@
     </Compile>
     <Compile Include="Jars.aspx.designer.cs">
       <DependentUpon>Jars.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Landing.aspx.cs">
+      <DependentUpon>Landing.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Landing.aspx.designer.cs">
+      <DependentUpon>Landing.aspx</DependentUpon>
     </Compile>
     <Compile Include="Loginpage.aspx.cs">
       <DependentUpon>Loginpage.aspx</DependentUpon>

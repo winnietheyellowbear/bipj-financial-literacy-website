@@ -212,7 +212,7 @@ namespace bipj.Models
                             INSERT INTO JarTransactions
                               (UserId, JarId, Name, Amount, Date, TransactionType, Category)
                             VALUES
-                              (@U, @J, @N, @A, @D, 'Income', 'Uncompleted goals')", conn, trans))
+                              (@U, @J, @N, @A, @D, 'Transfer', 'Uncompleted goals')", conn, trans))
                                 {
                                     txnCmd.Parameters.AddWithValue("@U", UserId);
                                     txnCmd.Parameters.AddWithValue("@J", refundJarId);
@@ -221,14 +221,7 @@ namespace bipj.Models
                                     txnCmd.Parameters.AddWithValue("@D", DateTime.Now);
                                     txnCmd.ExecuteNonQuery();
                                 }
-
-                                using (var delGoalTx = new SqlCommand(
-                                "DELETE FROM GoalTransactions WHERE GoalId=@G AND UserId=@U", conn, trans))
-                                {
-                                    delGoalTx.Parameters.AddWithValue("@G", GoalId);
-                                    delGoalTx.Parameters.AddWithValue("@U", UserId);
-                                    delGoalTx.ExecuteNonQuery();
-                                }
+                               
                             }
                         }
 

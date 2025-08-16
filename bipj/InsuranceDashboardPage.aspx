@@ -1,18 +1,20 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Customer_Nav_loggedin.Master" AutoEventWireup="true" CodeBehind="InsuranceDashboardPage.aspx.cs" Inherits="bipj.InsuranceDashboardPage" Async="true" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .policy-column {
+            display: flex;
+            flex-direction: column;
+        }
+        /* ✅ This ensures the card itself will stretch to the full height of the column */
+        .policy-card {
+            flex-grow: 1;
+        }
+    </style>
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
     <div class="container mt-4">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h3 mb-0">
-                <asp:Literal ID="litPlanName" runat="server">Plan Dashboard</asp:Literal>
-            </h1>
-            <asp:Button ID="btnViewComparison" runat="server" Text="View Detailed Analysis" OnClick="btnViewComparison_Click"
-                    CssClass="btn btn-info me-2" />
-            <asp:Button ID="btnBackToPlans" runat="server" Text="&larr; Back to All Plans" OnClick="btnBackToPlans_Click"
-                CssClass="btn btn-outline-secondary" />
-        </div>
+        
 
         <asp:Panel ID="pnlLoading" runat="server" CssClass="text-center py-5" Visible="false">
             <div class="spinner-border text-primary" role="status">
@@ -25,7 +27,7 @@
             <div class="row g-4">
                 <!-- Section for the Pie Chart and Budget -->
                 <div class="col-lg-5">
-                    <div class="card h-100 shadow-sm">
+                    <div class="card h-100 shadow-sm my-4">
                         <div class="card-body">
                             <h5 class="card-title">Recommended Budget Allocation</h5>
                             <hr />
@@ -39,7 +41,7 @@
 
                 <!-- Section for the Recommendation Cards -->
                 <div class="col-lg-7">
-                    <h5 class="mb-3">AI Recommended Insurance Strategy</h5>
+                    <h5 class="mb-3 my-4">Recommended Insurance Strategy</h5>
                     <asp:Repeater ID="rptRecommendations" runat="server">
                         <ItemTemplate>
                             <div class="card shadow-sm mb-3">
@@ -57,19 +59,30 @@
             <!-- Section for Policy Comparison -->
             <div class="card shadow-sm">
                  <div class="card-body">
-                    <h5 class="card-title">AI Recommended Policies & Comparison</h5>
+                    <h5 class="card-title">Recommended Policies</h5>
                      <hr />
-                     <%-- This outer repeater creates the columns --%>
+                     <%-- ✅ NEW: Filter Buttons --%>
+                     <div class="text-center mb-4">
+                         <div class="btn-group flex-wrap" role="group" aria-label="Insurance Type Filter">
+                             <button type="button" class="btn btn-primary filter-btn active" data-filter="all">All</button>
+                             <asp:Repeater ID="rptFilterButtons" runat="server">
+                                 <ItemTemplate>
+                                     <button type="button" class="btn btn-outline-primary filter-btn" data-filter="<%# Container.DataItem %>"><%# Container.DataItem %></button>
+                                 </ItemTemplate>
+                             </asp:Repeater>
+                         </div>
+                     </div>
+
                      <div class="row row-cols-1 row-cols-md-3 row-cols-lg-5 g-4">
                          <asp:Repeater ID="rptPolicyCategories" runat="server">
                              <ItemTemplate>
-                                 <div class="col policy-column">
+                                 <%-- ✅ NEW: Added data-category attribute --%>
+                                 <div class="col policy-column" data-category="<%# Eval("InsuranceType") %>">
                                      <h6 class="text-center fw-bold mb-3"><%# Eval("InsuranceType") %></h6>
-                                     <%-- This nested repeater creates the cards within each column --%>
                                      <asp:Repeater ID="rptPolicies" runat="server" DataSource='<%# Eval("RecommendedPolicies") %>'>
                                          <ItemTemplate>
-                                             <div class="card shadow-sm mb-3 policy-card">
-                                                 <div class="card-body">
+                                             <div class="card shadow-sm mb-3 policy-card d-flex flex-column">
+                                                 <div class="card-body flex-grow-1">
                                                      <h6 class="card-title small fw-bold"><%# Eval("PolicyName") %></h6>
                                                      <p class="card-subtitle mb-2 text-muted small"><%# Eval("Provider") %></p>
                                                      <p class="card-text small"><%# Eval("Details") %></p>
@@ -91,6 +104,12 @@
                  <asp:Literal ID="litErrorMessage" runat="server"></asp:Literal>
              </p>
         </asp:Panel>
+        <div class="d-flex justify-content-between align-items-center my-4">
+            <asp:Button ID="btnBackToPlans" runat="server" Text="&larr; View All Plans" OnClick="btnBackToPlans_Click"
+                    CssClass="btn btn-outline-secondary" />
+            <asp:Button ID="btnViewComparison" runat="server" Text="View Policy Analysis" OnClick="btnViewComparison_Click"
+                    CssClass="btn btn-info" />
+        </div>
     </div>
 </asp:Content>
 <asp:Content ID="Content3" ContentPlaceHolderID="scripts" runat="server">
@@ -150,5 +169,31 @@
                 }
             });
         }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const policyColumns = document.querySelectorAll('.policy-column');
+
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    // Handle active button styling
+                    filterButtons.forEach(btn => btn.classList.remove('active', 'btn-primary'));
+                    filterButtons.forEach(btn => btn.classList.add('btn-outline-primary'));
+
+                    this.classList.add('active', 'btn-primary');
+                    this.classList.remove('btn-outline-primary');
+
+                    const filter = this.getAttribute('data-filter');
+
+                    policyColumns.forEach(column => {
+                        if (filter === 'all' || column.getAttribute('data-category') === filter) {
+                            column.style.visibility = 'visible'; // Use flex to maintain column layout
+                        } else {
+                            column.style.visibility = 'hidden';
+                        }
+                    });
+                });
+            });
+        });
     </script>
 </asp:Content>

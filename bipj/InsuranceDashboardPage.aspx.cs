@@ -144,6 +144,9 @@ namespace bipj
                     return;
                 }
 
+                rptFilterButtons.DataSource = policyCategories.Select(c => c.InsuranceType).ToList();
+                rptFilterButtons.DataBind();
+
                 rptPolicyCategories.DataSource = policyCategories;
                 rptPolicyCategories.DataBind();
             }
@@ -361,7 +364,6 @@ namespace bipj
                     cmd.Parameters.AddWithValue("@PlanID", PlanID);
                     con.Open();
                     object result = cmd.ExecuteScalar();
-                    if (result != null) litPlanName.Text = result.ToString();
                 }
             }
         }

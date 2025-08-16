@@ -15,33 +15,6 @@ namespace bipj
     {
 
         /// <summary>
-        /// litPlanName control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal litPlanName;
-
-        /// <summary>
-        /// btnViewComparison control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnViewComparison;
-
-        /// <summary>
-        /// btnBackToPlans control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnBackToPlans;
-
-        /// <summary>
         /// pnlLoading control.
         /// </summary>
         /// <remarks>
@@ -78,6 +51,15 @@ namespace bipj
         protected global::System.Web.UI.WebControls.Repeater rptRecommendations;
 
         /// <summary>
+        /// rptFilterButtons control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Repeater rptFilterButtons;
+
+        /// <summary>
         /// rptPolicyCategories control.
         /// </summary>
         /// <remarks>
@@ -103,5 +85,23 @@ namespace bipj
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Literal litErrorMessage;
+
+        /// <summary>
+        /// btnBackToPlans control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnBackToPlans;
+
+        /// <summary>
+        /// btnViewComparison control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnViewComparison;
     }
 }

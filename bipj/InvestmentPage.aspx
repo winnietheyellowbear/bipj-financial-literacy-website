@@ -95,6 +95,11 @@
             padding: 1.5rem;
         }
 
+        /* ✅ ADDED: This new rule makes the portfolio card titles bold. */
+        .portfolio-card .card-title {
+            font-weight: 700;
+        }
+
         .portfolio-stats {
             display: flex;
             justify-content: space-around;

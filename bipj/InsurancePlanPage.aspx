@@ -39,14 +39,14 @@ body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* ✅ UPDATED: Using new shadow and border-radius for the main container */
+/* ✅ MODIFIED: Removed background, padding, and shadow to eliminate the surrounding whitespace. */
 .container {
-    background: white;
-    border-radius: 1rem; /* Matched to card radius */
-    padding: 2rem;
+    background: transparent;
+    border-radius: 0;
+    padding: 0;
     margin-top: 2rem;
     margin-bottom: 2rem;
-    box-shadow: var(--shadow-md); /* Using the new shadow */
+    box-shadow: none;
 }
 
 /* ============================================
@@ -56,10 +56,9 @@ body {
 .card {
     background: white;
     border-radius: 1rem; /* Consistent 1rem radius */
-    border: none;
     overflow: hidden; /* Important for the border effect */
     position: relative;
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow-md); 
     transition: var(--transition-fast);
 }
 
@@ -184,7 +183,7 @@ body {
             </HeaderTemplate>
             <ItemTemplate>
                 <div class="col">
-                    <div class="card h-100 shadow-sm">
+                    <div class="card h-100">
                         <div class="card-body d-flex flex-column">
                             <h5 class="card-title"><%# Eval("PlanName") %></h5>
                             <p class="card-text text-muted small">Created: <%# Eval("CreatedAt", "{0:MMMM d, yyyy}") %></p>

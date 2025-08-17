@@ -561,9 +561,13 @@ body {
                             </div>
                         </div>
 
+                        <%-- ✅ MODIFIED: Separated the checkbox and label for proper Bootstrap alignment. --%>
                         <div class="mb-3">
                             <div class="form-check">
-                                <asp:CheckBox ID="chkHasDependents" runat="server" Text=" I have dependents" AutoPostBack="true" OnCheckedChanged="chkHasDependents_CheckedChanged" CssClass="form-check-input" />
+                                <asp:CheckBox ID="chkHasDependents" runat="server" AutoPostBack="true" OnCheckedChanged="chkHasDependents_CheckedChanged" CssClass="form-check-input" />
+                                <label class="form-check-label" for="<%=chkHasDependents.ClientID%>">
+                                    I have dependents
+                                </label>
                             </div>
                             <asp:Panel ID="pnlDependents" runat="server" Visible="false" class="mt-2">
                                  <label for="<%=txtNumberOfDependents.ClientID%>" class="form-label">Number of Dependents</label>

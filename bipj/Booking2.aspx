@@ -3,6 +3,12 @@
 <asp:Content ID="ContentHead" ContentPlaceHolderID="head" runat="server">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
+    /* Fix for navbar overlap */
+    #ContentPlaceHolder1 {
+      margin-top: 200px; /* Adjust this value based on your navbar height */
+      padding-top: 20px;
+    }
+
     .content-wrapper {
       display: flex;
       align-items: flex-start;
@@ -17,6 +23,10 @@
       padding: 24px;
       justify-content: center;
     }
+
+    body {
+  padding-top: 120px !important; 
+}
 
     .card {
       width: 360px;
@@ -198,6 +208,13 @@
     .filter-content .filter-item {
       margin-bottom: 20px;
     }
+
+    /* Alternative fix - if the above doesn't work, try this instead */
+    /*
+    body {
+      padding-top: 80px; 
+    }
+    */
   </style>
 </asp:Content>
 

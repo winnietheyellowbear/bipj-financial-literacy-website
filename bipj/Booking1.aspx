@@ -1,8 +1,12 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Customer_Nav_loggedin.Master" AutoEventWireup="true" CodeBehind="Booking1.aspx.cs" Inherits="bipj.Booking1" %>
-
-
 <asp:Content ID="ContentHead" ContentPlaceHolderID="head" runat="server">
   <style>
+  /* Fix for navbar overlap - add top margin to content */
+  #ContentPlaceHolder1 {
+    margin-top: 200px; /* Increased to push content further down */
+    padding-top: 20px;
+  }
+  
   /* STEP INDICATOR (Wizard) */
   .wizard {
     display: flex;
@@ -10,7 +14,6 @@
     margin: 30px 0;
     gap: 20px;
   }
-
   .wizard .step {
     width: 40px;
     height: 40px;
@@ -22,13 +25,11 @@
     font-weight: bold;
     font-size: 18px;
   }
-
   .wizard .step.active {
     background-color: #5e4b8b;
     border: 3px solid #d3c8ff;
     color: white;
   }
-
   /* CARD GRID */
   .card-grid {
     display: flex;
@@ -38,7 +39,6 @@
     max-width: 900px;
     flex-wrap: wrap;
   }
-
   .card {
     background: #ffffff;
     border-radius: 10px;
@@ -48,29 +48,24 @@
     width: 250px;
     transition: transform 0.3s ease;
   }
-
   .card:hover {
     transform: translateY(-5px);
   }
-
   .card i {
     font-size: 48px;
     margin-bottom: 15px;
     color: #3b3350;
   }
-
   .card h4 {
     font-size: 20px;
     margin-bottom: 10px;
     color: #3b3350;
   }
-
   .card p {
     font-size: 14px;
     color: #555;
     margin-bottom: 20px;
   }
-
   /* BUTTON STYLE */
   .btn-next {
     background-color: #5e4b8b;
@@ -82,19 +77,19 @@
     cursor: pointer;
     transition: background-color 0.3s ease;
   }
-
   .btn-next:hover {
     background-color: #473871;
   }
+  
+ body {
+  padding-top: 120px !important; 
+}
 </style>
-
 </asp:Content>
-
 <asp:Content ID="ContentBody" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
   <h2 style="text-align:center; margin-top:24px; color:#3b3350;">
     Step 1 — Choose Your Session Type
   </h2>
-
   <!-- PROGRESS HEADER (optional) -->
   <div class="wizard">
     <div class="step active" data-step="1">1</div>
@@ -103,7 +98,6 @@
     <div class="step"        data-step="4">4</div>
     <div class="step"        data-step="5">5</div>
   </div>
-
   <!-- CARD GRID -->
   <div class="card-grid">
     <!-- Individual Card -->
@@ -119,7 +113,6 @@
           CommandArgument="Individual" 
           OnClick="btnSelect_Click" />
     </div>
-
     <!-- Group Card -->
     <div class="card">
       <i class="fas fa-users"></i>
@@ -135,4 +128,3 @@
     </div>
   </div>
 </asp:Content>
-

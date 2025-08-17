@@ -274,7 +274,9 @@
     <Content Include="GoalDetails.aspx" />
     <Content Include="Goals.aspx" />
     <Content Include="Home.aspx" />
+    <Content Include="Images\advisor.jpeg" />
     <Content Include="Images\avatar_idle.png" />
+    <Content Include="Images\booking.jpg" />
     <Content Include="Images\calendar\calendar-day.png" />
     <Content Include="Images\calendar\calendar-month.png" />
     <Content Include="Images\calendar\calendar-week.png" />

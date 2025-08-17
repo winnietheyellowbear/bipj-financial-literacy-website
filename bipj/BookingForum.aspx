@@ -1,6 +1,24 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Customer_Nav_loggedin.Master" AutoEventWireup="true" CodeBehind="BookingForum.aspx.cs" Inherits="bipj.BookingForum" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
   <style>
+    /* Multiple approaches to fix navbar overlap */
+    body {
+      padding-top: 150px !important;
+    }
+    
+    #ContentPlaceHolder1 {
+      margin-top: 50px !important;
+      padding-top: 50px !important;
+    }
+    
+    .booking-container {
+      margin-top: 50px !important;
+    }
+    
+    h2 {
+      margin-top: 50px !important;
+    }
+    
     .booking-container {
       display: flex;
       flex-wrap: wrap;
@@ -67,47 +85,53 @@
         align-items: center;
       }
     }
+    
+    /* Alternative fix - if the above doesn't work, try this instead */
+    /*
+    body {
+      padding-top: 80px; 
+    }
+    */
   </style>
 </asp:Content>
-
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">
   <h2 style="text-align:center; margin-top:24px; color:#3b3350;">Workshop</h2>
   <div class="booking-container">
-    <!-- Apply as Advisor -->
-    <div class="booking-card">
-      <img src="images/become_advisor.jpg" alt="Become an Advisor" />
-      <div class="booking-card-body">
-        <div class="booking-card-title">Become a Financial Advisor</div>
-        <div class="booking-card-text">
-          Share your expertise and join our team of trusted advisors.  
-          Fill out a short form to get started.
-        </div>
-        <asp:HyperLink 
-            ID="hlApplyAdvisor" 
-            runat="server" 
-            NavigateUrl="RegisterAdvisor.aspx" 
-            CssClass="booking-btn">
-          Apply Now
-        </asp:HyperLink>
-      </div>
+   <!-- Apply as Advisor -->
+<div class="booking-card">
+  <img src="images/advisor.jpeg" alt="Become an Advisor" />
+  <div class="booking-card-body">
+    <div class="booking-card-title">Become a Financial Advisor</div>
+    <div class="booking-card-text">
+      Share your expertise and join our team of trusted advisors.  
+      Fill out a short form to get started.
     </div>
+    <asp:HyperLink 
+        ID="hlApplyAdvisor" 
+        runat="server" 
+        NavigateUrl="RegisterAdvisor.aspx" 
+        CssClass="booking-btn">
+      Apply Now
+    </asp:HyperLink>
+  </div>
+</div>
 
-    <!-- Book a Session -->
-    <div class="booking-card">
-      <img src="images/book_session.jpg" alt="Book a Session" />
-      <div class="booking-card-body">
-        <div class="booking-card-title">Book a Session</div>
-        <div class="booking-card-text">
-          Choose an advisor, select a date &amp; time, and reserve your one-on-one or group session.
-        </div>
-        <asp:HyperLink 
-            ID="hlBookSession" 
-            runat="server" 
-            NavigateUrl="Booking1.aspx" 
-            CssClass="booking-btn">
-          Book Now
-        </asp:HyperLink>
-      </div>
+<!-- Book a Session -->
+<div class="booking-card">
+  <img src="images/booking.jpg" alt="Book a Session" />
+  <div class="booking-card-body">
+    <div class="booking-card-title">Book a Session</div>
+    <div class="booking-card-text">
+      Choose an advisor, select a date &amp; time, and reserve your one-on-one or group session.
     </div>
+    <asp:HyperLink 
+        ID="hlBookSession" 
+        runat="server" 
+        NavigateUrl="Booking1.aspx" 
+        CssClass="booking-btn">
+      Book Now
+    </asp:HyperLink>
+  </div>
+</div>
   </div>
 </asp:Content>

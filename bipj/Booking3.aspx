@@ -12,6 +12,16 @@
   <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
 
   <style>
+    /* Fix for navbar overlap */
+    #ContentPlaceHolder1 {
+      margin-top: 200px; /* Adjust this value based on your navbar height */
+      padding-top: 20px;
+    }
+
+    body {
+  padding-top: 120px !important; 
+}
+
     /* ── WIZARD HEADER ── */
     .wizard { text-align:center; margin:40px 0; }
     .wizard .step {
@@ -57,6 +67,13 @@
       padding:10px 24px; cursor:pointer; font-size:1rem; margin-top:20px;
     }
     .btn-prev { background:#aaa; margin-right:10px; }
+
+    /* Alternative fix - if the above doesn't work, try this instead */
+    /*
+    body {
+      padding-top: 80px; 
+    }
+    */
   </style>
 </asp:Content>
 

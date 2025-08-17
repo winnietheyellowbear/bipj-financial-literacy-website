@@ -73,7 +73,6 @@
             border-radius: 20px;
             margin-bottom: 2rem;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            /* Make the header a flex container to align items */
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -91,7 +90,6 @@
             font-size: 1.1rem;
         }
 
-        /* NEW: Styles for the "Analyze" button */
         .analyze-button {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: #fff;
@@ -112,10 +110,10 @@
             box-shadow: 0 6px 20px rgba(118, 75, 162, 0.4);
         }
 
-        /* KPI Cards */
+        /* KPI Cards - Modified for 4 cards */
         .kpi-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
@@ -192,7 +190,7 @@
             color: #ef4444;
         }
 
-        /* Chart Sections */
+        /* Chart Sections - Modified for 3 charts */
         .chart-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
@@ -223,55 +221,8 @@
 
         .chart-container {
             position: relative;
-            height: 300px;
+            height: 350px;
             width: 100%;
-        }
-
-        /* Recent Activity */
-        .activity-section {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 2rem;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-
-        .activity-item {
-            display: flex;
-            align-items: center;
-            padding: 1rem 0;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-        }
-
-        .activity-item:last-child {
-            border-bottom: none;
-        }
-
-        .activity-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 1rem;
-            font-size: 1.1rem;
-            color: white;
-        }
-
-        .activity-content {
-            flex: 1;
-        }
-
-        .activity-title {
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 0.25rem;
-        }
-
-        .activity-time {
-            color: #666;
-            font-size: 0.85rem;
         }
 
         /* Color variants */
@@ -333,21 +284,8 @@
                 </a>
             </div>
 
+            <!-- 4 Small KPI Cards -->
             <div class="kpi-grid">
-                <div class="kpi-card">
-                    <div class="kpi-header">
-                        <div class="kpi-icon bg-blue">
-                            <i class="bi bi-people"></i>
-                        </div>
-                    </div>
-                    <div class="kpi-value" id="totalUsers">0</div>
-                    <div class="kpi-label">Total Users</div>
-                    <div class="kpi-change positive" id="userGrowthChange">
-                        <i class="bi bi-arrow-up"></i>
-                        Loading...
-                    </div>
-                </div>
-
                 <div class="kpi-card">
                     <div class="kpi-header">
                         <div class="kpi-icon bg-green">
@@ -378,47 +316,34 @@
 
                 <div class="kpi-card">
                     <div class="kpi-header">
+                        <div class="kpi-icon bg-teal">
+                            <i class="bi bi-target"></i>
+                        </div>
+                    </div>
+                    <div class="kpi-value" id="goalUsers">0</div>
+                    <div class="kpi-label">Users Using Financial Goals</div>
+                    <div class="kpi-change positive" id="goalGrowthChange">
+                        <i class="bi bi-arrow-up"></i>
+                        Loading...
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
                         <div class="kpi-icon bg-orange">
                             <i class="bi bi-calendar-check"></i>
                         </div>
                     </div>
                     <div class="kpi-value" id="advisorBookings">0</div>
-                    <div class="kpi-label">Advisor Bookings</div>
+                    <div class="kpi-label">User Bookings</div>
                     <div class="kpi-change positive" id="bookingGrowthChange">
-                        <i class="bi bi-arrow-up"></i>
-                        Loading...
-                    </div>
-                </div>
-
-                <div class="kpi-card">
-                    <div class="kpi-header">
-                        <div class="kpi-icon bg-pink">
-                            <i class="bi bi-trophy"></i>
-                        </div>
-                    </div>
-                    <div class="kpi-value" id="educationProgress">0</div>
-                    <div class="kpi-label">Education Completions</div>
-                    <div class="kpi-change positive" id="educationGrowthChange">
-                        <i class="bi bi-arrow-up"></i>
-                        Loading...
-                    </div>
-                </div>
-
-                <div class="kpi-card">
-                    <div class="kpi-header">
-                        <div class="kpi-icon bg-teal">
-                            <i class="bi bi-target"></i>
-                        </div>
-                    </div>
-                    <div class="kpi-value" id="financialGoals">0</div>
-                    <div class="kpi-label">Financial Goals Created</div>
-                    <div class="kpi-change positive" id="goalGrowthChange">
                         <i class="bi bi-arrow-up"></i>
                         Loading...
                     </div>
                 </div>
             </div>
 
+            <!-- 3 Large Charts -->
             <div class="chart-grid">
                 <div class="chart-section">
                     <div class="chart-header">
@@ -440,47 +365,12 @@
 
                 <div class="chart-section">
                     <div class="chart-header">
-                        <h3 class="chart-title">Education Module Performance</h3>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="educationChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="chart-section">
-                    <div class="chart-header">
-                        <h3 class="chart-title">Top Performing Advisors</h3>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="advisorChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="chart-section">
-                    <div class="chart-header">
                         <h3 class="chart-title">Community Engagement</h3>
                     </div>
                     <div class="chart-container">
                         <canvas id="forumChart"></canvas>
                     </div>
                 </div>
-
-                <div class="chart-section">
-                    <div class="chart-header">
-                        <h3 class="chart-title">Platform Analytics</h3>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="platformChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <div class="activity-section">
-                <div class="chart-header">
-                    <h3 class="chart-title">Recent Platform Activity</h3>
-                </div>
-                <div id="recentActivityContainer">
-                    </div>
             </div>
         </div>
     </div>

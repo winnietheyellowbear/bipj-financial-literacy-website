@@ -73,26 +73,42 @@ namespace bipj
                 messages = new[]
                 {
                     new {
-                        role = "system",
-                        content = @"You are a senior business intelligence analyst specializing in fintech and educational platforms. 
-                                   Your expertise includes user engagement analysis, feature adoption metrics, educational effectiveness, 
-                                   and platform optimization strategies. Provide detailed, actionable insights with specific recommendations.
-                                   
-                                   Format your response EXACTLY as follows:
-                                   HEALTH_SCORE: [number between 0-100]
-                                   
-                                   SUMMARY: [2-3 sentences about overall platform health]
-                                   
-                                   FINDINGS:
-                                   [Each finding should be in this format:]
-                                   FINDING_TYPE: [POSITIVE|NEGATIVE|NEUTRAL|INFO]
-                                   TITLE: [Brief title]
-                                   DESCRIPTION: [Detailed explanation]
-                                   METRICS: [Key numbers/percentages]
-                                   RECOMMENDATIONS: [Bullet point recommendations]
-                                   ---
-                                   [Next finding...]"
-                    },
+    role = "system",
+    content = @"You are a senior business intelligence analyst specializing in fintech and educational platforms. 
+               Your expertise includes user engagement analysis, feature adoption metrics, educational effectiveness, 
+               and platform optimization strategies. You have experience with the unique challenges and metrics 
+               of financial literacy platforms, which typically have different engagement patterns than social 
+               or entertainment platforms.
+
+               IMPORTANT: Use a balanced and constructive approach to scoring:
+               - Financial platforms naturally have lower but more meaningful engagement
+               - Focus on quality of interaction over quantity
+               - Consider the platform's comprehensive feature set as a strength
+               - Weight positive trends and user adoption favorably
+               - Use industry-appropriate benchmarks for financial education platforms
+               
+               SCORING GUIDELINES:
+               - 80-100: Excellent performance with strong engagement and growth
+               - 65-79: Good performance with solid foundations and positive trends
+               - 50-64: Moderate performance with clear improvement opportunities
+               - 35-49: Below average, needs focused improvements
+               - Below 35: Significant issues requiring immediate attention
+               
+               Format your response EXACTLY as follows:
+               HEALTH_SCORE: [number between 0-100]
+               
+               SUMMARY: [2-3 sentences about overall platform health, emphasizing constructive insights]
+               
+               FINDINGS:
+               [Each finding should be in this format:]
+               FINDING_TYPE: [POSITIVE|NEGATIVE|NEUTRAL|INFO]
+               TITLE: [Brief, constructive title]
+               DESCRIPTION: [Balanced explanation that acknowledges context]
+               METRICS: [Key numbers/percentages with appropriate context]
+               RECOMMENDATIONS: [Bullet point recommendations that build on strengths]
+               ---
+               [Next finding...]"
+},
                     new { role = "user", content = prompt }
                 },
                 temperature = 0.3, // Lower temperature for more consistent analysis
@@ -405,33 +421,48 @@ namespace bipj
 
             prompt.AppendLine("ANALYSIS REQUIREMENTS:");
             prompt.AppendLine("---------------------");
-            prompt.AppendLine("1. Calculate an overall platform health score (0-100) considering:");
-            prompt.AppendLine("   - User engagement and retention rates");
-            prompt.AppendLine("   - Feature adoption across all tools");
-            prompt.AppendLine("   - Educational completion rates");
-            prompt.AppendLine("   - Community participation levels");
-            prompt.AppendLine("   - Growth trends and momentum");
+            prompt.AppendLine("1. Calculate an overall platform health score (0-100) using a GENEROUS scoring approach:");
+            prompt.AppendLine("   - Consider this a growing platform where moderate engagement levels are healthy");
+            prompt.AppendLine("   - Weight positive trends and user adoption favorably");
+            prompt.AppendLine("   - Account for the fact that financial platforms typically have lower engagement than social platforms");
+            prompt.AppendLine("   - Give credit for feature diversity and comprehensive offerings");
+            prompt.AppendLine("   - Use 60 as a baseline 'good' score, with scores below 40 indicating serious issues");
+            prompt.AppendLine("   - Consider engagement rates above 20% as strong, above 10% as healthy");
+            prompt.AppendLine("   - Factor in:");
+            prompt.AppendLine("     * User engagement and retention rates (weight: 25%)");
+            prompt.AppendLine("     * Feature adoption across all tools (weight: 25%)");
+            prompt.AppendLine("     * Educational completion rates (weight: 20%)");
+            prompt.AppendLine("     * Community participation levels (weight: 15%)");
+            prompt.AppendLine("     * Growth trends and momentum (weight: 15%)");
             prompt.AppendLine();
             prompt.AppendLine("2. Identify 4-6 key findings covering:");
-            prompt.AppendLine("   - POSITIVE aspects (what's working well)");
-            prompt.AppendLine("   - NEGATIVE issues (areas needing immediate attention)");
-            prompt.AppendLine("   - NEUTRAL observations (noteworthy patterns)");
-            prompt.AppendLine("   - INFO insights (opportunities for optimization)");
+            prompt.AppendLine("   - POSITIVE aspects (highlight what's working well and acknowledge progress)");
+            prompt.AppendLine("   - NEGATIVE issues (focus on actionable improvements rather than criticisms)");
+            prompt.AppendLine("   - NEUTRAL observations (noteworthy patterns and opportunities)");
+            prompt.AppendLine("   - INFO insights (optimization suggestions)");
             prompt.AppendLine();
             prompt.AppendLine("3. For each finding, provide:");
-            prompt.AppendLine("   - Clear, actionable title");
-            prompt.AppendLine("   - Detailed analysis with specific data points");
-            prompt.AppendLine("   - Relevant metrics that support your conclusion");
-            prompt.AppendLine("   - 3-4 specific, implementable recommendations");
+            prompt.AppendLine("   - Clear, constructive title");
+            prompt.AppendLine("   - Balanced analysis that recognizes both challenges and achievements");
+            prompt.AppendLine("   - Relevant metrics with context appropriate for a financial literacy platform");
+            prompt.AppendLine("   - 3-4 specific, implementable recommendations that build on existing strengths");
             prompt.AppendLine();
             prompt.AppendLine("4. Focus on:");
-            prompt.AppendLine("   - Cross-feature synergies and gaps");
-            prompt.AppendLine("   - User journey optimization");
-            prompt.AppendLine("   - Revenue and engagement opportunities");
-            prompt.AppendLine("   - Scalability and sustainability concerns");
-            prompt.AppendLine("   - Competitive positioning in fintech education");
+            prompt.AppendLine("   - Recognizing the unique challenges of financial education platforms");
+            prompt.AppendLine("   - Building on existing user engagement rather than criticizing low numbers");
+            prompt.AppendLine("   - Cross-feature synergies and optimization opportunities");
+            prompt.AppendLine("   - Sustainable growth strategies that work for the current user base");
+            prompt.AppendLine("   - Competitive positioning strengths in fintech education");
             prompt.AppendLine();
-            prompt.AppendLine("Provide detailed, data-driven insights that will help platform administrators make informed strategic decisions.");
+            prompt.AppendLine("SCORING CONTEXT:");
+            prompt.AppendLine("Remember that financial literacy platforms face unique challenges:");
+            prompt.AppendLine("- Users typically engage less frequently than social or entertainment platforms");
+            prompt.AppendLine("- Quality of engagement often matters more than quantity");
+            prompt.AppendLine("- Educational content has natural completion cycles");
+            prompt.AppendLine("- Professional services (advisors) have naturally lower but higher-value usage");
+            prompt.AppendLine("- Building financial habits takes time - measure progress, not perfection");
+            prompt.AppendLine();
+            prompt.AppendLine("Provide encouraging, data-driven insights that help administrators build on their platform's strengths while addressing areas for improvement.");
 
             return prompt.ToString();
         }

@@ -68,10 +68,10 @@
             flex-shrink: 0;
         }
 
-        /* Dashboard Cards Grid */
+        /* Dashboard Cards Grid - Updated for 3 cards */
         .dashboard-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
@@ -133,72 +133,6 @@
             margin: 0.25rem 0 0 0;
         }
 
-        /* Progress Cards Specific Styles */
-        .progress-card {
-            --card-gradient: linear-gradient(90deg, #48bb78, #38a169);
-        }
-
-        .progress-card .card-icon {
-            background: linear-gradient(135deg, #48bb78, #38a169);
-            color: white;
-        }
-
-        .lesson-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-        }
-
-        .lesson-item:last-child {
-            border-bottom: none;
-        }
-
-        .lesson-name {
-            font-weight: 600;
-            color: #2d3748;
-        }
-
-        .progress-bar {
-            flex-grow: 1;
-            height: 6px;
-            background: #e2e8f0;
-            border-radius: 3px;
-            margin: 0 1rem;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #48bb78, #68d391);
-            border-radius: 3px;
-            transition: width 0.3s ease;
-        }
-
-        .progress-percentage {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #48bb78;
-        }
-
-        .resume-btn {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 10px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .resume-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
         /* Quick Actions Card */
         .actions-card {
             --card-gradient: linear-gradient(90deg, #4299e1, #3182ce);
@@ -229,6 +163,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 0.9rem;
         }
 
         .action-btn:hover {
@@ -609,6 +544,12 @@
         }
 
         /* Responsive Design */
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
         @media (max-width: 768px) {
             .welcome-header {
                 flex-direction: column;
@@ -646,6 +587,34 @@
                 right: 20px;
                 width: 70px;
                 height: 70px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-btn {
+                font-size: 0.85rem;
+                padding: 0.6rem 0.8rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 0.5rem;
+            }
+            
+            .stat-item {
+                padding: 0.5rem;
+            }
+            
+            .stat-value {
+                font-size: 1.2rem;
+            }
+            
+            .stat-label {
+                font-size: 0.75rem;
             }
         }
     </style>
@@ -843,21 +812,6 @@
                 });
         }
 
-        // Function to update lesson progress dynamically (for future enhancement)
-        function updateLessonProgress(lessons) {
-            lessons.forEach((lesson, index) => {
-                const progressBar = document.querySelector(`.lesson-item:nth-child(${index + 1}) .progress-fill`);
-                const progressText = document.querySelector(`.lesson-item:nth-child(${index + 1}) .progress-percentage`);
-                const lessonName = document.querySelector(`.lesson-item:nth-child(${index + 1}) .lesson-name`);
-
-                if (progressBar && progressText && lessonName) {
-                    progressBar.style.width = lesson.Progress + '%';
-                    progressText.textContent = lesson.Progress + '%';
-                    lessonName.textContent = lesson.Name;
-                }
-            });
-        }
-
         // Function to refresh user stats dynamically (for future enhancement)
         function refreshUserStats() {
             fetch('<%= ResolveUrl("~/UserHomepage.aspx/GetUserStats") %>', {
@@ -941,49 +895,8 @@
                 </div>
             </div>
 
-            <!-- Dashboard Cards Grid -->
+            <!-- Dashboard Cards Grid - Now with 3 cards -->
             <div class="dashboard-grid">
-                <!-- Resume Lessons Card -->
-                <div class="dashboard-card progress-card">
-                    <div class="card-header">
-                        <div class="card-icon">
-                            📚
-                        </div>
-                        <div>
-                            <h3 class="card-title">Resume Lessons</h3>
-                            <p class="card-subtitle">Continue your learning journey</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Lesson progress will be populated from database -->
-                    <div class="lesson-item">
-                        <span class="lesson-name">Debt Management</span>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: 70%"></div>
-                        </div>
-                        <span class="progress-percentage">70%</span>
-                        <button class="resume-btn" onclick="location.href='Education.aspx'">Resume</button>
-                    </div>
-                    
-                    <div class="lesson-item">
-                        <span class="lesson-name">Investment Basics</span>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: 50%"></div>
-                        </div>
-                        <span class="progress-percentage">50%</span>
-                        <button class="resume-btn" onclick="location.href='Education.aspx'">Resume</button>
-                    </div>
-                    
-                    <div class="lesson-item">
-                        <span class="lesson-name">Insurance Planning</span>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: 90%"></div>
-                        </div>
-                        <span class="progress-percentage">90%</span>
-                        <button class="resume-btn" onclick="location.href='Education.aspx'">Resume</button>
-                    </div>
-                </div>
-
                 <!-- Quick Actions Card -->
                 <div class="dashboard-card actions-card">
                     <div class="card-header">

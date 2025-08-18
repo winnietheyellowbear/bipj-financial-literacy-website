@@ -49,7 +49,7 @@ namespace bipj
             {
                 // Load user data and populate the page
                 LoadUserData();
-                LoadUserLessons(); // Add this new method
+                LoadUserLessons();
 
                 // Set the hidden field for JavaScript access if needed
                 hdnUserId.Value = Session["UserId"].ToString();
@@ -222,6 +222,187 @@ namespace bipj
         {
             Response.Redirect("Discussion.aspx");
         }
+
+        #region Chat Handler with OpenAI Integration
+
+        [WebMethod]
+        [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
+        public static string ChatHandler(string message)
+        {
+            try
+            {
+                // Log the question to database (optional)
+                try
+                {
+                    LogChatQuestion(message);
+                }
+                catch (Exception dbEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Database logging failed: {dbEx.Message}");
+                    // Continue even if logging fails
+                }
+
+                // Get response from OpenAI
+                string response = GetOpenAIResponse(message);
+                return response;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in ChatHandler: {ex.ToString()}");
+                return "Oops! I'm having a little tech hiccup right now 🤖💔 Please try again in a moment!";
+            }
+        }
+
+        private static void LogChatQuestion(string question)
+        {
+            try
+            {
+                string connectionString = ConfigurationManager.ConnectionStrings["FinLitDB"].ConnectionString;
+
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    // Check if question exists
+                    string checkQuery = "SELECT Id FROM ChatQuestionTemplates WHERE Question = @Question";
+                    using (SqlCommand checkCmd = new SqlCommand(checkQuery, conn))
+                    {
+                        checkCmd.Parameters.AddWithValue("@Question", question);
+                        object existingId = checkCmd.ExecuteScalar();
+
+                        if (existingId != null)
+                        {
+                            // Update existing
+                            string updateQuery = @"UPDATE ChatQuestionTemplates 
+                                                 SET UsageCount = UsageCount + 1, 
+                                                     LastUsed = GETDATE() 
+                                                 WHERE Id = @Id";
+                            using (SqlCommand updateCmd = new SqlCommand(updateQuery, conn))
+                            {
+                                updateCmd.Parameters.AddWithValue("@Id", existingId);
+                                updateCmd.ExecuteNonQuery();
+                            }
+                        }
+                        else
+                        {
+                            // Insert new
+                            string insertQuery = @"INSERT INTO ChatQuestionTemplates (Question, UsageCount, LastUsed) 
+                                                 VALUES (@Question, 1, GETDATE())";
+                            using (SqlCommand insertCmd = new SqlCommand(insertQuery, conn))
+                            {
+                                insertCmd.Parameters.AddWithValue("@Question", question);
+                                insertCmd.ExecuteNonQuery();
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error logging chat question: {ex.Message}");
+            }
+        }
+
+        private static string GetOpenAIResponse(string userMessage)
+        {
+            try
+            {
+                string apiKey = ConfigurationManager.AppSettings["OpenAI_API_Key"];
+
+                if (string.IsNullOrEmpty(apiKey))
+                {
+                    return "Hmm, seems like my brain isn't plugged in properly! 🧠⚡ Please contact our support team to get this sorted out!";
+                }
+
+                // Enhanced system prompt with FinClarity context
+                var systemPrompt = @"You are Finny, the friendly and quirky AI assistant for FinClarity - a comprehensive financial literacy platform! 🚀, you can speak, write and read English, Chinese, Malay and tamil
+
+Here's what FinClarity offers:
+
+🏛️ **FORUM**: A community space where users share financial experiences, post blogs, comment, like posts, and use smart search filters to find information.
+
+📚 **EDUCATION**: Interactive learning modules created by our team, plus a fun Unity-based gamified learning experience on the landing page.
+
+🎯 **WORKSHOPS**: Book individual or group sessions with financial advisors. Users provide email and discussion details, then get email confirmations and Google Calendar reminders.
+
+💰 **FINANCIAL TOOLS** (3 main features):
+- **Insurance**: Create personalized insurance recommendations based on user forms
+- **Investment**: Build portfolios with real-time stocks/crypto prices, heat maps, graphs, and predictive values  
+- **Budgeting**: Two main features:
+  - **Jars**: 6 preset auto-created ""wallets"" that split income into percentages, track balances & transactions
+  - **Goals**: Set savings targets, add funds from jars or manually, track progress with dashboard charts
+
+📊 **DASHBOARD**: Shows balances, progress, charts, and transaction filters by date, plus tools for bulk transactions and spending analysis.
+
+Your personality: Be helpful, friendly, and slightly quirky! Keep responses concise (2-3 sentences max) so users don't get overwhelmed. Use emojis sparingly but effectively. Think of yourself as a knowledgeable friend who makes finance less scary and more approachable!
+
+Help users navigate FinClarity, answer questions about features, and guide them to the right sections. If they ask about specific financial advice, remind them about the workshop feature to book sessions with real advisors.";
+
+                var requestBody = new
+                {
+                    model = "gpt-3.5-turbo",
+                    messages = new[]
+                    {
+                        new
+                        {
+                            role = "system",
+                            content = systemPrompt
+                        },
+                        new
+                        {
+                            role = "user",
+                            content = userMessage
+                        }
+                    },
+                    temperature = 0.8,
+                    max_tokens = 200
+                };
+
+                using (var client = new HttpClient())
+                {
+                    // Set timeout
+                    client.Timeout = TimeSpan.FromSeconds(30);
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+
+                    string json = JsonConvert.SerializeObject(requestBody);
+                    var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                    // Synchronous calls
+                    var response = client.PostAsync("https://api.openai.com/v1/chat/completions", content).Result;
+                    var responseString = response.Content.ReadAsStringAsync().Result;
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        dynamic result = JsonConvert.DeserializeObject(responseString);
+                        return result.choices[0].message.content.ToString();
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"OpenAI Error: {response.StatusCode} - {responseString}");
+
+                        if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                        {
+                            return "Looks like my API credentials need a refresh! 🔑 Please contact our tech team.";
+                        }
+                        else if ((int)response.StatusCode == 429)
+                        {
+                            return "Whoa there! I'm getting too many questions at once! 😅 Give me a quick breather and try again.";
+                        }
+                        else
+                        {
+                            return "Something went a bit wonky on my end! 🤖💫 Please try asking again in a moment.";
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in GetOpenAIResponse: {ex.ToString()}");
+                return "I seem to be having a little brain freeze! 🧠❄️ Please try again in a moment.";
+            }
+        }
+
+        #endregion
 
         #region WebMethods for AJAX calls
 
@@ -497,10 +678,6 @@ namespace bipj
             }
         }
 
-        #endregion
-
-        #region Chat Handler (Enhanced Version)
-        // ... Keep all your existing chat handler code here ...
         #endregion
     }
 }
